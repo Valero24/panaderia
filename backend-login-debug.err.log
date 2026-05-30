@@ -1,0 +1,88 @@
+[31m[Nest] 17856  - [39m24/05/2026, 23:09:48 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +2ms[39m
+node:net:2008
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at ExpressAdapter.listen (C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\platform-express\adapters\express-adapter.js:115:32)
+    at C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\core\nest-application.js:188:30
+    at new Promise (<anonymous>)
+    at NestApplication.listen (C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\core\nest-application.js:178:16)
+    at async bootstrap (C:\Users\David Valero\Desktop\CARTAGENA\backend\src\main.ts:64:3) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
+
+Node.js v24.15.0
+[31m[Nest] 12252  - [39m24/05/2026, 23:17:00 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +4ms[39m
+node:net:2008
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at ExpressAdapter.listen (C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\platform-express\adapters\express-adapter.js:115:32)
+    at C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\core\nest-application.js:188:30
+    at new Promise (<anonymous>)
+    at NestApplication.listen (C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\core\nest-application.js:178:16)
+    at async bootstrap (C:\Users\David Valero\Desktop\CARTAGENA\backend\src\main.ts:64:3) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
+
+Node.js v24.15.0
+ERROR: no se encontr¢ el proceso "22840".
+ERROR: no se encontr¢ el proceso "22840".
+node:child_process:1000
+    throw err;
+    ^
+
+Error: Command failed: taskkill /pid 22840 /T /F
+ERROR: no se encontrï¿½ el proceso "22840".
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execSync (node:child_process:997:15)
+    at treeKillSync (C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\cli\lib\utils\tree-kill.js:7:38)
+    at C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\cli\actions\start.action.js:69:46
+    at Object.onWatchStatusChange (C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\@nestjs\cli\lib\compiler\watch-compiler.js:82:17)
+    at C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\typescript\lib\typescript.js:133916:30
+    at emitFilesAndReportErrors (C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\typescript\lib\typescript.js:133737:5)
+    at result.afterProgramCreate (C:\Users\David Valero\Desktop\CARTAGENA\backend\node_modules\typescript\lib\typescript.js:133912:5) {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    Buffer(0) [Uint8Array] [],
+    Buffer(43) [Uint8Array] [
+       69,  82,  82,  79,  82,  58, 32, 110, 111,
+       32, 115, 101,  32, 101, 110, 99, 111, 110,
+      116, 114, 162,  32, 101, 108, 32, 112, 114,
+      111,  99, 101, 115, 111,  32, 34,  50,  50,
+       56,  52,  48,  34,  46,  13, 10
+    ]
+  ],
+  pid: 6260,
+  stdout: Buffer(0) [Uint8Array] [],
+  stderr: Buffer(43) [Uint8Array] [
+     69,  82,  82,  79,  82,  58, 32, 110, 111,
+     32, 115, 101,  32, 101, 110, 99, 111, 110,
+    116, 114, 162,  32, 101, 108, 32, 112, 114,
+    111,  99, 101, 115, 111,  32, 34,  50,  50,
+     56,  52,  48,  34,  46,  13, 10
+  ]
+}
+
+Node.js v24.15.0

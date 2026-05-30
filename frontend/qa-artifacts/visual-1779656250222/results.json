@@ -1,0 +1,130 @@
+[
+  {
+    "viewport": "desktop",
+    "route": "/",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reser",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\desktop-home.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/alojamientos",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reser",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\desktop-alojamientos.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/alojamientos/8",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reser",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\desktop-alojamientos-8.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/experiencias",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reser",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\desktop-experiencias.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/paquetes",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reser",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\desktop-paquetes.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/checkout/8",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reser",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\desktop-checkout-8.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/admin",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reser",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\desktop-admin.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/admin/reservas",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reser",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\desktop-admin-reservas.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CARTAGENA LUXURY COLLECTION",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\mobile-home.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/alojamientos",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CARTAGENA LUXURY COLLECTION",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\mobile-alojamientos.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/alojamientos/8",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now Bocagrande, Cartagena cartag",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\mobile-alojamientos-8.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/experiencias",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CONCIERGE EXPERIENCES Expe",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\mobile-experiencias.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/paquetes",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now SIGNATURE CONCIERGE Paquet",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\mobile-paquetes.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/checkout/8",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now SOLICITUD CONCIERGE Comple",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\mobile-checkout-8.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/admin",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CARTAGENA Admin Panel Lux",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\mobile-admin.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/admin/reservas",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CARTAGENA Admin Panel Lux",
+    "exceptionCount": 0,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-1779656250222\\mobile-admin-reservas.png"
+  }
+]

@@ -1,0 +1,767 @@
+⚠ Port 3000 is in use by process 21464, using available port 3001 instead.
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m [33mSidebarAdmin[0m [36mfrom[0m [32m"@/components/admin/SidebarAdmin"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [33mAdminRouteGuard[0m [36mfrom[0m [32m"@/components/admin/admin-route-guard"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mAdminLayout[0m({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13891:21)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13335:52) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13828:21)
+[browser] Uncaught Error: ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (Error: ./app/admin/layout.tsx:1:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (Error: (./app/admin/layout.tsx:1:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+[browser] Uncaught Error: ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (Error: ./app/admin/layout.tsx:1:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (Error: (./app/admin/layout.tsx:1:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2834:28)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2679:13)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2324:17) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2834:28)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2679:13)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2324:17) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2834:28)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2679:13)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2324:17) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2834:28)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2679:13)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2324:17) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+[browser] ./app/admin/layout.tsx:1:1
+Module not found: Can't resolve '@/components/admin/SidebarAdmin'
+> 1 | import SidebarAdmin from "@/components/admin/SidebarAdmin";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import AdminRouteGuard from "@/components/admin/admin-route-guard";
+  3 |
+  4 | export default function AdminLayout({
+
+Import map: aliased to relative './components/admin/SidebarAdmin' inside of [project]/
+
+https://nextjs.org/docs/messages/module-not-found 
+    at handleErrors (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+    at processMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2834:28)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2679:13)
+    at WebSocket.handleMessage (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2324:17) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_client_0pe1dg-._.js:2773:21)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+⨯ [TypeError: fetch failed] {
+  digest: '3227098399',
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[browser] Uncaught TypeError: fetch failed
+    at resolveErrorDev (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:1919:150)
+    at processFullStringRow (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2434:29)
+    at processFullBinaryRow (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2393:9)
+    at processBinaryChunk (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2502:221)
+    at progress (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js:2689:13)
+[browser] TypeError: Failed to fetch
+    at handleSubmit (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0-t-g0r._.js:956:36)
+    at executeDispatch (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0-t-g0r._.js:981:21)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[browser] Login error: TypeError: Failed to fetch
+    at handleLogin (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:211:36)
+    at executeDispatch (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:237:21)
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[browser] Login error: TypeError: Failed to fetch
+    at handleLogin (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:211:36)
+    at executeDispatch (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:237:21)
+[browser] Login error: TypeError: Failed to fetch
+    at handleLogin (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:211:36)
+    at executeDispatch (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:237:21)
+[browser] Login error: TypeError: Failed to fetch
+    at handleLogin (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:211:36)
+    at executeDispatch (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:237:21)
+[browser] Login error: TypeError: Failed to fetch
+    at handleLogin (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:211:36)
+    at executeDispatch (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:237:21)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Login error: Error: USER_DISABLED
+    at handleLogin (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:229:23) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:237:21)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Login error: TypeError: Failed to fetch
+    at handleLogin (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:211:36)
+    at executeDispatch (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:237:21)
+[browser] Login error: TypeError: Failed to fetch
+    at handleLogin (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:211:36)
+    at executeDispatch (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0zf8tw7._.js:237:21)
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] TypeError: Failed to fetch
+    at fetchProperties (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:199:31)
+    at PublicPropertiesPage.useEffect (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:216:13)
+    at Object.react_stack_bottom_frame (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8689:33)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:208:21)
+[browser] TypeError: Failed to fetch
+    at fetchProperties (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:199:31)
+    at PublicPropertiesPage.useEffect (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:216:13)
+    at Object.react_stack_bottom_frame (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8779:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:208:21)
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[browser] TypeError: Failed to fetch
+    at fetchProperties (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:199:31)
+    at PublicPropertiesPage.useEffect (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:216:13)
+    at Object.react_stack_bottom_frame (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8689:33)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8693:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8688:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316)
+    at commitPassiveMountOnFiber (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8750:17)
+    at recursivelyTraversePassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8676:316) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:208:21)
+[browser] TypeError: Failed to fetch
+    at fetchProperties (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:199:31)
+    at PublicPropertiesPage.useEffect (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:216:13)
+    at Object.react_stack_bottom_frame (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15087:22)
+    at runWithFiberInDEV (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at commitHookEffectListMount (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7255:167)
+    at commitHookPassiveMountEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:7290:60)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8779:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8778:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13)
+    at reconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8793:17)
+    at recursivelyTraverseReconnectPassiveEffects (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:8766:13) (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/_0uiwbn6._.js:208:21)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/David Valero/Desktop/CARTAGENA/frontend/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)

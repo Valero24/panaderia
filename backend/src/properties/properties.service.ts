@@ -1,0 +1,601 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+
+import {
+  PrismaService,
+} from "../prisma/prisma.service";
+
+import {
+  BookingType,
+  MediaType,
+  PropertyStatus,
+} from "@prisma/client";
+
+@Injectable()
+export class PropertiesService {
+  constructor(
+    private readonly prisma: PrismaService
+  ) {}
+
+  // =====================================================
+  // HELPERS
+  // =====================================================
+
+  private generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-");
+  }
+
+  private toNumber(
+    value: any,
+    fallback: number | null = null
+  ): number | null {
+    if (
+      value === undefined ||
+      value === null ||
+      value === ""
+    ) {
+      return fallback;
+    }
+
+    const parsed = Number(value);
+
+    if (Number.isNaN(parsed)) {
+      return fallback;
+    }
+
+    return parsed;
+  }
+
+  private mapImages(images?: any[]) {
+    if (!Array.isArray(images) || images.length === 0) {
+      return undefined;
+    }
+
+    return {
+      create: images
+        .filter((image) => image.url?.trim())
+        .map((image, index) => ({
+          url: image.url.trim(),
+          mediaType:
+            image.mediaType === "VIDEO" ? MediaType.VIDEO : MediaType.IMAGE,
+          title: image.title?.trim() || null,
+          description: image.description?.trim() || null,
+          isPrimary: Boolean(image.isPrimary),
+          active: image.active ?? true,
+          sortOrder: image.sortOrder ?? index,
+        })),
+    };
+  }
+
+  // =====================================================
+  // FIND ALL
+  // =====================================================
+
+  async findAll() {
+    return this.prisma.property.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        images: {
+          where: { active: true },
+          orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+        },
+        extras: true,
+        features: true,
+      },
+    });
+  }
+
+  // =====================================================
+  // FIND ONE
+  // =====================================================
+
+  async findOne(id: number) {
+    const property =
+      await this.prisma.property.findUnique({
+        where: {
+          id: Number(id),
+        },
+        include: {
+          images: {
+            where: { active: true },
+            orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+          },
+          extras: true,
+          features: true,
+        },
+      });
+
+    if (!property) {
+      throw new NotFoundException(
+        "Property not found"
+      );
+    }
+
+    return property;
+  }
+
+  // =====================================================
+  // CREATE
+  // =====================================================
+
+  async create(data: any) {
+    if (!data.title?.trim()) {
+      throw new BadRequestException(
+        "Title is required"
+      );
+    }
+
+    if (!data.city?.trim()) {
+      throw new BadRequestException(
+        "City is required"
+      );
+    }
+
+    if (!data.area?.trim()) {
+      throw new BadRequestException(
+        "Area is required"
+      );
+    }
+
+    const pricePerNight = this.toNumber(
+      data.pricePerNight
+    );
+
+    if (!pricePerNight || pricePerNight <= 0) {
+      throw new BadRequestException(
+        "Invalid nightly price"
+      );
+    }
+
+    const slug =
+      data.slug?.trim() ||
+      this.generateSlug(data.title);
+
+    const existing =
+      await this.prisma.property.findUnique({
+        where: {
+          slug,
+        },
+      });
+
+    if (existing) {
+      throw new BadRequestException(
+        "Slug already exists"
+      );
+    }
+
+    return this.prisma.property.create({
+      data: {
+        // COMMERCIAL
+        title: data.title.trim(),
+        slug,
+        description:
+          data.description || "",
+
+        city: data.city.trim(),
+        area: data.area.trim(),
+        address:
+          data.address || null,
+        icalUrl:
+          data.icalUrl || null,
+
+        // PRICING
+        pricePerNight,
+
+        cleaningFee:
+          this.toNumber(
+            data.cleaningFee,
+            0
+          ) ?? 0,
+
+        serviceFee:
+          this.toNumber(
+            data.serviceFee,
+            0
+          ) ?? 0,
+
+        taxes:
+          this.toNumber(
+            data.taxes,
+            0
+          ) ?? 0,
+
+        // ADVANCED PRICING
+        basePrice:
+          this.toNumber(
+            data.basePrice,
+            pricePerNight
+          ) ?? pricePerNight,
+
+        twoGuestsIncrease:
+          this.toNumber(
+            data.twoGuestsIncrease,
+            0
+          ) ?? 0,
+
+        extraGuestIncrease:
+          this.toNumber(
+            data.extraGuestIncrease,
+            0
+          ) ?? 0,
+
+        highSeasonPrice:
+          this.toNumber(
+            data.highSeasonPrice
+          ),
+
+        lowSeasonPrice:
+          this.toNumber(
+            data.lowSeasonPrice
+          ),
+
+        // CAPACITY
+        maxGuests:
+          this.toNumber(
+            data.maxGuests,
+            1
+          ) ?? 1,
+
+        maxCapacity:
+          this.toNumber(
+            data.maxCapacity,
+            1
+          ) ?? 1,
+
+        bedrooms:
+          this.toNumber(
+            data.bedrooms,
+            1
+          ) ?? 1,
+
+        bathrooms:
+          this.toNumber(
+            data.bathrooms,
+            1
+          ) ?? 1,
+
+        minimumNights:
+          this.toNumber(
+            data.minimumNights,
+            1
+          ) ?? 1,
+
+        // RULES
+        allowsPets:
+          data.allowsPets ?? false,
+
+        allowsSmoking:
+          data.allowsSmoking ?? false,
+
+        allowsEvents:
+          data.allowsEvents ?? false,
+
+        allowsChildren:
+          data.allowsChildren ?? true,
+
+        checkInTime:
+          data.checkInTime || null,
+
+        checkOutTime:
+          data.checkOutTime || null,
+
+        cancellationPolicy:
+          data.cancellationPolicy || null,
+
+        // STATUS
+        status:
+          data.status ||
+          PropertyStatus.DRAFT,
+
+        // SEO
+        seoTitle:
+          data.seoTitle || null,
+
+        seoDescription:
+          data.seoDescription || null,
+
+        // INTERNAL
+        internalNotes:
+          data.internalNotes || null,
+
+        // GEO
+        latitude:
+          this.toNumber(
+            data.latitude
+          ),
+
+        longitude:
+          this.toNumber(
+            data.longitude
+          ),
+
+        images: this.mapImages(data.images),
+      },
+
+      include: {
+        images: true,
+        extras: true,
+        features: true,
+      },
+    });
+  }
+
+  // =====================================================
+  // UPDATE
+  // =====================================================
+
+  async update(
+    id: number,
+    data: any
+  ) {
+    const current = await this.findOne(id);
+
+    const payload: any = {};
+
+    if (data.title !== undefined) {
+      payload.title = String(
+        data.title
+      ).trim();
+    }
+
+    if (data.slug !== undefined) {
+      const slug = String(
+        data.slug
+      ).trim();
+
+      if (!slug) {
+        throw new BadRequestException(
+          "Slug is required"
+        );
+      }
+
+      if (slug !== current.slug) {
+        const existing =
+          await this.prisma.property.findUnique({
+            where: { slug },
+          });
+
+        if (existing && existing.id !== Number(id)) {
+          throw new BadRequestException(
+            "Slug already exists"
+          );
+        }
+      }
+
+      payload.slug = slug;
+    }
+
+    if (data.description !== undefined)
+      payload.description =
+        data.description;
+
+    if (data.city !== undefined)
+      payload.city = String(
+        data.city
+      ).trim();
+
+    if (data.area !== undefined)
+      payload.area = String(
+        data.area
+      ).trim();
+
+    if (data.address !== undefined)
+      payload.address = data.address;
+
+    if (data.icalUrl !== undefined)
+      payload.icalUrl = data.icalUrl || null;
+
+    if (data.pricePerNight !== undefined)
+      payload.pricePerNight = Number(
+        data.pricePerNight
+      );
+
+    if (data.cleaningFee !== undefined)
+      payload.cleaningFee = Number(
+        data.cleaningFee
+      );
+
+    if (data.serviceFee !== undefined)
+      payload.serviceFee = Number(
+        data.serviceFee
+      );
+
+    if (data.taxes !== undefined)
+      payload.taxes = Number(
+        data.taxes
+      );
+
+    if (data.basePrice !== undefined)
+      payload.basePrice = Number(
+        data.basePrice
+      );
+
+    if (
+      data.twoGuestsIncrease !==
+      undefined
+    )
+      payload.twoGuestsIncrease =
+        Number(
+          data.twoGuestsIncrease
+        );
+
+    if (
+      data.extraGuestIncrease !==
+      undefined
+    )
+      payload.extraGuestIncrease =
+        Number(
+          data.extraGuestIncrease
+        );
+
+    if (
+      data.highSeasonPrice !==
+      undefined
+    )
+      payload.highSeasonPrice =
+        data.highSeasonPrice;
+
+    if (
+      data.lowSeasonPrice !==
+      undefined
+    )
+      payload.lowSeasonPrice =
+        data.lowSeasonPrice;
+
+    if (data.maxGuests !== undefined)
+      payload.maxGuests = Number(
+        data.maxGuests
+      );
+
+    if (
+      data.maxCapacity !== undefined
+    )
+      payload.maxCapacity = Number(
+        data.maxCapacity
+      );
+
+    if (data.bedrooms !== undefined)
+      payload.bedrooms = Number(
+        data.bedrooms
+      );
+
+    if (data.bathrooms !== undefined)
+      payload.bathrooms = Number(
+        data.bathrooms
+      );
+
+    if (
+      data.minimumNights !== undefined
+    )
+      payload.minimumNights = Number(
+        data.minimumNights
+      );
+
+    if (data.allowsPets !== undefined)
+      payload.allowsPets =
+        data.allowsPets;
+
+    if (
+      data.allowsSmoking !== undefined
+    )
+      payload.allowsSmoking =
+        data.allowsSmoking;
+
+    if (
+      data.allowsEvents !== undefined
+    )
+      payload.allowsEvents =
+        data.allowsEvents;
+
+    if (
+      data.allowsChildren !==
+      undefined
+    )
+      payload.allowsChildren =
+        data.allowsChildren;
+
+    if (data.checkInTime !== undefined)
+      payload.checkInTime =
+        data.checkInTime;
+
+    if (
+      data.checkOutTime !== undefined
+    )
+      payload.checkOutTime =
+        data.checkOutTime;
+
+    if (
+      data.cancellationPolicy !==
+      undefined
+    )
+      payload.cancellationPolicy =
+        data.cancellationPolicy;
+
+    if (data.status !== undefined)
+      payload.status = data.status;
+
+    if (data.seoTitle !== undefined)
+      payload.seoTitle =
+        data.seoTitle;
+
+    if (
+      data.seoDescription !==
+      undefined
+    )
+      payload.seoDescription =
+        data.seoDescription;
+
+    if (
+      data.internalNotes !==
+      undefined
+    )
+      payload.internalNotes =
+        data.internalNotes;
+
+    if (data.latitude !== undefined)
+      payload.latitude =
+        data.latitude;
+
+    if (data.longitude !== undefined)
+      payload.longitude =
+        data.longitude;
+
+    if (data.images !== undefined) {
+      payload.images = {
+        deleteMany: {},
+        ...this.mapImages(data.images),
+      };
+    }
+
+    return this.prisma.property.update({
+      where: {
+        id: Number(id),
+      },
+      data: payload,
+      include: {
+        images: true,
+        extras: true,
+        features: true,
+      },
+    });
+  }
+
+  // =====================================================
+  // DELETE
+  // =====================================================
+
+  async remove(id: number) {
+    await this.findOne(id);
+
+    // delete bookings tied to this property
+    await this.prisma.booking.deleteMany({
+      where: {
+        type: BookingType.PROPERTY,
+        referenceId: Number(id),
+      },
+    });
+
+    // delete availability blocks
+    await this.prisma.availabilityBlock.deleteMany({
+      where: {
+        propertyId: Number(id),
+      },
+    });
+
+    // images / extras / features use CASCADE
+    return this.prisma.property.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+  }
+}

@@ -1,0 +1,178 @@
+[
+  {
+    "viewport": "desktop",
+    "route": "/",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reserve Now CARTAGENA LUXURY COLLECTION Ext",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\desktop-home.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/alojamientos",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reserve Now CARTAGENA LUXURY COLLECTION Alo",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\desktop-alojamientos.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/alojamientos/8",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reserve Now Bocagrande, Cartagena cartagena C",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\desktop-alojamientos-8.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/experiencias",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reserve Now CONCIERGE EXPERIENCES Experienc",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\desktop-experiencias.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/paquetes",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reserve Now SIGNATURE CONCIERGE Paquetes pr",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\desktop-paquetes.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/checkout/8",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reserve Now SOLICITUD CONCIERGE Completa tu",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\desktop-checkout-8.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/admin",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reserve Now CARTAGENA Admin Panel Luxury R",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\desktop-admin.png"
+  },
+  {
+    "viewport": "desktop",
+    "route": "/admin/reservas",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Alojamientos Experiencias Paquetes Admin Access Reserve Now CARTAGENA Admin Panel Luxury R",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 1366,
+    "clientWidth": 1366,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\desktop-admin-reservas.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CARTAGENA LUXURY COLLECTION Extraordinary Stays in Cartagena Priv",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\mobile-home.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/alojamientos",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CARTAGENA LUXURY COLLECTION Alojamientos en Cartagena Villas priv",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\mobile-alojamientos.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/alojamientos/8",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now Bocagrande, Cartagena cartagena Casa 1 3 huespedes 2 habitaciones 2 ",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\mobile-alojamientos-8.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/experiencias",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CONCIERGE EXPERIENCES Experiencias en Cartagena Estamos preparand",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\mobile-experiencias.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/paquetes",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now SIGNATURE CONCIERGE Paquetes premium Combinaremos alojamientos, e",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\mobile-paquetes.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/checkout/8",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now SOLICITUD CONCIERGE Completa tu solicitud en Cartagena Un asesor ",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 393,
+    "clientWidth": 390,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\mobile-checkout-8.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/admin",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CARTAGENA Admin Panel Luxury Reservation Platform Dashboard Aloj",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\mobile-admin.png"
+  },
+  {
+    "viewport": "mobile",
+    "route": "/admin/reservas",
+    "ok": true,
+    "textSample": "CARTAGENA Tailored Travel Admin Access Reserve Now CARTAGENA Admin Panel Luxury Reservation Platform Dashboard Aloj",
+    "exceptionCount": 0,
+    "horizontalOverflow": false,
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "screenshot": "C:\\Users\\David Valero\\Desktop\\CARTAGENA\\frontend\\qa-artifacts\\visual-fixed-1779656414444\\mobile-admin-reservas.png"
+  }
+]

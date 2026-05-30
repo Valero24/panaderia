@@ -1,0 +1,666 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum Role {
+  USER
+  ADMIN
+  ADVISOR
+  SUPERADMIN
+}
+
+enum BookingType {
+  PROPERTY
+  EXPERIENCE
+  PACKAGE
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  FEATURED
+  MAINTENANCE
+  ARCHIVED
+}
+
+enum AvailabilitySource {
+  SYSTEM
+  ADMIN
+  AIRBNB
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PreReservationStatus {
+  PENDING_ADVISOR
+  ASSIGNED
+  VALIDATING
+  AVAILABLE
+  UNAVAILABLE
+  PAYMENT_PENDING
+  PAID
+  CONFIRMED
+  CANCELLED
+}
+
+enum OperationalNotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+//////////////////////////////////////////////////////
+// USERS
+//////////////////////////////////////////////////////
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  password      String
+  phone         String?
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true)
+  deactivatedAt DateTime?
+  deletedAt     DateTime?
+  deletedById   Int?
+
+  createdAt DateTime @default(now())
+
+  bookings Booking[]
+
+  preReservationsAssigned PreReservation[] @relation("UserPreReservations")
+}
+
+//////////////////////////////////////////////////////
+// PROPERTIES
+//////////////////////////////////////////////////////
+
+model Property {
+  id Int @id @default(autoincrement())
+
+  //////////////////////////////////////////////////////
+  // COMMERCIAL
+  //////////////////////////////////////////////////////
+
+  title       String
+  slug        String @unique
+  description String
+
+  city    String
+  area    String
+  address String?
+  icalUrl String?
+
+  //////////////////////////////////////////////////////
+  // PRICING
+  //////////////////////////////////////////////////////
+
+  pricePerNight Float
+
+  cleaningFee Float @default(0)
+  serviceFee  Float @default(0)
+  taxes       Float @default(0)
+
+  //////////////////////////////////////////////////////
+  // ADVANCED PRICING
+  //////////////////////////////////////////////////////
+
+  basePrice          Float
+  twoGuestsIncrease  Float @default(0)
+  extraGuestIncrease Float @default(0)
+
+  highSeasonPrice Float?
+  lowSeasonPrice  Float?
+
+  //////////////////////////////////////////////////////
+  // CAPACITY
+  //////////////////////////////////////////////////////
+
+  maxGuests     Int
+  maxCapacity   Int
+  bedrooms      Int @default(1)
+  bathrooms     Int @default(1)
+  minimumNights Int @default(1)
+
+  //////////////////////////////////////////////////////
+  // RULES
+  //////////////////////////////////////////////////////
+
+  allowsPets     Boolean @default(false)
+  allowsSmoking  Boolean @default(false)
+  allowsEvents   Boolean @default(false)
+  allowsChildren Boolean @default(true)
+
+  checkInTime  String?
+  checkOutTime String?
+
+  cancellationPolicy String?
+
+  //////////////////////////////////////////////////////
+  // STATUS
+  //////////////////////////////////////////////////////
+
+  status PropertyStatus @default(DRAFT)
+
+  //////////////////////////////////////////////////////
+  // SEO
+  //////////////////////////////////////////////////////
+
+  seoTitle       String?
+  seoDescription String?
+
+  //////////////////////////////////////////////////////
+  // INTERNAL
+  //////////////////////////////////////////////////////
+
+  internalNotes String?
+
+  //////////////////////////////////////////////////////
+  // GEO
+  //////////////////////////////////////////////////////
+
+  latitude  Float?
+  longitude Float?
+
+  //////////////////////////////////////////////////////
+  // RELATIONS
+  //////////////////////////////////////////////////////
+
+  images             PropertyImage[]
+  extras             ExtraService[]
+  features           PropertyFeature[]
+  availabilityBlocks AvailabilityBlock[]
+
+  //////////////////////////////////////////////////////
+  // TIMESTAMPS
+  //////////////////////////////////////////////////////
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+//////////////////////////////////////////////////////
+// PROPERTY FEATURES
+//////////////////////////////////////////////////////
+
+model PropertyFeature {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  propertyId Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+//////////////////////////////////////////////////////
+// PROPERTY IMAGES
+//////////////////////////////////////////////////////
+
+model PropertyImage {
+  id Int @id @default(autoincrement())
+
+  url         String
+  mediaType   MediaType @default(IMAGE)
+  title       String?
+  description String?
+  isPrimary   Boolean   @default(false)
+  active      Boolean   @default(true)
+  sortOrder   Int?
+
+  propertyId Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+//////////////////////////////////////////////////////
+// EXPERIENCES
+//////////////////////////////////////////////////////
+
+model Experience {
+  id Int @id @default(autoincrement())
+
+  title            String
+  slug             String? @unique
+  shortDescription String
+  description      String
+
+  location  String
+  duration  String
+  maxGuests Int
+  basePrice Float
+  category  String
+  mainImage String?
+  active    Boolean @default(true)
+
+  policies        String?
+  recommendations String?
+
+  images ExperienceImage[]
+  extras ExtraService[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ExperienceImage {
+  id Int @id @default(autoincrement())
+
+  url         String
+  mediaType   MediaType @default(IMAGE)
+  title       String?
+  description String?
+  isPrimary   Boolean   @default(false)
+  active      Boolean   @default(true)
+  sortOrder   Int?
+
+  experienceId Int
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+//////////////////////////////////////////////////////
+// PACKAGES
+//////////////////////////////////////////////////////
+
+model Package {
+  id Int @id @default(autoincrement())
+
+  title            String
+  slug             String? @unique
+  shortDescription String
+  description      String
+
+  duration  String
+  location  String
+  maxGuests Int
+  basePrice Float
+  mainImage String?
+  category  String
+
+  includes        String?
+  notIncludes     String?
+  itinerary       String?
+  policies        String?
+  recommendations String?
+  active          Boolean @default(true)
+
+  images PackageImage[]
+  extras ExtraService[]
+  components PackageComponent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model PackageComponent {
+  id Int @id @default(autoincrement())
+
+  title            String
+  shortDescription String?
+  description      String?
+  includes         String?
+  excludes         String?
+  conditions       String?
+  duration         String?
+  recommendations String?
+  sortOrder        Int     @default(0)
+  active           Boolean @default(true)
+
+  packageId Int
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([packageId])
+  @@index([active])
+  @@index([sortOrder])
+}
+
+model PackageImage {
+  id Int @id @default(autoincrement())
+
+  url         String
+  mediaType   MediaType @default(IMAGE)
+  title       String?
+  description String?
+  isPrimary   Boolean   @default(false)
+  active      Boolean   @default(true)
+  sortOrder   Int?
+
+  packageId Int
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+//////////////////////////////////////////////////////
+// EXTRA SERVICES
+//////////////////////////////////////////////////////
+
+model ExtraService {
+  id Int @id @default(autoincrement())
+
+  name        String
+  description String?
+  price       Float
+  active      Boolean @default(true)
+
+  propertyId Int?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  experienceId Int?
+  experience   Experience? @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  packageId Int?
+  package   Package? @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([experienceId])
+  @@index([packageId])
+}
+
+//////////////////////////////////////////////////////
+// BOOKINGS
+//////////////////////////////////////////////////////
+
+model Booking {
+  id              Int     @id @default(autoincrement())
+  reservationCode String? @unique
+
+  preReservationId String?         @unique
+  preReservation   PreReservation? @relation(fields: [preReservationId], references: [id])
+
+  type        BookingType
+  referenceId Int
+  productName String?
+
+  checkIn  DateTime
+  checkOut DateTime?
+
+  guests   Int  @default(1)
+  adults   Int?
+  children Int?
+  infants  Int?
+
+  totalPrice     Float
+  taxesAmount    Float?
+  discountAmount Float?
+  selectedExtras Json?
+
+  customerName               String?
+  customerEmail              String?
+  customerPhone              String?
+  advisorId                  Int?
+  advisorName                String?
+  paymentMethod              String?
+  invoicePath                String?
+  confirmationEmailSentAt    DateTime?
+  confirmationWhatsappSentAt DateTime?
+  notificationLastError      String?
+  cancellationReason         String?
+  cancelledAt                DateTime?
+  cancelledById              Int?
+
+  status BookingStatus @default(PENDING)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([type, referenceId])
+  @@index([checkIn, checkOut])
+  @@index([preReservationId])
+}
+
+//////////////////////////////////////////////////////
+// AVAILABILITY
+//////////////////////////////////////////////////////
+
+model AvailabilityBlock {
+  id Int @id @default(autoincrement())
+
+  type        BookingType
+  referenceId Int
+
+  startDate DateTime
+  endDate   DateTime
+
+  source AvailabilitySource
+
+  expiresAt DateTime?
+  notes     String?
+
+  propertyId Int?
+  property   Property? @relation(fields: [propertyId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([type, referenceId])
+  @@index([startDate, endDate])
+}
+
+//////////////////////////////////////////////////////
+// PRE-RESERVATIONS
+//////////////////////////////////////////////////////
+
+model PreReservation {
+  id String @id @default(uuid())
+
+  customerName           String
+  email                  String
+  customerPhone          String?
+  customerCountry        String?
+  paymentMethodPreferred String?
+  specialRequests        String?
+  selectedExtras         Json?
+
+  totalPrice     Float  @default(0)
+  totalEstimate  Float?
+  discountAmount Float?
+  taxesAmount    Float?
+  finalTotal     Float?
+
+  checkIn  DateTime?
+  checkOut DateTime?
+  adults   Int?
+  children Int?
+  infants  Int?
+
+  status PreReservationStatus @default(PENDING_ADVISOR)
+
+  assignedToId Int?
+  assignedTo   User? @relation("UserPreReservations", fields: [assignedToId], references: [id])
+
+  internalNotes          String?
+  advisorNotes           String?
+  manualAdjustmentAmount Float?
+  lastModifiedById       Int?
+  reassignmentHistory    Json?
+  cancellationReason     String?
+  cancelledAt            DateTime?
+  cancelledById          Int?
+  archiveReason          String?
+  archivedAt             DateTime?
+  archivedById           Int?
+
+  items    PreReservationItem[]
+  payments Payment[]
+  booking  Booking?
+  operationalNotifications OperationalNotification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([checkIn, checkOut])
+  @@index([archivedAt])
+}
+
+//////////////////////////////////////////////////////
+// PRE-RESERVATION ITEMS
+//////////////////////////////////////////////////////
+
+model PreReservationItem {
+  id Int @id @default(autoincrement())
+
+  preReservationId String
+  preReservation   PreReservation @relation(fields: [preReservationId], references: [id], onDelete: Cascade)
+
+  type        BookingType
+  referenceId Int
+
+  name String?
+
+  unitPrice  Float?
+  quantity   Int    @default(1)
+  totalPrice Float?
+
+  guests Int     @default(1)
+  paid   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([type, referenceId])
+}
+
+//////////////////////////////////////////////////////
+// PAYMENTS
+//////////////////////////////////////////////////////
+
+model Payment {
+  id Int @id @default(autoincrement())
+
+  amount   Float
+  currency String @default("USD")
+  provider String @default("STRIPE")
+
+  status PaymentStatus @default(PENDING)
+
+  stripePaymentIntentId String? @unique
+  wompiReference        String? @unique
+  wompiPaymentLinkId    String? @unique
+  wompiTransactionId    String? @unique
+  paymentLinkUrl        String?
+
+  preReservationId String?
+  preReservation   PreReservation? @relation(fields: [preReservationId], references: [id])
+
+  bookingId Int?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([preReservationId])
+}
+
+model CompanySettings {
+  id Int @id @default(1)
+
+  logoUrl       String?
+  companyName   String  @default("Cartagena Tailored Travel")
+  legalId       String?
+  address       String?
+  phones        String?
+  email         String?
+  policies      String?
+  invoiceFooter String?
+  legalInfo     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ContactRequest {
+  id Int @id @default(autoincrement())
+
+  name         String
+  email        String
+  whatsapp     String
+  subject      String
+  message      String
+  interestType String
+
+  emailSentAt    DateTime?
+  emailLastError String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([interestType])
+  @@index([createdAt])
+}
+
+model OperationalNotification {
+  id Int @id @default(autoincrement())
+
+  channel   String
+  recipient String
+  message   String
+  status    OperationalNotificationStatus @default(PENDING)
+
+  provider      String?
+  error         String?
+  preReservationId String?
+  preReservation   PreReservation? @relation(fields: [preReservationId], references: [id])
+
+  createdAt DateTime @default(now())
+  sentAt    DateTime?
+
+  @@index([status])
+  @@index([preReservationId])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id Int @id @default(autoincrement())
+
+  actorId    Int?
+  actorRole  String?
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([action])
+}
