@@ -179,15 +179,45 @@ export default function ProductFeatureSelector({
     [features, productType]
   );
 
+  const applicableFeatureIds = useMemo(
+    () => new Set(applicableFeatures.map((feature) => feature.id)),
+    [applicableFeatures]
+  );
+
+  const applicableSelectedFeatureIds = useMemo(
+    () => selectedFeatureIds.filter((id) => applicableFeatureIds.has(id)),
+    [applicableFeatureIds, selectedFeatureIds]
+  );
+
+  useEffect(() => {
+    if (loading || error) return;
+
+    const normalized = applicableSelectedFeatureIds;
+    const current = selectedFeatureIds;
+    const changed =
+      normalized.length !== current.length ||
+      normalized.some((id, index) => id !== current[index]);
+
+    if (changed) {
+      onChange(normalized);
+    }
+  }, [loading, error, applicableSelectedFeatureIds, selectedFeatureIds, onChange]);
+
+  function emitApplicableSelection(featureIds: number[]) {
+    onChange([...new Set(featureIds)].filter((id) => applicableFeatureIds.has(id)));
+  }
+
   function toggleFeature(featureId: number) {
     if (disabled) return;
 
-    if (selectedFeatureIds.includes(featureId)) {
-      onChange(selectedFeatureIds.filter((id) => id !== featureId));
+    if (applicableSelectedFeatureIds.includes(featureId)) {
+      emitApplicableSelection(
+        applicableSelectedFeatureIds.filter((id) => id !== featureId)
+      );
       return;
     }
 
-    onChange([...selectedFeatureIds, featureId]);
+    emitApplicableSelection([...applicableSelectedFeatureIds, featureId]);
   }
 
   return (
@@ -203,10 +233,11 @@ export default function ProductFeatureSelector({
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
             Selecciona solo las caracteristicas que aplican a este producto. No
             se muestran filtros de otros tipos para evitar cruces en el catalogo.
+            Disponibles para este paso: {productTypeLabel(productType)} + Globales.
           </p>
         </div>
         <span className="rounded-full bg-[#0D2B52] px-3 py-1 text-xs font-semibold text-white">
-          {selectedFeatureIds.length} seleccionadas
+          {applicableSelectedFeatureIds.length} seleccionadas
         </span>
       </div>
 
@@ -227,7 +258,7 @@ export default function ProductFeatureSelector({
       ) : (
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {applicableFeatures.map((feature) => {
-            const selected = selectedFeatureIds.includes(feature.id);
+            const selected = applicableSelectedFeatureIds.includes(feature.id);
 
             return (
               <button

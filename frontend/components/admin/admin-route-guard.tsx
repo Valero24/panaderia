@@ -10,11 +10,15 @@ const superAdminOnlyPrefixes = [
   "/admin/pagos",
   "/admin/extras",
   "/admin/caracteristicas",
+  "/admin/sistema",
+  "/admin/logs",
   "/admin/imagenes",
   "/admin/disponibilidad",
   "/admin/alojamientos/crear",
   "/admin/alojamientos/editar",
   "/admin/alojamientos/imagenes",
+  "/admin/experiencias/crear",
+  "/admin/paquetes/crear",
 ];
 
 function clearSession() {
@@ -52,6 +56,9 @@ export default function AdminRouteGuard({
   const [restricted, setRestricted] = useState(false);
 
   useEffect(() => {
+    setAllowed(false);
+    setRestricted(false);
+
     const token = localStorage.getItem("token");
     const rawUser = localStorage.getItem("user");
 

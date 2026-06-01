@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { Edit3, Plus, Save, Search, Trash2, ToggleLeft } from "lucide-react";
 
 import AdminRoleGate from "@/components/admin/AdminRoleGate";
@@ -70,6 +72,9 @@ function toForm(feature: ProductFeature): FeatureForm {
 }
 
 function FeatureAdminContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useParams<{ id?: string }>();
   const [features, setFeatures] = useState<ProductFeature[]>([]);
   const [form, setForm] = useState<FeatureForm>(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -79,7 +84,12 @@ function FeatureAdminContent() {
   const [error, setError] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL_TYPES");
   const [statusFilter, setStatusFilter] = useState("ACTIVE");
+  const [categoryFilter, setCategoryFilter] = useState("ALL_CATEGORIES");
   const [search, setSearch] = useState("");
+  const isCreateRoute = pathname?.endsWith("/crear");
+  const isEditRoute = pathname?.endsWith("/editar");
+  const formMode = Boolean(isCreateRoute || isEditRoute);
+  const routeEditId = Number(params?.id || 0);
 
   async function fetchFeatures() {
     try {
@@ -110,6 +120,24 @@ function FeatureAdminContent() {
     fetchFeatures();
   }, []);
 
+  useEffect(() => {
+    if (!formMode) return;
+
+    if (isCreateRoute) {
+      startCreate();
+      return;
+    }
+
+    if (!isEditRoute || !routeEditId || features.length === 0) return;
+
+    const feature = features.find((item) => item.id === routeEditId);
+    if (feature) {
+      startEdit(feature);
+    } else if (!loading) {
+      setError("Caracteristica no encontrada.");
+    }
+  }, [formMode, isCreateRoute, isEditRoute, routeEditId, features, loading]);
+
   const filteredFeatures = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
@@ -119,14 +147,17 @@ function FeatureAdminContent() {
       const matchesStatus =
         statusFilter === "ALL_STATUS" ||
         (statusFilter === "ACTIVE" ? feature.active : !feature.active);
+      const matchesCategory =
+        categoryFilter === "ALL_CATEGORIES" ||
+        feature.category === categoryFilter;
       const matchesSearch =
         !normalizedSearch ||
         feature.name.toLowerCase().includes(normalizedSearch) ||
         feature.slug.toLowerCase().includes(normalizedSearch);
 
-      return matchesType && matchesStatus && matchesSearch;
+      return matchesType && matchesStatus && matchesCategory && matchesSearch;
     });
-  }, [features, search, statusFilter, typeFilter]);
+  }, [categoryFilter, features, search, statusFilter, typeFilter]);
 
   function updateForm(key: keyof FeatureForm, value: string | boolean) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -199,6 +230,9 @@ function FeatureAdminContent() {
       );
       setEditingId(data.id);
       await fetchFeatures();
+      if (formMode) {
+        router.push("/admin/caracteristicas");
+      }
     } catch (saveError: any) {
       setError(saveError?.message || "Error guardando caracteristica.");
     } finally {
@@ -280,12 +314,13 @@ function FeatureAdminContent() {
           </div>
 
           <Button
-            type="button"
-            onClick={startCreate}
+            asChild
             className="h-12 rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
           >
-            <Plus size={18} className="mr-2" />
-            Nueva caracteristica
+            <Link href="/admin/caracteristicas/crear">
+              <Plus size={18} className="mr-2" />
+              Nueva caracteristica
+            </Link>
           </Button>
         </div>
 
@@ -301,10 +336,11 @@ function FeatureAdminContent() {
           </div>
         )}
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid gap-6">
+          {!formMode && (
           <div className="space-y-5">
             <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
-              <CardContent className="grid gap-3 p-4 md:grid-cols-[1fr_180px_180px]">
+              <CardContent className="grid gap-3 p-4 md:grid-cols-[1fr_180px_180px_180px]">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
@@ -334,6 +370,18 @@ function FeatureAdminContent() {
                   <option value="ACTIVE">Activas</option>
                   <option value="INACTIVE">Inactivas</option>
                   <option value="ALL_STATUS">Todas</option>
+                </select>
+                <select
+                  value={categoryFilter}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="ALL_CATEGORIES">Todas las categorias</option>
+                  {categoryOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </CardContent>
             </Card>
@@ -380,13 +428,14 @@ function FeatureAdminContent() {
                         </Badge>
                         <div className="flex flex-wrap gap-2">
                           <Button
-                            type="button"
+                            asChild
                             variant="outline"
                             className="rounded-xl"
-                            onClick={() => startEdit(feature)}
                           >
-                            <Edit3 className="mr-2 h-4 w-4" />
-                            Editar
+                            <Link href={`/admin/caracteristicas/${feature.id}/editar`}>
+                              <Edit3 className="mr-2 h-4 w-4" />
+                              Editar
+                            </Link>
                           </Button>
                           <Button
                             type="button"
@@ -414,15 +463,19 @@ function FeatureAdminContent() {
               </div>
             )}
           </div>
+          )}
 
+          {formMode && (
           <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
             <CardContent className="space-y-5 p-5">
               <div>
                 <h2 className="text-2xl font-semibold text-[#0D2B52]">
-                  {editingId ? "Editar caracteristica" : "Nueva caracteristica"}
+                  {editingId ? "Editar caracteristica" : "Crear nueva caracteristica"}
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Elige en que tipo de producto puede usarse esta caracteristica.
+                  {editingId
+                    ? "Actualiza la informacion de esta caracteristica filtrable."
+                    : "Define una caracteristica filtrable para alojamientos, experiencias o paquetes."}
                 </p>
               </div>
 
@@ -446,6 +499,7 @@ function FeatureAdminContent() {
                 <select
                   value={form.appliesTo}
                   onChange={(event) => updateForm("appliesTo", event.target.value)}
+                  disabled={Boolean(editingId && features.find((item) => item.id === editingId)?._count?.assignments)}
                   className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
                 >
                   <option value="">Selecciona tipo de producto</option>
@@ -455,6 +509,11 @@ function FeatureAdminContent() {
                     </option>
                   ))}
                 </select>
+                {Boolean(editingId && features.find((item) => item.id === editingId)?._count?.assignments) && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-800">
+                    No puedes cambiar el tipo mientras existan asignaciones activas.
+                  </div>
+                )}
                 <select
                   value={form.category}
                   onChange={(event) => updateForm("category", event.target.value)}
@@ -488,10 +547,10 @@ function FeatureAdminContent() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={startCreate}
+                  onClick={() => router.push("/admin/caracteristicas")}
                   className="rounded-xl"
                 >
-                  Limpiar
+                  Cancelar
                 </Button>
                 <Button
                   type="button"
@@ -505,6 +564,7 @@ function FeatureAdminContent() {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       </div>
     </div>

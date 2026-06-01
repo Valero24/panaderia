@@ -1,11 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, ImageIcon, Play, X } from "lucide-react";
+import dynamic from "next/dynamic";
+import { ImageIcon, Play } from "lucide-react";
 
 import PublicImage from "@/components/PublicImage";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
+
+const ProductMediaLightbox = dynamic(
+  () => import("./ProductMediaLightbox"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="premium-reveal fixed inset-0 z-[100] flex items-center justify-center bg-[#071727]/95 text-white">
+        <div className="h-16 w-16 animate-pulse rounded-full border border-white/20 bg-white/10" />
+      </div>
+    ),
+  }
+);
 
 export type ProductMediaItem = {
   id?: number | string;
@@ -35,24 +48,6 @@ function isVideo(item: ProductMediaItem) {
   );
 }
 
-function embedUrl(url: string) {
-  const youtubeMatch = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/
-  );
-
-  if (youtubeMatch?.[1]) {
-    return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
-  }
-
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-
-  if (vimeoMatch?.[1]) {
-    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-  }
-
-  return null;
-}
-
 function MediaPreview({
   item,
   title,
@@ -63,22 +58,13 @@ function MediaPreview({
   className?: string;
 }) {
   const video = isVideo(item);
-  const embedded = video ? embedUrl(item.url) : null;
 
   return (
     <div className={`relative h-full w-full overflow-hidden bg-slate-200 ${className || ""}`}>
       {video ? (
-        embedded ? (
-          <iframe
-            src={embedded}
-            title={item.title || title}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <video src={item.url} className="h-full w-full object-cover" controls />
-        )
+        <div className="flex h-full w-full items-center justify-center bg-[#0D2B52]">
+          <Play className="h-8 w-8 fill-current text-white" />
+        </div>
       ) : (
         <PublicImage
           src={item.url}
@@ -139,10 +125,6 @@ export default function ProductMediaGallery({
   function openAt(index: number) {
     setActiveIndex(index);
     setOpen(true);
-  }
-
-  function move(step: number) {
-    setActiveIndex((current) => (current + step + items.length) % items.length);
   }
 
   if (items.length === 0) {
@@ -242,71 +224,12 @@ export default function ProductMediaGallery({
         </div>
 
         {open && (
-          <div className="premium-reveal fixed inset-0 z-[100] bg-[#071727]/95 text-white">
-            <div className="flex h-full flex-col">
-              <header className="flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-[#D4AF37]">
-                    {t("gallery.photoTour")}</p>
-                  <h2 className="mt-1 text-lg font-semibold sm:text-2xl">{title}</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="rounded-full border border-white/20 p-2 transition hover:bg-white/10"
-                  aria-label={t("gallery.close")}
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </header>
-
-              <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 py-5 sm:px-16">
-                {items.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => move(-1)}
-                      className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 transition hover:bg-white/20"
-                      aria-label={t("carousel.previous")}
-                    >
-                      <ChevronLeft className="h-6 w-6" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => move(1)}
-                      className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 transition hover:bg-white/20"
-                      aria-label={t("carousel.next")}
-                    >
-                      <ChevronRight className="h-6 w-6" />
-                    </button>
-                  </>
-                )}
-
-                <div className="h-full max-h-[68vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-black">
-                  <MediaPreview item={items[activeIndex]} title={title} />
-                </div>
-              </div>
-
-              <footer className="border-t border-white/10 px-4 py-4 sm:px-6">
-                <div className="flex gap-3 overflow-x-auto pb-1">
-                  {items.map((item, index) => (
-                    <button
-                      key={item.id || `${item.url}-${index}`}
-                      type="button"
-                      onClick={() => setActiveIndex(index)}
-                      className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition ${
-                        index === activeIndex
-                          ? "border-[#D4AF37]"
-                          : "border-white/10 opacity-70 hover:opacity-100"
-                      }`}
-                    >
-                      <MediaPreview item={item} title={title} />
-                    </button>
-                  ))}
-                </div>
-              </footer>
-            </div>
-          </div>
+          <ProductMediaLightbox
+            title={title}
+            items={items}
+            initialIndex={activeIndex}
+            onClose={() => setOpen(false)}
+          />
         )}
       </>
     );
@@ -377,71 +300,12 @@ export default function ProductMediaGallery({
       </div>
 
       {open && (
-        <div className="premium-reveal fixed inset-0 z-[100] bg-[#071727]/95 text-white">
-          <div className="flex h-full flex-col">
-            <header className="flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6">
-              <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-[#D4AF37]">
-                  {t("gallery.photoTour")}</p>
-                <h2 className="mt-1 text-lg font-semibold sm:text-2xl">{title}</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded-full border border-white/20 p-2 transition hover:bg-white/10"
-                aria-label={t("gallery.close")}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </header>
-
-            <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 py-5 sm:px-16">
-              {items.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => move(-1)}
-                    className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 transition hover:bg-white/20"
-                    aria-label={t("carousel.previous")}
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => move(1)}
-                    className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 transition hover:bg-white/20"
-                    aria-label={t("carousel.next")}
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </button>
-                </>
-              )}
-
-              <div className="h-full max-h-[68vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-black">
-                <MediaPreview item={items[activeIndex]} title={title} />
-              </div>
-            </div>
-
-            <footer className="border-t border-white/10 px-4 py-4 sm:px-6">
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {items.map((item, index) => (
-                  <button
-                    key={item.id || `${item.url}-${index}`}
-                    type="button"
-                    onClick={() => setActiveIndex(index)}
-                    className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition ${
-                      index === activeIndex
-                        ? "border-[#D4AF37]"
-                        : "border-white/10 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <MediaPreview item={item} title={title} />
-                  </button>
-                ))}
-              </div>
-            </footer>
-          </div>
-        </div>
+        <ProductMediaLightbox
+          title={title}
+          items={items}
+          initialIndex={activeIndex}
+          onClose={() => setOpen(false)}
+        />
       )}
     </>
   );

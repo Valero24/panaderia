@@ -1,0 +1,157 @@
+import type { AdminMediaItem } from "@/components/admin/MediaGalleryEditor";
+import type { ProductWizardStep } from "@/components/admin/ProductWizardProgress";
+
+export type Experience = {
+  id: number;
+  title: string;
+  slug?: string | null;
+  shortDescription: string;
+  description: string;
+  location: string;
+  duration: string;
+  maxGuests: number;
+  basePrice: number;
+  category: string;
+  mainImage?: string | null;
+  active: boolean;
+  policies?: string | null;
+  recommendations?: string | null;
+  images?: AdminMediaItem[];
+};
+
+export type ExtraService = {
+  id: number;
+  name: string;
+  description?: string | null;
+  price: number;
+  active: boolean;
+  experienceId?: number | null;
+};
+
+export type ExperienceForm = {
+  title: string;
+  slug: string;
+  shortDescription: string;
+  description: string;
+  location: string;
+  duration: string;
+  maxGuests: string;
+  basePrice: string;
+  category: string;
+  mainImage: string;
+  policies: string;
+  recommendations: string;
+  images: AdminMediaItem[];
+  active: boolean;
+};
+
+export type ExperienceFormUpdate = (
+  key: keyof ExperienceForm,
+  value: string | boolean | AdminMediaItem[]
+) => void;
+
+export type ExtraForm = {
+  name: string;
+  description: string;
+  price: string;
+};
+
+export type ExperienceWizardStep =
+  | "basic"
+  | "media"
+  | "features"
+  | "pricing"
+  | "premium"
+  | "review";
+
+export const experienceWizardSteps: ProductWizardStep<ExperienceWizardStep>[] = [
+  {
+    key: "basic",
+    label: "Informacion basica",
+    description: "Titulo, ubicacion, duracion y capacidad.",
+  },
+  {
+    key: "media",
+    label: "Multimedia",
+    description: "Imagen principal y galeria.",
+  },
+  {
+    key: "features",
+    label: "Caracteristicas filtrables",
+    description: "Filtros publicos EXPERIENCE + ALL de experiencias.",
+  },
+  {
+    key: "pricing",
+    label: "Precios y condiciones",
+    description: "Tarifa, politicas y recomendaciones.",
+  },
+  {
+    key: "premium",
+    label: "Servicios premium",
+    description: "Complementos opcionales.",
+  },
+  {
+    key: "review",
+    label: "Revision",
+    description: "Resumen antes de guardar.",
+  },
+];
+
+export const emptyForm: ExperienceForm = {
+  title: "",
+  slug: "",
+  shortDescription: "",
+  description: "",
+  location: "",
+  duration: "",
+  maxGuests: "1",
+  basePrice: "0",
+  category: "VIP",
+  mainImage: "",
+  policies: "",
+  recommendations: "",
+  images: [],
+  active: true,
+};
+
+export const emptyExtraForm: ExtraForm = {
+  name: "",
+  description: "",
+  price: "0",
+};
+
+export function money(value?: number | null) {
+  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
+}
+
+export function previewImage(experience: Experience) {
+  const images = (experience.images || []).filter(
+    (image) => image.active !== false && image.mediaType !== "VIDEO"
+  );
+
+  return (
+    experience.mainImage ||
+    images.find((image) => image.isPrimary)?.url ||
+    images[0]?.url ||
+    ""
+  );
+}
+
+export function toForm(experience: Experience): ExperienceForm {
+  return {
+    title: experience.title || "",
+    slug: experience.slug || "",
+    shortDescription: experience.shortDescription || "",
+    description: experience.description || "",
+    location: experience.location || "",
+    duration: experience.duration || "",
+    maxGuests: String(experience.maxGuests || 1),
+    basePrice: String(experience.basePrice || 0),
+    category: experience.category || "VIP",
+    mainImage: experience.mainImage || "",
+    policies: experience.policies || "",
+    recommendations: experience.recommendations || "",
+    images: experience.images || [],
+    active: Boolean(experience.active),
+  };
+}
