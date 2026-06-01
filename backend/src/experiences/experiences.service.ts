@@ -7,10 +7,24 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
+import { AuditService } from "../common/audit.service";
+import { ProductFeaturesService } from "../product-features/product-features.service";
+import { BookingType } from "@prisma/client";
+
+type AuditActor = {
+  userId?: number;
+  role?: string;
+  name?: string;
+  email?: string;
+};
 
 @Injectable()
 export class ExperiencesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly productFeatures: ProductFeaturesService
+  ) {}
 
   private generateSlug(title: string): string {
     return title
@@ -62,9 +76,18 @@ export class ExperiencesService {
     };
   }
 
-  async findAllPublic() {
+  async findAllPublic(features?: string) {
+    const featureProductIds =
+      await this.productFeatures.productIdsMatchingFeatures(
+        BookingType.EXPERIENCE,
+        features
+      );
+
     return this.prisma.experience.findMany({
-      where: { active: true },
+      where: {
+        active: true,
+        ...(featureProductIds ? { id: { in: featureProductIds } } : {}),
+      },
       include: {
         images: {
           where: { active: true },
@@ -124,7 +147,7 @@ export class ExperiencesService {
     return experience;
   }
 
-  async create(data: CreateExperienceDto) {
+  async create(data: CreateExperienceDto, actor?: AuditActor) {
     if (!data.title?.trim()) {
       throw new BadRequestException("Titulo requerido");
     }
@@ -160,7 +183,7 @@ export class ExperiencesService {
 
     await this.assertUniqueSlug(slug);
 
-    return this.prisma.experience.create({
+    const created = await this.prisma.experience.create({
       data: {
         title: data.title.trim(),
         slug,
@@ -179,10 +202,27 @@ export class ExperiencesService {
       },
       include: { images: true },
     });
+
+    await this.audit.record({
+      actor,
+      action: "EXPERIENCE_CREATED",
+      entityType: "Experience",
+      entityId: created.id,
+      message: "Superadmin creo una experiencia",
+      newValue: {
+        id: created.id,
+        title: created.title,
+        slug: created.slug,
+        active: created.active,
+        basePrice: created.basePrice,
+      },
+    });
+
+    return created;
   }
 
-  async update(id: number, data: UpdateExperienceDto) {
-    await this.findOneAdmin(id);
+  async update(id: number, data: UpdateExperienceDto, actor?: AuditActor) {
+    const previous = await this.findOneAdmin(id);
 
     const slug =
       data.slug !== undefined || data.title !== undefined
@@ -251,7 +291,7 @@ export class ExperiencesService {
       };
     }
 
-    return this.prisma.experience.update({
+    const updated = await this.prisma.experience.update({
       where: { id },
       data: nextData,
       include: {
@@ -260,15 +300,67 @@ export class ExperiencesService {
         },
       },
     });
+
+    await this.audit.record({
+      actor,
+      action:
+        data.active !== undefined
+          ? data.active
+            ? "EXPERIENCE_ACTIVATED"
+            : "EXPERIENCE_DEACTIVATED"
+          : "EXPERIENCE_UPDATED",
+      entityType: "Experience",
+      entityId: updated.id,
+      message: "Superadmin actualizo una experiencia",
+      previousValue: {
+        id: previous.id,
+        title: previous.title,
+        slug: previous.slug,
+        active: previous.active,
+        basePrice: previous.basePrice,
+      },
+      newValue: {
+        id: updated.id,
+        title: updated.title,
+        slug: updated.slug,
+        active: updated.active,
+        basePrice: updated.basePrice,
+      },
+      metadata: {
+        changedFields: Object.keys(nextData),
+      },
+    });
+
+    return updated;
   }
 
-  async remove(id: number) {
-    await this.findOneAdmin(id);
+  async remove(id: number, actor?: AuditActor) {
+    const previous = await this.findOneAdmin(id);
 
-    return this.prisma.experience.update({
+    const updated = await this.prisma.experience.update({
       where: { id },
       data: { active: false },
       include: { images: true },
     });
+
+    await this.audit.record({
+      actor,
+      action: "EXPERIENCE_DEACTIVATED",
+      entityType: "Experience",
+      entityId: updated.id,
+      message: "Superadmin desactivo una experiencia",
+      previousValue: {
+        id: previous.id,
+        title: previous.title,
+        active: previous.active,
+      },
+      newValue: {
+        id: updated.id,
+        title: updated.title,
+        active: updated.active,
+      },
+    });
+
+    return updated;
   }
 }

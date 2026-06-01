@@ -23,24 +23,38 @@ export class UsersController {
   }
 
   @Post("advisors")
-  createAdvisor(@Body() body: any) {
-    return this.usersService.createAdvisor(body);
+  createAdvisor(@Body() body: any, @Request() req) {
+    return this.usersService.createAdvisor(body, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 
   @Patch("advisors/:id")
   updateAdvisor(
     @Param("id", ParseIntPipe) id: number,
-    @Body() body: any
+    @Body() body: any,
+    @Request() req
   ) {
-    return this.usersService.updateAdvisor(id, body);
+    return this.usersService.updateAdvisor(id, body, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 
   @Patch("advisors/:id/status")
   setAdvisorStatus(
     @Param("id", ParseIntPipe) id: number,
-    @Body("isActive") isActive: boolean
+    @Body("isActive") isActive: boolean,
+    @Request() req
   ) {
-    return this.usersService.setAdvisorStatus(id, Boolean(isActive));
+    return this.usersService.setAdvisorStatus(id, Boolean(isActive), {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 
   @Delete("advisors/:id")
@@ -48,6 +62,10 @@ export class UsersController {
     @Param("id", ParseIntPipe) id: number,
     @Request() req
   ) {
-    return this.usersService.removeAdvisor(id, req.user.userId);
+    return this.usersService.removeAdvisor(id, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 }

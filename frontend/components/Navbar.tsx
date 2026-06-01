@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { ChevronRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/context/LanguageContext";
@@ -13,8 +14,20 @@ export default function Navbar() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const isAdminRoute = pathname?.startsWith("/admin");
+  const isInternalRoute =
+    pathname?.startsWith("/admin") ||
+    pathname === "/staff-login" ||
+    pathname === "/login";
+
+  const navItems = [
+    { href: "/alojamientos", label: t("nav.stays") },
+    { href: "/experiencias", label: t("nav.experiences") },
+    { href: "/paquetes", label: t("nav.packages") },
+    { href: "/nosotros", label: t("nav.about") },
+  ];
 
   useEffect(() => {
     function onScroll() {
@@ -27,7 +40,38 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (isAdminRoute) {
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
+        setMobileMenuOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  if (isInternalRoute) {
     return null;
   }
 
@@ -40,6 +84,7 @@ export default function Navbar() {
       }`}
     >
       <div
+        ref={mobileMenuRef}
         className={`mx-auto flex max-w-7xl flex-col gap-3 px-4 transition-all duration-300 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 ${
           scrolled
             ? "min-h-16 py-3 lg:h-[72px] lg:py-0"
@@ -50,7 +95,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="relative flex h-12 w-[150px] shrink-0 items-center sm:w-[170px] lg:w-[190px]"
+            className="relative flex h-11 w-[138px] shrink-0 items-center min-[390px]:w-[150px] sm:h-12 sm:w-[170px] lg:w-[190px]"
             aria-label="Cartagena Tailored Travel"
           >
             <Image
@@ -66,8 +111,20 @@ export default function Navbar() {
             />
           </Link>
 
-          <div className="lg:hidden">
-            <LanguageSwitcher />
+          <div className="flex min-w-0 items-center gap-2 lg:hidden">
+            <div className="min-w-0">
+              <LanguageSwitcher />
+            </div>
+            <button
+              type="button"
+              aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-public-menu"
+              onClick={() => setMobileMenuOpen((current) => !current)}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#D4AF37]/30 bg-white text-[#0D2B52] shadow-[0_8px_22px_rgba(13,43,82,0.08)] transition-all duration-200 hover:border-[#B68D40]/60 hover:bg-[#FFFCF7] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
 
@@ -77,55 +134,30 @@ export default function Navbar() {
             scrolled ? "gap-7" : "gap-10"
           }`}
         >
-          <Link
-            href="/alojamientos"
-            className="text-sm font-medium text-[#0D2B52] hover:text-[#B68D40] transition"
-          >
-            {t("nav.stays")}
-          </Link>
-
-          <Link
-            href="/experiencias"
-            className="text-sm font-medium text-[#0D2B52] hover:text-[#B68D40] transition"
-          >
-            {t("nav.experiences")}
-          </Link>
-
-          <Link
-            href="/paquetes"
-            className="text-sm font-medium text-[#0D2B52] hover:text-[#B68D40] transition"
-          >
-            {t("nav.packages")}
-          </Link>
-
-          <Link
-            href="/nosotros"
-            className="text-sm font-medium text-[#0D2B52] hover:text-[#B68D40] transition"
-          >
-            {t("nav.about")}
-          </Link>
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-sm font-medium text-[#0D2B52] transition hover:text-[#B68D40]"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
         {/* CTA */}
-        <div className="grid w-full grid-cols-2 items-center gap-2 lg:flex lg:w-auto lg:flex-nowrap lg:gap-3">
+        <div
+          className={`w-full items-center justify-end gap-2 lg:flex lg:w-auto lg:flex-nowrap lg:gap-3 ${
+            mobileMenuOpen ? "hidden lg:flex" : "flex"
+          }`}
+        >
           <div className="hidden lg:block">
             <LanguageSwitcher />
           </div>
 
-          <Link href="/login" className="min-w-0">
-            <Button
-              variant="outline"
-              className={`w-full rounded-xl border-[#B68D40] px-2 text-xs text-[#0D2B52] transition-all duration-300 sm:px-4 sm:text-sm ${
-                scrolled ? "h-9" : "h-10"
-              }`}
-            >
-              {t("nav.adminAccess")}
-            </Button>
-          </Link>
-
           <Link
             href="/checkout"
-            className="min-w-0"
+            className="w-full min-w-0 lg:w-auto"
             onClick={() => trackCtaClick("reservar_ahora", "navbar")}
           >
             <Button
@@ -136,6 +168,45 @@ export default function Navbar() {
               {t("nav.reserveNow")}
             </Button>
           </Link>
+        </div>
+
+        <div
+          id="mobile-public-menu"
+          aria-hidden={!mobileMenuOpen}
+          className={`grid overflow-hidden transition-[grid-template-rows,opacity,transform] duration-300 ease-out lg:hidden ${
+            mobileMenuOpen
+              ? "grid-rows-[1fr] opacity-100 translate-y-0"
+              : "grid-rows-[0fr] opacity-0 -translate-y-1"
+          }`}
+        >
+          <nav className="min-h-0 overflow-hidden">
+            <div className="space-y-2 rounded-3xl border border-[#D4AF37]/20 bg-white p-2 shadow-[0_18px_45px_rgba(13,43,82,0.12)]">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  tabIndex={mobileMenuOpen ? 0 : -1}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-[#0D2B52] transition hover:bg-[#F8F6F1] hover:text-[#B68D40]"
+                >
+                  {item.label}
+                  <ChevronRight className="h-4 w-4 text-[#B68D40]" aria-hidden />
+                </Link>
+              ))}
+
+              <Link
+                href="/checkout"
+                tabIndex={mobileMenuOpen ? 0 : -1}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  trackCtaClick("reservar_ahora", "mobile_menu");
+                }}
+                className="flex items-center justify-center rounded-2xl bg-[#0D2B52] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#12396d]"
+              >
+                {t("nav.reserveNow")}
+              </Link>
+            </div>
+          </nav>
         </div>
       </div>
     </header>

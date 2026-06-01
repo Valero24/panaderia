@@ -1,9 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const allowedRoles = new Set(["ADVISOR", "SUPERADMIN", "ADMIN"]);
+const superAdminOnlyPrefixes = [
+  "/admin/asesores",
+  "/admin/configuracion",
+  "/admin/pagos",
+  "/admin/extras",
+  "/admin/caracteristicas",
+  "/admin/imagenes",
+  "/admin/disponibilidad",
+  "/admin/alojamientos/crear",
+  "/admin/alojamientos/editar",
+  "/admin/alojamientos/imagenes",
+];
+
+function clearSession() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  sessionStorage.clear();
+}
+
+function tokenIsExpired(token: string) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1] || ""));
+    if (!payload?.exp) return false;
+    return payload.exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
+function isRestrictedPath(pathname: string, role: string) {
+  if (role === "SUPERADMIN" || role === "ADMIN") return false;
+
+  if (pathname === "/admin") return true;
+
+  return superAdminOnlyPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
 
 export default function AdminRouteGuard({
   children,
@@ -11,7 +47,9 @@ export default function AdminRouteGuard({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [allowed, setAllowed] = useState(false);
+  const [restricted, setRestricted] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -20,16 +58,24 @@ export default function AdminRouteGuard({
     try {
       const user = rawUser ? JSON.parse(rawUser) : null;
 
-      if (!token || !allowedRoles.has(user?.role)) {
-        router.replace("/login");
+      if (!token || tokenIsExpired(token) || !allowedRoles.has(user?.role)) {
+        clearSession();
+        router.replace("/staff-login");
+        return;
+      }
+
+      if (isRestrictedPath(pathname || "", user.role)) {
+        setRestricted(true);
+        setAllowed(true);
         return;
       }
 
       setAllowed(true);
     } catch {
-      router.replace("/login");
+      clearSession();
+      router.replace("/staff-login");
     }
-  }, [router]);
+  }, [pathname, router]);
 
   if (!allowed) {
     return (
@@ -39,6 +85,31 @@ export default function AdminRouteGuard({
     );
   }
 
+  if (restricted) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6">
+        <div className="mx-auto max-w-xl rounded-3xl border border-amber-100 bg-white p-8 text-center shadow-sm">
+          <p className="text-sm uppercase tracking-[0.3em] text-[#B68D40]">
+            Acceso restringido
+          </p>
+          <h1 className="mt-3 text-2xl font-bold text-[#0D2B52]">
+            Esta seccion es solo para Super Admin
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-slate-500">
+            Tu usuario puede gestionar solicitudes asignadas desde el panel de
+            reservas, pero no tiene permisos para esta ruta.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.replace("/admin/reservas")}
+            className="mt-6 rounded-xl bg-[#0D2B52] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#12396d]"
+          >
+            Ir a reservas
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }
-

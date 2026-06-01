@@ -15,16 +15,18 @@ export default function AppChrome({
 }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin");
+  const isStaffRoute = pathname === "/login" || pathname === "/staff-login";
+  const showPublicChrome = !isAdminRoute && !isStaffRoute;
 
   return (
     <LanguageProvider>
-      {!isAdminRoute && <MarketingScripts />}
-      {!isAdminRoute && <Navbar />}
+      {showPublicChrome && <MarketingScripts />}
+      {showPublicChrome && <Navbar />}
 
       <main className="flex-1">{children}</main>
 
-      {!isAdminRoute && <Footer />}
-      {!isAdminRoute && <FloatingWhatsapp />}
+      {showPublicChrome && <Footer />}
+      {showPublicChrome && <FloatingWhatsapp />}
     </LanguageProvider>
   );
 }

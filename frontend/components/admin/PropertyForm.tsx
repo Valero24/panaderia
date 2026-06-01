@@ -14,6 +14,13 @@ import { apiUrl } from "@/lib/api";
 import MediaGalleryEditor, {
   AdminMediaItem,
 } from "@/components/admin/MediaGalleryEditor";
+import ProductWizardProgress, {
+  ProductWizardStep,
+} from "@/components/admin/ProductWizardProgress";
+import ProductFeatureSelector, {
+  fetchFeatureAssignments,
+  saveFeatureAssignments,
+} from "@/components/admin/ProductFeatureSelector";
 
 type PropertyStatus =
   | "DRAFT"
@@ -49,14 +56,15 @@ export default function PropertyForm({
 
   const [activeTab, setActiveTab] =
     useState<
-      | "overview"
+      | "basic"
       | "pricing"
-      | "capacity"
       | "media"
-      | "rules"
-      | "seo"
-      | "internal"
-    >("overview");
+      | "features"
+      | "premium"
+      | "review"
+    >("basic");
+  const [wizardError, setWizardError] =
+    useState("");
 
   const [form, setForm] = useState({
     //////////////////////////////////////////////////////
@@ -138,6 +146,7 @@ export default function PropertyForm({
     internalNotes: "",
 
     images: [] as AdminMediaItem[],
+    featureIds: [] as number[],
   });
 
   const isEditMode = Boolean(propertyId);
@@ -184,6 +193,11 @@ export default function PropertyForm({
         const property = await response.json();
 
         if (cancelled) return;
+
+        const featureAssignments = await fetchFeatureAssignments(
+          "PROPERTY",
+          property.id
+        ).catch(() => []);
 
         setForm({
           title: toInputValue(property.title),
@@ -267,6 +281,7 @@ export default function PropertyForm({
           images: Array.isArray(property.images)
             ? property.images
             : [],
+          featureIds: featureAssignments.map((item: any) => Number(item.featureId)),
         });
       } catch (error: any) {
         if (!cancelled) {
@@ -323,6 +338,24 @@ export default function PropertyForm({
       .replace(/\s+/g, "-");
   }, [form.title, form.slug]);
 
+  function validateStep(step = activeTab) {
+    if (step === "basic") {
+      if (!form.title.trim()) return "El nombre del alojamiento es obligatorio.";
+      if (!form.city.trim()) return "La ciudad es obligatoria.";
+      if (toNumber(form.maxGuests) < 1 && toNumber(form.maxCapacity) < 1) {
+        return "Define una capacidad valida para el alojamiento.";
+      }
+    }
+
+    if (step === "pricing") {
+      if (toNumber(form.pricePerNight) < 1 && toNumber(form.basePrice) < 1) {
+        return "Define una tarifa base o precio por noche mayor a cero.";
+      }
+    }
+
+    return "";
+  }
+
   //////////////////////////////////////////////////////
   // SUBMIT
   //////////////////////////////////////////////////////
@@ -334,6 +367,15 @@ export default function PropertyForm({
 
     if (!canManage) {
       alert("Tu rol no permite crear ni editar alojamientos.");
+      return;
+    }
+
+    const validationMessage =
+      validateStep("basic") || validateStep("pricing");
+
+    if (validationMessage) {
+      setWizardError(validationMessage);
+      setActiveTab(validationMessage.includes("tarifa") ? "pricing" : "basic");
       return;
     }
 
@@ -546,6 +588,24 @@ export default function PropertyForm({
         return;
       }
 
+      const savedPropertyId = data?.id || propertyId;
+
+      try {
+        if (savedPropertyId) {
+          await saveFeatureAssignments(
+            "PROPERTY",
+            savedPropertyId,
+            form.featureIds
+          );
+        }
+      } catch (featureError: any) {
+        alert(
+          `El alojamiento se guardo, pero no se pudieron guardar sus caracteristicas: ${
+            featureError?.message || "error desconocido"
+          }`
+        );
+      }
+
       if (isEditMode) {
         alert(
           "Propiedad actualizada correctamente"
@@ -583,36 +643,68 @@ export default function PropertyForm({
   // UI
   //////////////////////////////////////////////////////
 
-  const tabs = [
+  const tabs: ProductWizardStep<typeof activeTab>[] = [
     {
-      key: "overview",
-      label: "Overview",
-    },
-    {
-      key: "pricing",
-      label: "Pricing",
-    },
-    {
-      key: "capacity",
-      label: "Capacity",
+      key: "basic",
+      label: "Informacion basica",
+      description: "Nombre, ubicacion, capacidad y estado.",
     },
     {
       key: "media",
-      label: "Galería",
+      label: "Multimedia",
+      description: "Fotos, videos y recorrido visual.",
     },
     {
-      key: "rules",
-      label: "Rules",
+      key: "features",
+      label: "Caracteristicas",
+      description: "Filtros publicos aplicables al alojamiento.",
     },
     {
-      key: "seo",
-      label: "SEO",
+      key: "pricing",
+      label: "Precios y condiciones",
+      description: "Tarifas, reglas, SEO y notas internas.",
     },
     {
-      key: "internal",
-      label: "Internal",
+      key: "premium",
+      label: "Servicios premium",
+      description: "Complementos opcionales del alojamiento.",
+    },
+    {
+      key: "review",
+      label: "Revision",
+      description: "Vista final antes de publicar.",
     },
   ];
+
+  const activeStepIndex = tabs.findIndex((tab) => tab.key === activeTab);
+  const isLastStep = activeStepIndex === tabs.length - 1;
+
+  function goToStep(step: typeof activeTab) {
+    setWizardError("");
+    setActiveTab(step);
+  }
+
+  function goNext() {
+    const validationMessage = validateStep();
+    if (validationMessage) {
+      setWizardError(validationMessage);
+      return;
+    }
+
+    const next = tabs[activeStepIndex + 1];
+    if (next) {
+      setWizardError("");
+      setActiveTab(next.key);
+    }
+  }
+
+  function goPrevious() {
+    const previous = tabs[activeStepIndex - 1];
+    if (previous) {
+      setWizardError("");
+      setActiveTab(previous.key);
+    }
+  }
 
   if (loadingProperty) {
     return (
@@ -712,70 +804,61 @@ export default function PropertyForm({
             </p>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3">
             <Button
               type="button"
+              onClick={() => router.push("/admin/alojamientos")}
               className="h-14 px-8 rounded-2xl bg-white text-[#0F2A44] border border-[#D4AF37]/30 hover:bg-[#F3EFE4]"
             >
-              Guardar borrador
+              Cancelar
             </Button>
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="h-14 px-10 rounded-2xl bg-[#0F2A44] hover:bg-[#163756] text-white shadow-xl"
-            >
-              {loading
-                ? isEditMode
-                  ? "Guardando..."
-                  : "Publicando..."
-                : isEditMode
-                  ? "Guardar cambios"
-                  : "Publicar propiedad"}
-            </Button>
+            {!isLastStep ? (
+              <Button
+                type="button"
+                onClick={goNext}
+                className="h-14 px-10 rounded-2xl bg-[#0F2A44] hover:bg-[#163756] text-white shadow-xl"
+              >
+                Siguiente
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={loading}
+                className="h-14 px-10 rounded-2xl bg-[#0F2A44] hover:bg-[#163756] text-white shadow-xl"
+              >
+                {loading
+                  ? isEditMode
+                    ? "Guardando..."
+                    : "Publicando..."
+                  : isEditMode
+                    ? "Guardar cambios"
+                    : "Publicar propiedad"}
+              </Button>
+            )}
           </div>
         </div>
 
-        <div className="grid xl:grid-cols-[280px_1fr] gap-8">
-          {/* SIDEBAR */}
+        <ProductWizardProgress
+          steps={tabs}
+          activeKey={activeTab}
+          onChange={goToStep}
+        />
 
-          <div className="space-y-3 xl:sticky xl:top-10 h-fit">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() =>
-                  setActiveTab(
-                    tab.key as any
-                  )
-                }
-                className={`w-full flex items-center justify-between px-6 py-5 rounded-2xl transition-all duration-300 border text-left ${
-                  activeTab === tab.key
-                    ? "bg-[#0F2A44] text-white border-[#0F2A44] shadow-xl"
-                    : "bg-white border-[#D4AF37]/20 text-[#0F2A44] hover:border-[#D4AF37]"
-                }`}
-              >
-                <span className="font-semibold">
-                  {tab.label}
-                </span>
-
-                <span
-                  className={`h-2 w-2 rounded-full ${
-                    activeTab === tab.key
-                      ? "bg-[#D4AF37]"
-                      : "bg-slate-300"
-                  }`}
-                />
-              </button>
-            ))}
+        {wizardError && (
+          <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
+            {wizardError}
           </div>
+        )}
+
+        <div className="mt-8">
 
           {/* CONTENT */}
 
           <div className="space-y-8">
             {/* OVERVIEW */}
 
-            {activeTab === "overview" && (
+            {activeTab === "basic" && (
               <Card className="rounded-[32px] border border-[#D4AF37]/20 shadow-sm bg-white">
                 <CardContent className="p-10 space-y-10">
                   <div>
@@ -1119,7 +1202,7 @@ export default function PropertyForm({
 
             {/* CAPACITY */}
 
-            {activeTab === "capacity" && (
+            {activeTab === "basic" && (
               <Card className="rounded-[32px] border border-[#D4AF37]/20 bg-white">
                 <CardContent className="p-10">
                   <div className="mb-10">
@@ -1238,9 +1321,19 @@ export default function PropertyForm({
               </Card>
             )}
 
+            {activeTab === "features" && (
+              <ProductFeatureSelector
+                productType="PROPERTY"
+                productId={propertyId || null}
+                selectedFeatureIds={form.featureIds}
+                onChange={(featureIds) => updateField("featureIds", featureIds)}
+                disabled={loading}
+              />
+            )}
+
             {/* RULES */}
 
-            {activeTab === "rules" && (
+            {activeTab === "pricing" && (
               <Card className="rounded-[32px] border border-[#D4AF37]/20 bg-white">
                 <CardContent className="p-10 space-y-10">
                   <div>
@@ -1374,7 +1467,7 @@ export default function PropertyForm({
 
             {/* SEO */}
 
-            {activeTab === "seo" && (
+            {activeTab === "pricing" && (
               <Card className="rounded-[32px] border border-[#D4AF37]/20 bg-white">
                 <CardContent className="p-10 space-y-8">
                   <div>
@@ -1418,7 +1511,7 @@ export default function PropertyForm({
 
             {/* INTERNAL */}
 
-            {activeTab === "internal" && (
+            {activeTab === "pricing" && (
               <Card className="rounded-[32px] border border-[#D4AF37]/20 bg-white">
                 <CardContent className="p-10 space-y-8">
                   <div>
@@ -1473,6 +1566,150 @@ export default function PropertyForm({
                 </CardContent>
               </Card>
             )}
+
+            {activeTab === "premium" && (
+              <Card className="rounded-[32px] border border-[#D4AF37]/20 bg-white">
+                <CardContent className="space-y-6 p-10">
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.3em] text-[#B68D40]">
+                      Servicios premium
+                    </p>
+                    <h2 className="mt-3 text-4xl font-bold text-[#0F2A44]">
+                      Complementos del alojamiento
+                    </h2>
+                    <p className="mt-3 max-w-2xl text-slate-500">
+                      Los servicios premium de alojamientos se administran desde
+                      el modulo dedicado para conservar la logica existente.
+                    </p>
+                  </div>
+
+                  {!isEditMode ? (
+                    <div className="rounded-2xl border border-dashed border-[#D4AF37]/30 bg-[#F8F6F1] p-6 text-sm leading-6 text-slate-600">
+                      Primero publica el alojamiento. Luego podras agregar chef,
+                      transporte, decoracion, limpieza adicional u otros
+                      servicios premium desde el panel de servicios.
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-[#D4AF37]/20 bg-[#F8F6F1] p-6">
+                      <h3 className="text-xl font-semibold text-[#0F2A44]">
+                        Gestionar servicios premium
+                      </h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-500">
+                        Abre el administrador de servicios de este alojamiento
+                        para crear, editar, activar o desactivar complementos.
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          router.push(`/admin/extras/${propertyId}`)
+                        }
+                        className="mt-5 rounded-xl bg-[#0F2A44] text-white hover:bg-[#163756]"
+                      >
+                        Administrar servicios premium
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === "review" && (
+              <Card className="rounded-[32px] border border-[#D4AF37]/20 bg-white">
+                <CardContent className="space-y-8 p-10">
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.3em] text-[#B68D40]">
+                      Revision y publicacion
+                    </p>
+                    <h2 className="mt-3 text-4xl font-bold text-[#0F2A44]">
+                      Confirma antes de guardar
+                    </h2>
+                    <p className="mt-3 max-w-2xl text-slate-500">
+                      Revisa los datos principales. El guardado final mantiene
+                      la accion correcta: {isEditMode ? "PATCH" : "POST"}.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-2xl bg-[#F8F6F1] p-5">
+                      <p className="text-xs uppercase tracking-[0.2em] text-[#B68D40]">
+                        Alojamiento
+                      </p>
+                      <p className="mt-2 font-semibold text-[#0F2A44]">
+                        {form.title || "Sin nombre"}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[#F8F6F1] p-5">
+                      <p className="text-xs uppercase tracking-[0.2em] text-[#B68D40]">
+                        Ubicacion
+                      </p>
+                      <p className="mt-2 font-semibold text-[#0F2A44]">
+                        {[form.city, form.area].filter(Boolean).join(" - ") ||
+                          "Sin ubicacion"}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[#F8F6F1] p-5">
+                      <p className="text-xs uppercase tracking-[0.2em] text-[#B68D40]">
+                        Tarifa
+                      </p>
+                      <p className="mt-2 font-semibold text-[#0F2A44]">
+                        ${Number(form.pricePerNight || form.basePrice || 0).toLocaleString("es-CO")} COP
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-[#F8F6F1] p-5">
+                      <p className="text-xs uppercase tracking-[0.2em] text-[#B68D40]">
+                        Estado
+                      </p>
+                      <p className="mt-2 font-semibold text-[#0F2A44]">
+                        {form.status}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="flex flex-col gap-3 rounded-3xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={goPrevious}
+                disabled={activeStepIndex <= 0}
+                className="h-12 rounded-xl"
+              >
+                Anterior
+              </Button>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/admin/alojamientos")}
+                  className="h-12 rounded-xl"
+                >
+                  Cancelar
+                </Button>
+                {!isLastStep ? (
+                  <Button
+                    type="button"
+                    onClick={goNext}
+                    className="h-12 rounded-xl bg-[#0F2A44] px-8 text-white hover:bg-[#163756]"
+                  >
+                    Siguiente
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="h-12 rounded-xl bg-[#0F2A44] px-8 text-white hover:bg-[#163756]"
+                  >
+                    {loading
+                      ? "Guardando..."
+                      : isEditMode
+                        ? "Guardar cambios"
+                        : "Publicar propiedad"}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

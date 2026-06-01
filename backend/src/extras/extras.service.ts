@@ -4,6 +4,14 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../common/audit.service";
+
+type AuditActor = {
+  userId?: number;
+  role?: string;
+  name?: string;
+  email?: string;
+};
 
 type ExtraServiceInput = {
   name: string;
@@ -18,7 +26,8 @@ type ExtraServiceInput = {
 @Injectable()
 export class ExtrasService {
   constructor(
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService
   ) {}
 
   private async validateProductTarget(data: ExtraServiceInput) {
@@ -73,7 +82,7 @@ export class ExtrasService {
     return { propertyId, experienceId, packageId };
   }
 
-  async create(data: ExtraServiceInput) {
+  async create(data: ExtraServiceInput, actor?: AuditActor) {
     if (!data.name?.trim()) {
       throw new BadRequestException("Nombre requerido");
     }
@@ -86,7 +95,7 @@ export class ExtrasService {
 
     const target = await this.validateProductTarget(data);
 
-    return this.prisma.extraService.create({
+    const created = await this.prisma.extraService.create({
       data: {
         name: data.name.trim(),
         description: data.description?.trim() || null,
@@ -102,6 +111,25 @@ export class ExtrasService {
         package: true,
       },
     });
+
+    await this.audit.record({
+      actor,
+      action: "EXTRA_SERVICE_CREATED",
+      entityType: "ExtraService",
+      entityId: created.id,
+      message: "Superadmin creo un servicio premium",
+      newValue: {
+        id: created.id,
+        name: created.name,
+        price: created.price,
+        active: created.active,
+        propertyId: created.propertyId,
+        experienceId: created.experienceId,
+        packageId: created.packageId,
+      },
+    });
+
+    return created;
   }
 
   findAll() {
@@ -165,7 +193,8 @@ export class ExtrasService {
 
   async update(
     id: number,
-    data: ExtraServiceInput
+    data: ExtraServiceInput,
+    actor?: AuditActor
   ) {
     const existing = await this.prisma.extraService.findUnique({
       where: { id },
@@ -221,7 +250,7 @@ export class ExtrasService {
       nextData.packageId = target.packageId;
     }
 
-    return this.prisma.extraService.update({
+    const updated = await this.prisma.extraService.update({
       where: {
         id,
       },
@@ -232,13 +261,66 @@ export class ExtrasService {
         package: true,
       },
     });
+
+    await this.audit.record({
+      actor,
+      action:
+        data.active !== undefined
+          ? data.active
+            ? "EXTRA_SERVICE_ACTIVATED"
+            : "EXTRA_SERVICE_DEACTIVATED"
+          : "EXTRA_SERVICE_UPDATED",
+      entityType: "ExtraService",
+      entityId: updated.id,
+      message: "Superadmin actualizo un servicio premium",
+      previousValue: existing,
+      newValue: {
+        id: updated.id,
+        name: updated.name,
+        price: updated.price,
+        active: updated.active,
+        propertyId: updated.propertyId,
+        experienceId: updated.experienceId,
+        packageId: updated.packageId,
+      },
+      metadata: {
+        changedFields: Object.keys(nextData),
+      },
+    });
+
+    return updated;
   }
 
-  remove(id: number) {
-    return this.prisma.extraService.delete({
+  async remove(id: number, actor?: AuditActor) {
+    const existing = await this.findOne(id);
+
+    if (!existing) {
+      throw new NotFoundException("Servicio premium no encontrado");
+    }
+
+    const deleted = await this.prisma.extraService.delete({
       where: {
         id,
       },
     });
+
+    await this.audit.record({
+      actor,
+      action: "EXTRA_SERVICE_DELETED",
+      entityType: "ExtraService",
+      entityId: deleted.id,
+      message: "Superadmin elimino un servicio premium",
+      previousValue: {
+        id: existing.id,
+        name: existing.name,
+        price: existing.price,
+        active: existing.active,
+        propertyId: existing.propertyId,
+        experienceId: existing.experienceId,
+        packageId: existing.packageId,
+      },
+    });
+
+    return deleted;
   }
 }

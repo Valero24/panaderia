@@ -204,6 +204,21 @@ type OperationalNotification = {
   } | null;
 };
 
+type OperationalLog = {
+  id: number;
+  actorId?: number | null;
+  actorRole?: string | null;
+  actorName?: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  message?: string | null;
+  previousValue?: unknown;
+  newValue?: unknown;
+  metadata?: unknown;
+  createdAt: string;
+};
+
 const operationalStatuses = [
   "ASSIGNED",
   "VALIDATING",
@@ -355,6 +370,7 @@ export default function ReservasPage() {
   const [actionLoading, setActionLoading] = useState("");
   const [message, setMessage] = useState("");
   const [manualBookingResult, setManualBookingResult] = useState<any>(null);
+  const [selectedLogs, setSelectedLogs] = useState<OperationalLog[]>([]);
   const [operationalNotifications, setOperationalNotifications] = useState<
     OperationalNotification[]
   >([]);
@@ -463,14 +479,50 @@ export default function ReservasPage() {
     return data as PreReservation;
   }
 
+  async function fetchRequestLogs(requestId: string) {
+    const token = localStorage.getItem("token");
+    const storedUser = readUser();
+
+    if (!token || storedUser?.role !== "SUPERADMIN") {
+      setSelectedLogs([]);
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams({
+        entityType: "PreReservation",
+        entityId: requestId,
+        take: "50",
+      });
+      const res = await fetch(apiUrl(`/operational-logs?${params}`), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSelectedLogs([]);
+        return;
+      }
+
+      setSelectedLogs(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.warn("No se pudo cargar historial operativo", error);
+      setSelectedLogs([]);
+    }
+  }
+
   async function openRequestDetail(request: PreReservation) {
     setSelected(request);
+    void fetchRequestLogs(request.id);
 
     const fresh = await fetchRequestById(request.id);
 
     if (fresh) {
       replaceRequest(fresh);
       setSelected(fresh);
+      void fetchRequestLogs(fresh.id);
     }
   }
 
@@ -640,6 +692,7 @@ export default function ReservasPage() {
         if (fresh) {
           replaceRequest(fresh);
           setSelected(fresh);
+          void fetchRequestLogs(fresh.id);
         }
 
         setMessage(
@@ -655,6 +708,7 @@ export default function ReservasPage() {
 
       replaceRequest(updated);
       setSelected(updated);
+      void fetchRequestLogs(updated.id);
       await fetchRequests();
     } catch (error) {
       console.error(error);
@@ -727,6 +781,7 @@ export default function ReservasPage() {
 
       replaceRequest(updated);
       setSelected(updated);
+      void fetchRequestLogs(updated.id);
       await fetchRequests();
       setMessage("Cotización actualizada correctamente.");
     } catch (error) {
@@ -824,6 +879,7 @@ export default function ReservasPage() {
       if (fresh) {
         replaceRequest(fresh);
         setSelected(fresh);
+        void fetchRequestLogs(fresh.id);
       }
 
       setManualBookingResult(data);
@@ -874,6 +930,7 @@ export default function ReservasPage() {
       if (fresh) {
         replaceRequest(fresh);
         setSelected(fresh);
+        void fetchRequestLogs(fresh.id);
       }
 
       if (data.sent) {
@@ -930,6 +987,7 @@ export default function ReservasPage() {
 
       await fetchRequests();
       setSelected(data);
+      void fetchRequestLogs(data.id);
       setMessage("Solicitud reasignada correctamente.");
     } catch (error) {
       console.error(error);
@@ -965,6 +1023,7 @@ export default function ReservasPage() {
 
       await fetchRequests();
       setSelected((current) => (current?.id === data.id ? data : current));
+      void fetchRequestLogs(data.id);
       setMessage("Solicitud cancelada correctamente.");
     } catch (error) {
       console.error(error);
@@ -1298,6 +1357,7 @@ export default function ReservasPage() {
             manualBookingResult={manualBookingResult}
             onReassign={reassignRequest}
             onCancel={cancelRequest}
+            operationalLogs={selectedLogs}
           />
         )}
       </div>
@@ -1751,6 +1811,7 @@ function RequestDetail({
   manualBookingResult,
   onReassign,
   onCancel,
+  operationalLogs,
 }: {
   request: PreReservation;
   properties: PropertyOption[];
@@ -1769,6 +1830,7 @@ function RequestDetail({
   manualBookingResult: any;
   onReassign: (id: string, advisorId: number) => void;
   onCancel: (id: string, reason: string) => void;
+  operationalLogs: OperationalLog[];
 }) {
   const extras = Array.isArray(request.selectedExtras)
     ? request.selectedExtras
@@ -2370,6 +2432,48 @@ function RequestDetail({
                 <ReservationTimeline request={request} />
               </div>
             </section>
+
+            {currentUser?.role === "SUPERADMIN" && (
+              <section className="rounded-2xl border border-[#D4AF37]/20 p-5">
+                <h3 className="flex items-center gap-2 font-semibold text-[#0D2B52]">
+                  <Clock className="h-4 w-4 text-[#B48A5A]" />
+                  Historial operativo
+                </h3>
+                <p className="mt-2 text-sm text-slate-500">
+                  Cambios registrados sobre esta solicitud.
+                </p>
+
+                {operationalLogs.length === 0 ? (
+                  <p className="mt-4 rounded-xl bg-[#F8F6F2] px-3 py-2 text-sm text-slate-500">
+                    No hay eventos visibles para esta solicitud.
+                  </p>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {operationalLogs.slice(0, 8).map((log) => (
+                      <div
+                        key={log.id}
+                        className="rounded-xl border border-[#D4AF37]/15 bg-[#F8F6F2] p-3 text-sm"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <Badge variant="outline" className="rounded-md bg-white">
+                            {log.action}
+                          </Badge>
+                          <span className="text-xs text-slate-500">
+                            {date(log.createdAt)}
+                          </span>
+                        </div>
+                        <p className="mt-2 font-medium text-[#0D2B52]">
+                          {log.message || "Evento registrado"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {log.actorName || "Sistema"} · {log.actorRole || "PUBLIC"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
 
             <section className="rounded-2xl border border-[#D4AF37]/20 p-5">
               <h3 className="font-semibold text-[#0D2B52]">

@@ -7,6 +7,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
+  Request,
   UseGuards,
 } from "@nestjs/common";
 
@@ -32,8 +34,8 @@ export class PropertiesController {
 
   @Public()
   @Get()
-  findAll() {
-    return this.propertiesService.findAll();
+  findAll(@Query("features") features?: string) {
+    return this.propertiesService.findAll(features);
   }
 
   @Public()
@@ -54,9 +56,14 @@ export class PropertiesController {
   @Roles("ADMIN", "SUPERADMIN")
   @Post()
   create(
-    @Body() createPropertyDto: CreatePropertyDto
+    @Body() createPropertyDto: CreatePropertyDto,
+    @Request() req
   ) {
-    return this.propertiesService.create(createPropertyDto);
+    return this.propertiesService.create(createPropertyDto, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -64,9 +71,14 @@ export class PropertiesController {
   @Patch(":id")
   update(
     @Param("id", ParseIntPipe) id: number,
-    @Body() body: any
+    @Body() body: any,
+    @Request() req
   ) {
-    return this.propertiesService.update(id, body);
+    return this.propertiesService.update(id, body, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 
   /*
@@ -79,8 +91,13 @@ export class PropertiesController {
   @Roles("SUPERADMIN")
   @Delete(":id")
   remove(
-    @Param("id", ParseIntPipe) id: number
+    @Param("id", ParseIntPipe) id: number,
+    @Request() req
   ) {
-    return this.propertiesService.remove(id);
+    return this.propertiesService.remove(id, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 }

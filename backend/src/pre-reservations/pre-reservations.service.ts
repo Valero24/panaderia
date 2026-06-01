@@ -234,17 +234,27 @@ export class PreReservationsService {
         bookingId: booking.id,
         preReservationId: booking.preReservationId || "",
         reservationCode: booking.reservationCode,
-        companyName: companySettings.companyName,
+        companyName:
+          companySettings.businessName || companySettings.companyName,
         companyLegalId:
+          companySettings.nit ||
           companySettings.legalId ||
           companySettings.legalInfo ||
           undefined,
         companyAddress: companySettings.address,
-        companyPhones: companySettings.phones,
+        companyPhones:
+          companySettings.whatsappNumber ||
+          companySettings.phone ||
+          companySettings.phones,
         companyEmail: companySettings.email,
-        companyLegalInfo: companySettings.legalInfo,
-        companyPolicies: companySettings.policies,
-        invoiceFooter: companySettings.invoiceFooter,
+        companyLegalInfo:
+          companySettings.legalName || companySettings.legalInfo,
+        companyPolicies:
+          companySettings.bookingTerms || companySettings.policies,
+        invoiceFooter:
+          companySettings.invoiceNotes ||
+          companySettings.footerText ||
+          companySettings.invoiceFooter,
         customerName: booking.customerName || "Cliente",
         customerEmail: booking.customerEmail || "",
         customerPhone: booking.customerPhone,
@@ -1025,6 +1035,29 @@ export class PreReservationsService {
     });
 
     if (updated?.id) {
+      await this.audit.record({
+        action: "PRE_RESERVATION_CREATED",
+        entityType: "PreReservation",
+        entityId: updated.id,
+        message: "Cliente creo una solicitud asistida",
+        newValue: {
+          status: PreReservationStatus.PENDING_ADVISOR,
+          type,
+          referenceId,
+          customerName: data.customerName,
+          email: data.email,
+          customerPhone: data.customerPhone || null,
+          checkIn,
+          checkOut,
+          guests,
+          totalEstimate,
+        },
+        metadata: {
+          source: "public-checkout",
+          extrasCount: selectedExtrasSnapshot.length,
+        },
+      });
+
       void this.notificationsService
         .notifyNewPreReservation(updated.id)
         .catch((error) => {
@@ -2098,6 +2131,53 @@ export class PreReservationsService {
     const invoicePath = await this.ensureManualInvoice(booking.id);
     const updatedBooking = await this.prisma.booking.findUnique({
       where: { id: booking.id },
+    });
+
+    await this.audit.record({
+      actor,
+      action: "BOOKING_CREATED",
+      entityType: "Booking",
+      entityId: booking.id,
+      message: `Reserva confirmada ${booking.reservationCode}`,
+      newValue: {
+        id: booking.id,
+        reservationCode: booking.reservationCode,
+        preReservationId: id,
+        status: BookingStatus.CONFIRMED,
+        totalPrice: finalTotal,
+      },
+      metadata: {
+        preReservationId: id,
+      },
+    });
+
+    await this.audit.record({
+      actor,
+      action: "PDF_GENERATED",
+      entityType: "Booking",
+      entityId: booking.id,
+      message: `Comprobante PDF generado para ${booking.reservationCode}`,
+      metadata: {
+        preReservationId: id,
+        reservationCode: booking.reservationCode,
+        invoicePath,
+      },
+    });
+
+    await this.audit.record({
+      actor,
+      action: "PRE_RESERVATION_CONFIRMED",
+      entityType: "PreReservation",
+      entityId: id,
+      message: "Solicitud convertida en reserva confirmada",
+      previousValue: {
+        status: pre.status,
+      },
+      newValue: {
+        status: PreReservationStatus.CONFIRMED,
+        bookingId: booking.id,
+        reservationCode: booking.reservationCode,
+      },
     });
 
     await this.audit.record({

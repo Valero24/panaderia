@@ -1,22 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import {
-  Bath,
-  BedDouble,
-  Home,
-  MapPin,
-  RefreshCw,
-  Users,
-} from "lucide-react";
+import { Home } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import PublicImage from "@/components/PublicImage";
+import PublicProductCard from "@/components/public-product-card";
+import PublicFilterPanel from "@/components/public/PublicFilterPanel";
+import PublicJourneyHeader from "@/components/public/PublicJourneyHeader";
 import { apiUrl } from "@/lib/api";
+import {
+  buildFeaturedCollections,
+  type PublicFeature,
+} from "@/lib/public-feature-collections";
 import { useTranslation } from "@/context/LanguageContext";
-import { trackViewContent } from "@/lib/analytics";
 
 type PropertyImage = {
   id?: number;
@@ -66,13 +62,40 @@ export default function PublicPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedSlugs, setSelectedSlugs] = useState<string[]>([]);
+  const [availableFeatures, setAvailableFeatures] = useState<PublicFeature[]>([]);
 
-  async function fetchProperties() {
+  function readFeaturesFromUrl() {
+    if (typeof window === "undefined") return [];
+
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("features") || "")
+      .split(",")
+      .map((slug) => slug.trim())
+      .filter(Boolean);
+  }
+
+  function updateFeatureUrl(slugs: string[]) {
+    const params = new URLSearchParams(window.location.search);
+
+    if (slugs.length > 0) {
+      params.set("features", slugs.join(","));
+    } else {
+      params.delete("features");
+    }
+
+    const query = params.toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}`;
+    window.history.pushState({}, "", nextUrl);
+  }
+
+  async function fetchProperties(features = selectedSlugs) {
     try {
       setLoading(true);
       setError("");
 
-      const res = await fetch(apiUrl("/properties"), {
+      const query = features.length > 0 ? `?features=${features.join(",")}` : "";
+      const res = await fetch(apiUrl(`/properties${query}`), {
         cache: "no-store",
       });
       const data = await res.json();
@@ -94,9 +117,41 @@ export default function PublicPropertiesPage() {
     }
   }
 
+  async function fetchAvailableFeatures() {
+    try {
+      const response = await fetch(apiUrl("/public-filters?type=PROPERTY"), {
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || t("filters.loadError"));
+      }
+
+      setAvailableFeatures(Array.isArray(data) ? data : []);
+    } catch (loadError) {
+      console.error(loadError);
+      setAvailableFeatures([]);
+    }
+  }
+
   useEffect(() => {
-    fetchProperties();
+    function syncFromUrl() {
+      setSelectedSlugs(readFeaturesFromUrl());
+    }
+
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
   }, []);
+
+  useEffect(() => {
+    fetchAvailableFeatures();
+  }, []);
+
+  useEffect(() => {
+    fetchProperties(selectedSlugs);
+  }, [selectedSlugs.join(",")]);
 
   const visibleProperties = useMemo(() => {
     return properties.filter((property) => {
@@ -104,32 +159,62 @@ export default function PublicPropertiesPage() {
     });
   }, [properties]);
 
+  const collections = buildFeaturedCollections(
+    availableFeatures,
+    t("filters.resultsFound")
+  );
+
+  function applyCollection(slug: string) {
+    const next = [...new Set([...selectedSlugs, slug])];
+    setSelectedSlugs(next);
+    updateFeatureUrl(next);
+  }
+
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-14">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#B48A5A]">
-              {t("home.eyebrow")}
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold sm:text-4xl md:text-5xl">
-              {t("properties.title")}
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-              {t("properties.subtitle")}
-            </p>
-          </div>
+      <section className="premium-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-14">
+        <PublicJourneyHeader
+          eyebrow={t("home.eyebrow")}
+          title={t("listing.property.heroTitle")}
+          subtitle={t("listing.property.heroSubtitle")}
+          tone="property"
+          customizeLabel={t("filters.personalize")}
+          advisorLabel={t("filters.talkAdvisor")}
+          resultLabel={
+            !loading && !error
+              ? `${visibleProperties.length} ${t("properties.availableCount")}`
+              : undefined
+          }
+          highlights={[
+            t("listing.property.highlight1"),
+            t("listing.property.highlight2"),
+            t("listing.property.highlight3"),
+          ]}
+          collectionsTitle={t("listing.featuredCollections")}
+          collections={collections}
+          onCollectionSelect={applyCollection}
+          journeyLabel={t("listing.journeyLabel")}
+          journeySteps={[
+            t("listing.journeyStep1"),
+            t("listing.journeyStep2"),
+            t("listing.journeyStep3"),
+          ]}
+        />
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={fetchProperties}
-            disabled={loading}
-            className="h-11 rounded-xl border-[#D4AF37]/40 bg-white premium-focus"
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            {t("properties.refresh")}
-          </Button>
+        <div id="listado-filtros" className="mt-8 scroll-mt-28">
+          <PublicFilterPanel
+            productType="PROPERTY"
+            selectedSlugs={selectedSlugs}
+            onApply={(slugs) => {
+              setSelectedSlugs(slugs);
+              updateFeatureUrl(slugs);
+            }}
+            resultLabel={
+              !loading && !error
+                ? `${visibleProperties.length} ${t("properties.availableCount")}`
+                : undefined
+            }
+          />
         </div>
 
         {loading && (
@@ -157,20 +242,20 @@ export default function PublicPropertiesPage() {
 
         {!loading && error && (
           <div className="mt-10 rounded-2xl border border-red-200 bg-white p-8 text-red-700 shadow-sm">
-            <p className="font-semibold">{t("properties.loadErrorTitle")}</p>
+            <p className="font-semibold">{t("filters.optionsLoadError")}</p>
             <p className="mt-2 text-sm">{error}</p>
             <Button
               type="button"
               variant="outline"
-              onClick={fetchProperties}
+              onClick={() => fetchProperties(selectedSlugs)}
               className="mt-5 rounded-xl"
             >
-              {t("properties.retry")}
+              {t("filters.retry")}
             </Button>
           </div>
         )}
 
-        {!loading && !error && visibleProperties.length === 0 && (
+        {!loading && !error && visibleProperties.length === 0 && selectedSlugs.length === 0 && (
           <div className="mt-10 rounded-2xl border border-[#D4AF37]/20 bg-white p-10 text-center shadow-sm">
             <Home className="mx-auto h-10 w-10 text-[#B48A5A]" />
             <h2 className="mt-4 text-2xl font-semibold">
@@ -182,90 +267,62 @@ export default function PublicPropertiesPage() {
           </div>
         )}
 
+        {!loading && !error && visibleProperties.length === 0 && selectedSlugs.length > 0 && (
+          <div className="mt-10 rounded-2xl border border-[#D4AF37]/20 bg-white p-10 text-center shadow-sm">
+            <Home className="mx-auto h-10 w-10 text-[#B48A5A]" />
+            <h2 className="mt-4 text-2xl font-semibold">
+              {t("filters.noExactTitle")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-slate-600">
+              {t("filters.noExactText")}
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setSelectedSlugs([]);
+                  updateFeatureUrl([]);
+                }}
+                className="rounded-xl"
+              >
+                {t("filters.clear")}
+              </Button>
+              <a href="/contacto">
+                <Button type="button" className="rounded-xl bg-[#0D2B52] hover:bg-[#12396d]">
+                  {t("filters.talkAdvisor")}
+                </Button>
+              </a>
+            </div>
+          </div>
+        )}
+
         {!loading && !error && visibleProperties.length > 0 && (
           <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {visibleProperties.map((property) => {
               const capacity = property.maxCapacity || property.maxGuests || 1;
 
               return (
-                <Card
+                <PublicProductCard
                   key={property.id}
-                  className="premium-enter flex h-full flex-col overflow-hidden rounded-2xl border border-[#D4AF37]/15 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-                    <PublicImage
-                      src={primaryImage(property)}
-                      fallbackSrc={fallbackImage}
-                      alt={property.title}
-                      fill
-                      sizes="(min-width: 1280px) 390px, (min-width: 768px) 50vw, 100vw"
-                      quality={72}
-                      optimizeWidth={900}
-                      className="object-cover transition duration-500 hover:scale-105"
-                    />
-                    <div className="absolute left-4 top-4 rounded-md bg-white/90 px-3 py-1 text-xs font-medium text-[#0D2B52] shadow-sm backdrop-blur">
-                      {t("properties.curated")}
-                    </div>
-                  </div>
-
-                  <CardContent className="flex flex-1 flex-col p-5">
-                    <div className="min-h-[96px]">
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <MapPin className="h-4 w-4 text-[#B48A5A]" />
-                        <span className="line-clamp-1">{locationLabel(property)}</span>
-                      </div>
-
-                      <h2 className="mt-2 line-clamp-2 min-h-[64px] text-2xl font-semibold leading-8">
-                        {property.title}
-                      </h2>
-                    </div>
-
-                    <div className="mt-5 grid min-h-[82px] grid-cols-3 gap-3 text-sm">
-                      <div className="rounded-xl bg-[#F8F6F1] p-3">
-                        <Users className="h-4 w-4 text-[#B48A5A]" />
-                        <p className="mt-2 text-slate-600">{capacity}</p>
-                        <p className="text-[11px] text-slate-400">{t("properties.guests")}</p>
-                      </div>
-                      <div className="rounded-xl bg-[#F8F6F1] p-3">
-                        <BedDouble className="h-4 w-4 text-[#B48A5A]" />
-                        <p className="mt-2 text-slate-600">
-                          {property.bedrooms || 1}
-                        </p>
-                        <p className="text-[11px] text-slate-400">{t("properties.bedrooms")}</p>
-                      </div>
-                      <div className="rounded-xl bg-[#F8F6F1] p-3">
-                        <Bath className="h-4 w-4 text-[#B48A5A]" />
-                        <p className="mt-2 text-slate-600">
-                          {property.bathrooms || 1}
-                        </p>
-                        <p className="text-[11px] text-slate-400">{t("properties.bathrooms")}</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-auto flex items-center justify-between gap-4 border-t border-[#D4AF37]/20 pt-5">
-                      <div>
-                        <p className="text-xs text-slate-500">{t("properties.from")}</p>
-                        <p className="font-semibold text-[#0D2B52]">
-                          {money(property.pricePerNight)}
-                        </p>
-                      </div>
-
-                      <Button
-                        asChild
-                        className="rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
-                      >
-                        <Link
-                          href={`/alojamientos/${property.id}`}
-                          onClick={() =>
-                            trackViewContent("PROPERTY", property.id, property.title)
-                          }
-                        >
-                          {t("properties.view")}
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  href={`/alojamientos/${property.id}`}
+                  reserveHref={`/checkout/${property.id}?type=PROPERTY`}
+                  image={primaryImage(property)}
+                  fallbackImage={fallbackImage}
+                  badge={t("properties.curated")}
+                  title={property.title}
+                  description={property.address || t("shared.validationAssisted")}
+                  location={locationLabel(property)}
+                  price={money(property.pricePerNight)}
+                  meta={`${property.bedrooms || 1} ${t("properties.bedrooms")} · ${
+                    property.bathrooms || 1
+                  } ${t("properties.bathrooms")}`}
+                  secondaryMeta={`${capacity} ${t("properties.guests")}`}
+                  metaIcon="users"
+                  button={t("properties.view")}
+                  trackingLabel={`abrir_alojamiento_${property.id}`}
+                  trackingLocation="alojamientos_list"
+                />
               );
             })}
           </div>

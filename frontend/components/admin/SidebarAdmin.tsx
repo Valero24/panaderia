@@ -15,6 +15,9 @@ import {
   Mail,
   LogOut,
   UserCog,
+  History,
+  ServerCog,
+  Tags,
 } from "lucide-react";
 
 const menuItems = [
@@ -55,6 +58,12 @@ const menuItems = [
     roles: ["SUPERADMIN", "ADMIN"],
   },
   {
+    title: "Caracteristicas",
+    href: "/admin/caracteristicas",
+    icon: Tags,
+    roles: ["SUPERADMIN"],
+  },
+  {
     title: "Paquetes",
     href: "/admin/paquetes",
     icon: Package,
@@ -73,10 +82,22 @@ const menuItems = [
     roles: ["SUPERADMIN"],
   },
   {
+    title: "Historial",
+    href: "/admin/logs",
+    icon: History,
+    roles: ["SUPERADMIN"],
+  },
+  {
+    title: "Sistema",
+    href: "/admin/sistema",
+    icon: ServerCog,
+    roles: ["SUPERADMIN"],
+  },
+  {
     title: "Configuracion",
     href: "/admin/configuracion",
     icon: Settings,
-    roles: ["SUPERADMIN", "ADMIN"],
+    roles: ["SUPERADMIN"],
   },
 ];
 
@@ -105,7 +126,7 @@ export default function SidebarAdmin() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     sessionStorage.clear();
-    router.replace("/login");
+    router.replace("/staff-login");
     router.refresh();
   }
 

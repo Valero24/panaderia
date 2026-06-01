@@ -1,72 +1,120 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save } from "lucide-react";
+import { Building2, Palette, Save, Settings2, Share2, ShieldAlert, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { apiUrl } from "@/lib/api";
 
-type CompanySettings = {
-  logoUrl?: string | null;
-  companyName: string;
-  legalId?: string | null;
-  address?: string | null;
-  phones?: string | null;
+type SystemSettings = {
+  businessName: string;
+  legalName?: string | null;
+  nit?: string | null;
   email?: string | null;
-  policies?: string | null;
-  invoiceFooter?: string | null;
-  legalInfo?: string | null;
+  phone?: string | null;
+  whatsappNumber?: string | null;
+  address?: string | null;
+  city: string;
+  country: string;
+  websiteUrl?: string | null;
+  instagramUrl?: string | null;
+  facebookUrl?: string | null;
+  tiktokUrl?: string | null;
+  logoUrl?: string | null;
+  faviconUrl?: string | null;
+  primaryColor: string;
+  secondaryColor: string;
+  defaultCurrency: string;
+  taxRate: number;
+  serviceFeeRate: number;
+  footerText?: string | null;
+  invoiceNotes?: string | null;
+  bookingTerms?: string | null;
+  privacyPolicyText?: string | null;
+  demoModeEnabled: boolean;
+  realPaymentsEnabled: boolean;
+  realAvailabilityEnabled: boolean;
+  whatsappNotificationsEnabled: boolean;
 };
 
-const initialSettings: CompanySettings = {
-  logoUrl: "",
-  companyName: "Cartagena Tailored Travel",
-  legalId: "",
-  address: "",
-  phones: "",
+const initialSettings: SystemSettings = {
+  businessName: "Cartagena Tailored Travel",
+  legalName: "",
+  nit: "",
   email: "",
-  policies: "",
-  invoiceFooter: "",
-  legalInfo: "",
+  phone: "",
+  whatsappNumber: "",
+  address: "",
+  city: "Cartagena",
+  country: "Colombia",
+  websiteUrl: "",
+  instagramUrl: "",
+  facebookUrl: "",
+  tiktokUrl: "",
+  logoUrl: "",
+  faviconUrl: "",
+  primaryColor: "#0D2B52",
+  secondaryColor: "#B48A5A",
+  defaultCurrency: "COP",
+  taxRate: 0,
+  serviceFeeRate: 0,
+  footerText: "",
+  invoiceNotes: "",
+  bookingTerms: "",
+  privacyPolicyText: "",
+  demoModeEnabled: true,
+  realPaymentsEnabled: false,
+  realAvailabilityEnabled: false,
+  whatsappNotificationsEnabled: false,
 };
+
+function readRole() {
+  try {
+    return JSON.parse(localStorage.getItem("user") || "{}")?.role || "";
+  } catch {
+    return "";
+  }
+}
 
 export default function ConfiguracionPage() {
-  const [settings, setSettings] = useState<CompanySettings>(initialSettings);
+  const [settings, setSettings] = useState<SystemSettings>(initialSettings);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [role, setRole] = useState("");
 
   async function fetchSettings() {
     try {
-      const token = localStorage.getItem("token");
-      const storedRole = JSON.parse(localStorage.getItem("user") || "{}")?.role;
+      setLoading(true);
+      setMessage("");
 
-      if (!["SUPERADMIN", "ADMIN"].includes(storedRole)) {
-        setRole(storedRole || "");
+      const token = localStorage.getItem("token");
+      const storedRole = readRole();
+      setRole(storedRole);
+
+      if (storedRole !== "SUPERADMIN") {
         setMessage("Acceso reservado para Super Admin.");
         return;
       }
 
-      setRole(storedRole || "");
-      const res = await fetch(
-        apiUrl("/admin-operations/company-settings"),
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await fetch(apiUrl("/system-settings"), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.message || "No se pudo cargar la configuración.");
+        setMessage(data.message || "No se pudo cargar la configuracion.");
         return;
       }
 
       setSettings({ ...initialSettings, ...data });
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexión cargando configuración.");
+      setMessage("Error de conexion cargando configuracion.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -74,37 +122,34 @@ export default function ConfiguracionPage() {
     try {
       setSaving(true);
       setMessage("");
-      const token = localStorage.getItem("token");
-      const storedRole = JSON.parse(localStorage.getItem("user") || "{}")?.role;
 
-      if (!["SUPERADMIN", "ADMIN"].includes(storedRole)) {
-        setMessage("Tu rol no permite modificar configuracion empresarial.");
+      const token = localStorage.getItem("token");
+
+      if (role !== "SUPERADMIN") {
+        setMessage("Tu rol no permite modificar configuracion general.");
         return;
       }
 
-      const res = await fetch(
-        apiUrl("/admin-operations/company-settings"),
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(settings),
-        }
-      );
+      const res = await fetch(apiUrl("/system-settings"), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(settings),
+      });
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.message || "No se pudo guardar la configuración.");
+        setMessage(data.message || "No se pudo guardar la configuracion.");
         return;
       }
 
       setSettings({ ...initialSettings, ...data });
-      setMessage("Configuracion empresarial guardada.");
+      setMessage("Configuracion general actualizada.");
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexión guardando configuración.");
+      setMessage("Error de conexion guardando configuracion.");
     } finally {
       setSaving(false);
     }
@@ -114,129 +159,211 @@ export default function ConfiguracionPage() {
     fetchSettings();
   }, []);
 
-  function update(key: keyof CompanySettings, value: string) {
+  function update(key: keyof SystemSettings, value: string | number | boolean) {
     setSettings((current) => ({
       ...current,
       [key]: value,
     }));
   }
 
-  if (role && !["SUPERADMIN", "ADMIN"].includes(role)) {
+  if (!loading && role !== "SUPERADMIN") {
     return (
-      <div className="min-h-screen bg-[#F8F6F2] p-8">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-[#D4AF37]/20 bg-white p-8 shadow-sm">
-          <p className="text-sm font-medium uppercase tracking-[0.25em] text-[#B48A5A]">
-            Permisos
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52]">
+      <Card className="rounded-2xl border border-red-100 bg-red-50">
+        <CardContent className="p-6">
+          <ShieldAlert className="h-8 w-8 text-red-700" />
+          <h1 className="mt-4 text-2xl font-semibold text-red-900">
             Configuracion restringida
           </h1>
-          <p className="mt-3 text-slate-500">
-            Tu rol permite operar reservas asignadas. Los datos legales y
-            comerciales de la empresa solo los administra Super Admin.
+          <p className="mt-2 text-sm text-red-700">
+            Los datos generales del negocio solo pueden ser administrados por SUPERADMIN.
           </p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F6F2] p-8">
-      <div className="mx-auto max-w-5xl space-y-6">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.25em] text-[#B48A5A]">
-            Empresa
+          <p className="text-xs uppercase tracking-[0.28em] text-[#B48A5A]">
+            Sistema
           </p>
-          <h1 className="mt-2 text-4xl font-semibold text-[#0D2B52]">
-            Configuracion empresarial
+          <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52]">
+            Configuracion general
           </h1>
-          <p className="mt-2 text-slate-500">
-            Datos legales y comerciales usados por facturas, correos y futuras plantillas.
+          <p className="mt-2 max-w-2xl text-sm text-slate-500">
+            Administra informacion del negocio, marca, redes, operacion demo y textos legales.
           </p>
         </div>
+        <Button
+          type="button"
+          onClick={saveSettings}
+          disabled={saving || loading}
+          className="rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
+        >
+          <Save className="mr-2 h-4 w-4" />
+          {saving ? "Guardando..." : "Guardar cambios"}
+        </Button>
+      </div>
 
-        {message && (
-          <div className="rounded-xl border border-[#D4AF37]/20 bg-white p-4 text-sm text-[#0D2B52]">
-            {message}
-          </div>
-        )}
+      {message && (
+        <p className="rounded-xl border border-[#D4AF37]/20 bg-white px-4 py-3 text-sm text-[#0D2B52]">
+          {message}
+        </p>
+      )}
 
-        <Card className="rounded-2xl border-0 shadow-sm">
-          <CardContent className="grid gap-5 p-6 md:grid-cols-2">
-            <Field label="Nombre empresa">
-              <Input
-                value={settings.companyName || ""}
-                onChange={(event) => update("companyName", event.target.value)}
-              />
+      {loading ? (
+        <div className="h-96 rounded-2xl premium-skeleton" />
+      ) : (
+        <>
+          <Section
+            icon={Building2}
+            title="Informacion del negocio"
+            description="Datos comerciales visibles en documentos y futuras plantillas."
+          >
+            <Field label="Nombre comercial">
+              <Input value={settings.businessName || ""} onChange={(e) => update("businessName", e.target.value)} />
             </Field>
-            <Field label="Logo URL">
-              <Input
-                value={settings.logoUrl || ""}
-                onChange={(event) => update("logoUrl", event.target.value)}
-              />
+            <Field label="Razon social">
+              <Input value={settings.legalName || ""} onChange={(e) => update("legalName", e.target.value)} />
             </Field>
-            <Field label="NIT / Identificacion legal">
-              <Input
-                value={settings.legalId || ""}
-                onChange={(event) => update("legalId", event.target.value)}
-              />
+            <Field label="NIT">
+              <Input value={settings.nit || ""} onChange={(e) => update("nit", e.target.value)} />
             </Field>
             <Field label="Correo">
-              <Input
-                value={settings.email || ""}
-                onChange={(event) => update("email", event.target.value)}
-              />
+              <Input type="email" value={settings.email || ""} onChange={(e) => update("email", e.target.value)} />
             </Field>
-            <Field label="Telefonos">
-              <Input
-                value={settings.phones || ""}
-                onChange={(event) => update("phones", event.target.value)}
-              />
+            <Field label="Telefono">
+              <Input value={settings.phone || ""} onChange={(e) => update("phone", e.target.value)} />
+            </Field>
+            <Field label="WhatsApp">
+              <Input value={settings.whatsappNumber || ""} onChange={(e) => update("whatsappNumber", e.target.value)} />
             </Field>
             <Field label="Direccion">
-              <Input
-                value={settings.address || ""}
-                onChange={(event) => update("address", event.target.value)}
-              />
+              <Input value={settings.address || ""} onChange={(e) => update("address", e.target.value)} />
             </Field>
-            <Field label="Politicas">
-              <Textarea
-                value={settings.policies || ""}
-                onChange={(event) => update("policies", event.target.value)}
-                rows={5}
-              />
+            <Field label="Ciudad">
+              <Input value={settings.city || ""} onChange={(e) => update("city", e.target.value)} />
             </Field>
-            <Field label="Datos legales">
-              <Textarea
-                value={settings.legalInfo || ""}
-                onChange={(event) => update("legalInfo", event.target.value)}
-                rows={5}
-              />
+            <Field label="Pais">
+              <Input value={settings.country || ""} onChange={(e) => update("country", e.target.value)} />
             </Field>
-            <div className="md:col-span-2">
-              <Field label="Footer factura">
-                <Textarea
-                  value={settings.invoiceFooter || ""}
-                  onChange={(event) => update("invoiceFooter", event.target.value)}
-                  rows={4}
-                />
-              </Field>
-            </div>
-            <div className="md:col-span-2">
-              <Button
-                type="button"
-                onClick={saveSettings}
-                disabled={saving}
-                className="rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Guardar configuración
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Field label="Sitio web">
+              <Input value={settings.websiteUrl || ""} onChange={(e) => update("websiteUrl", e.target.value)} />
+            </Field>
+          </Section>
+
+          <Section
+            icon={Palette}
+            title="Marca"
+            description="Recursos visuales preparados para uso publico y documentos."
+          >
+            <Field label="Logo URL">
+              <Input value={settings.logoUrl || ""} onChange={(e) => update("logoUrl", e.target.value)} />
+            </Field>
+            <Field label="Favicon URL">
+              <Input value={settings.faviconUrl || ""} onChange={(e) => update("faviconUrl", e.target.value)} />
+            </Field>
+            <Field label="Color principal">
+              <Input type="color" value={settings.primaryColor || "#0D2B52"} onChange={(e) => update("primaryColor", e.target.value)} />
+            </Field>
+            <Field label="Color secundario">
+              <Input type="color" value={settings.secondaryColor || "#B48A5A"} onChange={(e) => update("secondaryColor", e.target.value)} />
+            </Field>
+          </Section>
+
+          <Section
+            icon={Share2}
+            title="Redes sociales"
+            description="Enlaces comerciales para footer, campanas y canales publicos."
+          >
+            <Field label="Instagram">
+              <Input value={settings.instagramUrl || ""} onChange={(e) => update("instagramUrl", e.target.value)} />
+            </Field>
+            <Field label="Facebook">
+              <Input value={settings.facebookUrl || ""} onChange={(e) => update("facebookUrl", e.target.value)} />
+            </Field>
+            <Field label="TikTok">
+              <Input value={settings.tiktokUrl || ""} onChange={(e) => update("tiktokUrl", e.target.value)} />
+            </Field>
+          </Section>
+
+          <Section
+            icon={Settings2}
+            title="Operacion"
+            description="Parametros generales. En demo se mantienen pagos y disponibilidad real desactivados."
+          >
+            <Field label="Moneda">
+              <Input value={settings.defaultCurrency || "COP"} onChange={(e) => update("defaultCurrency", e.target.value)} />
+            </Field>
+            <Field label="Impuesto %">
+              <Input type="number" min="0" value={settings.taxRate ?? 0} onChange={(e) => update("taxRate", Number(e.target.value || 0))} />
+            </Field>
+            <Field label="Tarifa servicio %">
+              <Input type="number" min="0" value={settings.serviceFeeRate ?? 0} onChange={(e) => update("serviceFeeRate", Number(e.target.value || 0))} />
+            </Field>
+            <Toggle label="Modo demo" checked={settings.demoModeEnabled} onChange={(value) => update("demoModeEnabled", value)} />
+            <Toggle label="Pagos reales" checked={settings.realPaymentsEnabled} onChange={(value) => update("realPaymentsEnabled", value)} />
+            <Toggle label="Disponibilidad real" checked={settings.realAvailabilityEnabled} onChange={(value) => update("realAvailabilityEnabled", value)} />
+            <Toggle label="Notificaciones WhatsApp" checked={settings.whatsappNotificationsEnabled} onChange={(value) => update("whatsappNotificationsEnabled", value)} />
+          </Section>
+
+          <Section
+            icon={FileText}
+            title="Textos legales y comerciales"
+            description="Textos reutilizables para footer, comprobantes y politicas."
+            wide
+          >
+            <Field label="Footer">
+              <Textarea value={settings.footerText || ""} rows={3} onChange={(e) => update("footerText", e.target.value)} />
+            </Field>
+            <Field label="Notas de factura/comprobante">
+              <Textarea value={settings.invoiceNotes || ""} rows={3} onChange={(e) => update("invoiceNotes", e.target.value)} />
+            </Field>
+            <Field label="Terminos de reserva">
+              <Textarea value={settings.bookingTerms || ""} rows={5} onChange={(e) => update("bookingTerms", e.target.value)} />
+            </Field>
+            <Field label="Politica de privacidad">
+              <Textarea value={settings.privacyPolicyText || ""} rows={5} onChange={(e) => update("privacyPolicyText", e.target.value)} />
+            </Field>
+          </Section>
+        </>
+      )}
     </div>
+  );
+}
+
+function Section({
+  icon: Icon,
+  title,
+  description,
+  children,
+  wide,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
+  return (
+    <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white">
+      <CardContent className="p-5 sm:p-6">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F8F6F2]">
+            <Icon className="h-5 w-5 text-[#B48A5A]" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-[#0D2B52]">{title}</h2>
+            <p className="mt-1 text-sm text-slate-500">{description}</p>
+          </div>
+        </div>
+        <div className={`mt-5 grid gap-4 ${wide ? "md:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-3"}`}>
+          {children}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -249,8 +376,30 @@ function Field({
 }) {
   return (
     <label className="space-y-2 text-sm">
-      <span className="text-slate-500">{label}</span>
+      <span className="font-medium text-slate-600">{label}</span>
       {children}
+    </label>
+  );
+}
+
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-[#D4AF37]/20 bg-[#F8F6F2] px-4 py-3 text-sm">
+      <span className="font-medium text-[#0D2B52]">{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-5 w-5 accent-[#0D2B52]"
+      />
     </label>
   );
 }

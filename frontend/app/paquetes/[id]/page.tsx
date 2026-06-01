@@ -216,7 +216,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
         contentName={cleanPublicCopy(item.title)}
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <section className="premium-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <Link
           href="/paquetes"
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[#0D2B52]"
@@ -227,7 +227,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-start">
           <div className="space-y-8">
-            <div className="overflow-hidden rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm">
+            <div className="premium-hover-lift overflow-hidden rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm">
               <div className="relative">
                 <ProductMediaGallery
                   title={cleanPublicCopy(item.title)}
@@ -285,7 +285,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <Card className="rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm">
+            <Card className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="space-y-5 p-6 lg:p-8">
                 <h2 className="text-2xl font-semibold">
                   <TranslatedText k="packageDetail.about" />
@@ -297,7 +297,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
             </Card>
 
             {activeComponents.length > 0 && (
-              <section className="rounded-3xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm lg:p-8">
+              <section className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm lg:p-8">
                 <div className="max-w-3xl">
                   <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#B48A5A]">
                     <TranslatedText k="packageDetail.stagesEyebrow" />
@@ -323,7 +323,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                     return (
                       <details
                         key={component.id}
-                        className="group overflow-hidden rounded-3xl border border-[#D4AF37]/20 bg-[#F8F6F1] shadow-sm transition open:bg-white"
+                        className="premium-hover-lift group overflow-hidden rounded-3xl border border-[#D4AF37]/20 bg-[#F8F6F1] shadow-sm transition open:bg-white"
                       >
                         <summary className="grid cursor-pointer list-none gap-4 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-start lg:p-6">
                           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0D2B52] text-sm font-semibold text-white shadow-sm">
@@ -417,7 +417,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
               />
             </div>
 
-            <Card className="rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm">
+            <Card className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="p-6 lg:p-8">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#B48A5A]" />
@@ -452,7 +452,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
           </div>
 
           <aside className="sticky top-24">
-            <Card className="rounded-3xl border border-[#D4AF37]/25 bg-white shadow-sm">
+            <Card className="premium-reveal premium-delay-1 rounded-3xl border border-[#D4AF37]/25 bg-white shadow-sm transition-shadow duration-300 hover:shadow-xl">
               <CardContent className="space-y-6 p-6">
                 <div>
                   <span className="text-xs uppercase tracking-[0.22em] text-slate-400">
@@ -496,7 +496,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
           </aside>
         </div>
 
-        <section className="mt-10 overflow-hidden rounded-3xl bg-[#0D2B52] text-white shadow-sm">
+        <section className="premium-scroll-reveal mt-10 overflow-hidden rounded-3xl bg-[#0D2B52] text-white shadow-sm">
           <div className="grid gap-6 p-7 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10">
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#D4AF37]">

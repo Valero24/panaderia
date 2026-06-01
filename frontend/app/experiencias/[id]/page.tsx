@@ -124,7 +124,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
         contentId={experience.id}
         contentName={cleanPublicCopy(experience.title)}
       />
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <section className="premium-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <Link
           href="/experiencias"
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[#0D2B52]"
@@ -135,7 +135,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_390px] lg:items-start">
           <div className="space-y-8">
-            <div className="overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
+            <div className="premium-hover-lift overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
               <div className="relative">
                 <ProductMediaGallery
                   title={cleanPublicCopy(experience.title)}
@@ -162,7 +162,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
+            <Card className="premium-scroll-reveal rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="space-y-5 p-6 lg:p-8">
                 <h2 className="text-2xl font-semibold">
                   <TranslatedText k="experience.detail" />
@@ -176,7 +176,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
             {(experience.policies || experience.recommendations) && (
               <div className="grid gap-5 md:grid-cols-2">
                 {experience.policies && (
-                  <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
+                  <Card className="premium-hover-lift rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3">
                         <ShieldCheck className="h-5 w-5 text-[#B48A5A]" />
@@ -192,7 +192,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
                 )}
 
                 {experience.recommendations && (
-                  <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
+                  <Card className="premium-hover-lift rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3">
                         <CalendarDays className="h-5 w-5 text-[#B48A5A]" />
@@ -211,7 +211,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
           </div>
 
           <aside className="sticky top-6">
-            <Card className="rounded-2xl border border-[#D4AF37]/25 bg-white shadow-sm">
+            <Card className="premium-reveal premium-delay-1 rounded-2xl border border-[#D4AF37]/25 bg-white shadow-sm transition-shadow duration-300 hover:shadow-xl">
               <CardContent className="space-y-6 p-6">
                 <div>
                   <span className="text-xs uppercase tracking-[0.22em] text-slate-400">

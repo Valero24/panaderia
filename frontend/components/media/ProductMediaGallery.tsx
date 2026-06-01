@@ -87,7 +87,7 @@ function MediaPreview({
           sizes="(min-width: 1280px) 620px, (min-width: 1024px) 50vw, 100vw"
           quality={74}
           optimizeWidth={1200}
-          className="object-cover transition duration-500 group-hover:scale-[1.03]"
+          className="premium-media object-cover transition duration-500 group-hover:scale-[1.03]"
         />
       )}
 
@@ -175,12 +175,12 @@ export default function ProductMediaGallery({
 
     return (
       <>
-        <div className="relative overflow-hidden" data-experience-gallery>
+        <div className="premium-reveal relative overflow-hidden" data-experience-gallery>
           {count === 1 && (
             <button
               type="button"
               onClick={() => openAt(0)}
-              className="group block aspect-[16/9] w-full overflow-hidden rounded-2xl bg-white shadow-sm"
+              className="premium-hover-lift group block aspect-[16/9] w-full overflow-hidden rounded-2xl bg-white shadow-sm"
               data-experience-media-tile
             >
               <MediaPreview item={items[0]} title={title} />
@@ -194,7 +194,7 @@ export default function ProductMediaGallery({
                   key={item.id || item.url}
                   type="button"
                   onClick={() => openAt(index)}
-                  className="group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
+                  className="premium-hover-lift group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
                   data-experience-media-tile
                 >
                   <MediaPreview item={item} title={title} />
@@ -208,7 +208,7 @@ export default function ProductMediaGallery({
               <button
                 type="button"
                 onClick={() => openAt(0)}
-                className="group aspect-[16/10] overflow-hidden rounded-2xl bg-white shadow-sm lg:aspect-auto lg:h-full"
+                className="premium-hover-lift group aspect-[16/10] overflow-hidden rounded-2xl bg-white shadow-sm lg:aspect-auto lg:h-full"
                 data-experience-media-tile
               >
                 <MediaPreview item={items[0]} title={title} />
@@ -220,7 +220,7 @@ export default function ProductMediaGallery({
                     key={item.id || item.url}
                     type="button"
                     onClick={() => openAt(index + 1)}
-                    className={secondaryTileClass}
+                    className={`premium-hover-lift ${secondaryTileClass}`}
                     data-experience-media-tile
                   >
                     <MediaPreview item={item} title={title} />
@@ -234,7 +234,7 @@ export default function ProductMediaGallery({
             <Button
               type="button"
               onClick={() => openAt(0)}
-              className="absolute bottom-4 right-4 rounded-xl bg-white text-[#0D2B52] shadow-lg hover:bg-[#F8F6F1]"
+              className="premium-soft-button absolute bottom-4 right-4 rounded-xl bg-white text-[#0D2B52] shadow-lg hover:bg-[#F8F6F1]"
             >
               {t("gallery.showAll")}
             </Button>
@@ -242,7 +242,7 @@ export default function ProductMediaGallery({
         </div>
 
         {open && (
-          <div className="fixed inset-0 z-[100] bg-[#071727]/95 text-white">
+          <div className="premium-reveal fixed inset-0 z-[100] bg-[#071727]/95 text-white">
             <div className="flex h-full flex-col">
               <header className="flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6">
                 <div>
@@ -314,12 +314,12 @@ export default function ProductMediaGallery({
 
   return (
     <>
-      <div className="relative">
+      <div className="premium-reveal relative">
         {count === 1 && (
           <button
             type="button"
             onClick={() => openAt(0)}
-            className="group block aspect-[16/8] w-full overflow-hidden rounded-2xl bg-white shadow-sm"
+            className="premium-hover-lift group block aspect-[16/8] w-full overflow-hidden rounded-2xl bg-white shadow-sm"
           >
             <MediaPreview item={items[0]} title={title} />
           </button>
@@ -332,7 +332,7 @@ export default function ProductMediaGallery({
                 key={item.id || item.url}
                 type="button"
                 onClick={() => openAt(index)}
-                className="group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
+                className="premium-hover-lift group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
               >
                 <MediaPreview item={item} title={title} />
               </button>
@@ -345,7 +345,7 @@ export default function ProductMediaGallery({
             <button
               type="button"
               onClick={() => openAt(0)}
-              className="group aspect-[16/10] overflow-hidden rounded-2xl bg-white shadow-sm lg:aspect-auto lg:min-h-[460px]"
+              className="premium-hover-lift group aspect-[16/10] overflow-hidden rounded-2xl bg-white shadow-sm lg:aspect-auto lg:min-h-[460px]"
             >
               <MediaPreview item={items[0]} title={title} />
             </button>
@@ -356,7 +356,7 @@ export default function ProductMediaGallery({
                   key={item.id || item.url}
                   type="button"
                   onClick={() => openAt(index + 1)}
-                  className="group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
+                  className="premium-hover-lift group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
                 >
                   <MediaPreview item={item} title={title} />
                 </button>
@@ -369,7 +369,7 @@ export default function ProductMediaGallery({
           <Button
             type="button"
             onClick={() => openAt(0)}
-            className="absolute bottom-4 right-4 rounded-xl bg-white text-[#0D2B52] shadow-lg hover:bg-[#F8F6F1]"
+            className="premium-soft-button absolute bottom-4 right-4 rounded-xl bg-white text-[#0D2B52] shadow-lg hover:bg-[#F8F6F1]"
           >
             {t("gallery.showAll")}
           </Button>
@@ -377,7 +377,7 @@ export default function ProductMediaGallery({
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-[100] bg-[#071727]/95 text-white">
+        <div className="premium-reveal fixed inset-0 z-[100] bg-[#071727]/95 text-white">
           <div className="flex h-full flex-col">
             <header className="flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6">
               <div>

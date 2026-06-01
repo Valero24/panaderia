@@ -160,6 +160,87 @@
   .premium-enter {
     animation: premium-enter 0.36s ease-out both;
   }
+
+  .premium-reveal {
+    animation: premium-fade-up 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .premium-reveal-slow {
+    animation: premium-fade-up 0.82s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .premium-delay-1 {
+    animation-delay: 90ms;
+  }
+
+  .premium-delay-2 {
+    animation-delay: 170ms;
+  }
+
+  .premium-delay-3 {
+    animation-delay: 240ms;
+  }
+
+  .premium-hover-lift {
+    transform: translateZ(0);
+    transition:
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 260ms ease,
+      background-color 260ms ease,
+      color 260ms ease;
+  }
+
+  .premium-hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 42px rgba(13, 43, 82, 0.12);
+  }
+
+  .premium-soft-button {
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 220ms ease,
+      color 220ms ease,
+      border-color 220ms ease;
+  }
+
+  .premium-soft-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(13, 43, 82, 0.14);
+  }
+
+  .premium-media {
+    transition:
+      transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 520ms ease,
+      opacity 300ms ease;
+  }
+
+  .premium-media:hover {
+    filter: saturate(1.04) contrast(1.02);
+  }
+
+  .premium-form :where(input, textarea, select) {
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .premium-form :where(input, textarea, select):focus {
+    border-color: rgba(180, 138, 90, 0.72);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.14);
+  }
+
+  @supports (animation-timeline: view()) {
+    .premium-scroll-reveal {
+      opacity: 0.001;
+      animation: premium-fade-up 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: view();
+      animation-range: entry 8% cover 30%;
+    }
+  }
 }
 
 @keyframes premium-shimmer {
@@ -179,5 +260,39 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes premium-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .premium-hover-lift:hover,
+  .premium-soft-button:hover {
+    transform: none;
+    box-shadow: none;
   }
 }

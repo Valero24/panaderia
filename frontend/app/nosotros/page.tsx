@@ -43,7 +43,7 @@ const steps = [
 export default function NosotrosPage() {
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
+      <section className="premium-reveal mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
         <div className="flex flex-col justify-center">
           <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#B48A5A]">
             Cartagena Tailored Travel
@@ -73,7 +73,7 @@ export default function NosotrosPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-[#D4AF37]/20 bg-white p-4 shadow-sm sm:p-6">
+        <div className="premium-hover-lift rounded-3xl border border-[#D4AF37]/20 bg-white p-4 shadow-sm sm:p-6">
           <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-[#EFE8DC]">
             <Image
               src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&q=70&w=900"
@@ -106,7 +106,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+      <section className="premium-scroll-reveal mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
         <div className="grid gap-5 md:grid-cols-3">
           {pillars.map((pillar) => {
             const Icon = pillar.icon;
@@ -114,7 +114,7 @@ export default function NosotrosPage() {
             return (
               <Card
                 key={pillar.title}
-                className="rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm"
+                className="premium-hover-lift rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm"
               >
                 <CardContent className="p-6">
                   <Icon className="h-6 w-6 text-[#B48A5A]" />
@@ -131,9 +131,9 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section className="premium-scroll-reveal bg-white">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:px-8">
-          <Card className="rounded-3xl border border-[#D4AF37]/20 shadow-sm">
+          <Card className="premium-hover-lift rounded-3xl border border-[#D4AF37]/20 shadow-sm">
             <CardContent className="p-6 lg:p-8">
               <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#B48A5A]">
                 <TranslatedText k="about.missionEyebrow" />
@@ -147,7 +147,7 @@ export default function NosotrosPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-3xl border border-[#D4AF37]/20 shadow-sm">
+          <Card className="premium-hover-lift rounded-3xl border border-[#D4AF37]/20 shadow-sm">
             <CardContent className="p-6 lg:p-8">
               <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#B48A5A]">
                 <TranslatedText k="about.visionEyebrow" />
@@ -163,7 +163,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <section className="premium-scroll-reveal mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#B48A5A]">
@@ -195,7 +195,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+      <section className="premium-scroll-reveal mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-3xl bg-[#0D2B52] text-white shadow-sm">
           <div className="grid gap-8 p-8 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10">
             <div>

@@ -78,7 +78,7 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
 
   return (
     <div
-      className="group/carousel relative"
+      className="group/carousel relative premium-reveal"
       onMouseEnter={() => {
         clearResumeTimer();
         setPaused(true);
@@ -89,13 +89,14 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
     >
       <div
         ref={scrollerRef}
+        data-carousel-track="true"
         className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2"
       >
         {items.map((item, index) => (
           <div
             key={index}
             data-carousel-item
-            className="min-w-0 shrink-0 basis-full snap-start md:basis-[calc((100%_-_1.5rem)_/_2)] xl:basis-[calc((100%_-_3rem)_/_3)]"
+            className="min-w-0 shrink-0 basis-full snap-start transition-transform duration-300 md:basis-[calc((100%_-_1.5rem)_/_2)] xl:basis-[calc((100%_-_3rem)_/_3)]"
           >
             {item}
           </div>
@@ -110,7 +111,7 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
               temporarilyPause();
               scroll("left");
             }}
-            className="absolute left-2 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#D4AF37]/25 bg-white/95 text-[#0D2B52] shadow-lg backdrop-blur transition hover:-translate-x-0.5 hover:border-[#B48A5A] hover:bg-[#0D2B52] hover:text-white md:flex"
+            className="premium-soft-button absolute left-2 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#D4AF37]/25 bg-white/95 text-[#0D2B52] shadow-lg backdrop-blur transition hover:-translate-x-0.5 hover:border-[#B48A5A] hover:bg-[#0D2B52] hover:text-white md:flex"
             aria-label={t("carousel.previous")}
           >
             <ChevronLeft className="h-5 w-5" />
@@ -122,7 +123,7 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
               temporarilyPause();
               scroll("right");
             }}
-            className="absolute right-2 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#D4AF37]/25 bg-white/95 text-[#0D2B52] shadow-lg backdrop-blur transition hover:translate-x-0.5 hover:border-[#B48A5A] hover:bg-[#0D2B52] hover:text-white md:flex"
+            className="premium-soft-button absolute right-2 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#D4AF37]/25 bg-white/95 text-[#0D2B52] shadow-lg backdrop-blur transition hover:translate-x-0.5 hover:border-[#B48A5A] hover:bg-[#0D2B52] hover:text-white md:flex"
             aria-label={t("carousel.next")}
           >
             <ChevronRight className="h-5 w-5" />

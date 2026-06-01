@@ -3,6 +3,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { MailService } from "../mail/mail.service";
 import { WhatsappService } from "./whatsapp.service";
 import { OperationalNotificationStatus } from "@prisma/client";
+import { AuditService } from "../common/audit.service";
 
 @Injectable()
 export class NotificationsService {
@@ -11,7 +12,8 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
-    private readonly whatsappService: WhatsappService
+    private readonly whatsappService: WhatsappService,
+    private readonly audit: AuditService
   ) {}
 
   private extras(extras: any) {
@@ -73,7 +75,7 @@ export class NotificationsService {
 
       for (const recipient of recipients) {
         if (!enabled) {
-          await this.prisma.operationalNotification.create({
+          const notification = await this.prisma.operationalNotification.create({
             data: {
               channel: "WHATSAPP",
               recipient,
@@ -82,6 +84,13 @@ export class NotificationsService {
               provider: "simulated",
               preReservationId,
             },
+          });
+          await this.auditOperationalNotification(notification.id, {
+            preReservationId,
+            recipient,
+            status: OperationalNotificationStatus.PENDING,
+            action: "OPERATIONAL_NOTIFICATION_PENDING",
+            message: "Notificacion operativa simulada pendiente",
           });
           pending += 1;
           this.logger.log(
@@ -97,7 +106,7 @@ export class NotificationsService {
           });
 
           if ((result as any)?.skipped) {
-            await this.prisma.operationalNotification.create({
+            const notification = await this.prisma.operationalNotification.create({
               data: {
                 channel: "WHATSAPP",
                 recipient,
@@ -108,9 +117,16 @@ export class NotificationsService {
                 preReservationId,
               },
             });
+            await this.auditOperationalNotification(notification.id, {
+              preReservationId,
+              recipient,
+              status: OperationalNotificationStatus.PENDING,
+              action: "OPERATIONAL_NOTIFICATION_PENDING",
+              message: "Notificacion operativa pendiente por proveedor no configurado",
+            });
             pending += 1;
           } else {
-            await this.prisma.operationalNotification.create({
+            const notification = await this.prisma.operationalNotification.create({
               data: {
                 channel: "WHATSAPP",
                 recipient,
@@ -121,10 +137,17 @@ export class NotificationsService {
                 preReservationId,
               },
             });
+            await this.auditOperationalNotification(notification.id, {
+              preReservationId,
+              recipient,
+              status: OperationalNotificationStatus.SENT,
+              action: "OPERATIONAL_NOTIFICATION_SENT",
+              message: "Notificacion operativa enviada",
+            });
             sent += 1;
           }
         } catch (error) {
-          await this.prisma.operationalNotification.create({
+          const notification = await this.prisma.operationalNotification.create({
             data: {
               channel: "WHATSAPP",
               recipient,
@@ -137,6 +160,14 @@ export class NotificationsService {
                   : "Operational WhatsApp error",
               preReservationId,
             },
+          });
+          await this.auditOperationalNotification(notification.id, {
+            preReservationId,
+            recipient,
+            status: OperationalNotificationStatus.FAILED,
+            action: "OPERATIONAL_NOTIFICATION_FAILED",
+            message: "Fallo la notificacion operativa",
+            error: error instanceof Error ? error.message : "Operational WhatsApp error",
           });
           failed += 1;
           this.logger.warn(
@@ -160,6 +191,35 @@ export class NotificationsService {
         reason: error instanceof Error ? error.message : "Notification error",
       };
     }
+  }
+
+  private auditOperationalNotification(
+    id: number,
+    data: {
+      preReservationId: string;
+      recipient: string;
+      status: OperationalNotificationStatus;
+      action: string;
+      message: string;
+      error?: string;
+    }
+  ) {
+    return this.audit.record({
+      action: data.action,
+      entityType: "OperationalNotification",
+      entityId: id,
+      message: data.message,
+      newValue: {
+        status: data.status,
+        channel: "WHATSAPP",
+        recipient: data.recipient,
+        preReservationId: data.preReservationId,
+        error: data.error,
+      },
+      metadata: {
+        preReservationId: data.preReservationId,
+      },
+    });
   }
 
   async sendManualBookingEmail(bookingId: number) {

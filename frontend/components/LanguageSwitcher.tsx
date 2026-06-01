@@ -1,22 +1,76 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Globe2 } from "lucide-react";
-
-import { languages } from "@/i18n";
+import { ChevronDown } from "lucide-react";
+import ReactCountryFlag from "react-country-flag";
+import type { Language } from "@/i18n";
 import { useTranslation } from "@/context/LanguageContext";
 
-export default function LanguageSwitcher() {
-  const { language, setLanguage, t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+const languageOptions: {
+  code: Language;
+  countryCode: string;
+  shortLabel: string;
+  label: string;
+  ariaLabel: string;
+}[] = [
+  {
+    code: "es",
+    countryCode: "CO",
+    shortLabel: "ES",
+    label: "Español",
+    ariaLabel: "Cambiar idioma a español",
+  },
+  {
+    code: "en",
+    countryCode: "US",
+    shortLabel: "EN",
+    label: "English",
+    ariaLabel: "Switch language to English",
+  },
+  {
+    code: "fr",
+    countryCode: "FR",
+    shortLabel: "FR",
+    label: "Français",
+    ariaLabel: "Changer la langue en français",
+  },
+  {
+    code: "pt",
+    countryCode: "BR",
+    shortLabel: "PT",
+    label: "Português",
+    ariaLabel: "Alterar idioma para português",
+  },
+  {
+    code: "it",
+    countryCode: "IT",
+    shortLabel: "IT",
+    label: "Italiano",
+    ariaLabel: "Cambiare lingua in italiano",
+  },
+];
 
-  const current =
-    languages.find((item) => item.code === language) ||
-    languages[0];
+function CountryFlag({ countryCode }: { countryCode: string }) {
+  return (
+    <ReactCountryFlag
+      countryCode={countryCode}
+      svg
+      aria-hidden
+      className="shrink-0 align-[-0.12em]"
+      style={{ width: "20px", height: "20px" }}
+    />
+  );
+}
+
+export default function LanguageSwitcher() {
+  const { language, setLanguage } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const activeLanguage =
+    languageOptions.find((item) => item.code === language) || languageOptions[0];
 
   useEffect(() => {
-    function closeOnOutsideClick(event: MouseEvent) {
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
       if (
         wrapperRef.current &&
         !wrapperRef.current.contains(event.target as Node)
@@ -25,58 +79,87 @@ export default function LanguageSwitcher() {
       }
     }
 
-    document.addEventListener("mousedown", closeOnOutsideClick);
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        closeOnOutsideClick
-      );
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
+  function handleSelect(nextLanguage: Language) {
+    setLanguage(nextLanguage);
+    setOpen(false);
+  }
+
   return (
-    <div ref={wrapperRef} className="relative shrink-0">
+    <div ref={wrapperRef} className="relative inline-flex max-w-full">
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-label={t("language.current")}
+        aria-label="Selector de idioma"
+        aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex h-9 min-w-[116px] items-center justify-between gap-2 rounded-xl border border-[#D4AF37]/30 bg-[#F8F6F1] px-2 text-xs font-medium text-[#0D2B52] shadow-sm transition hover:border-[#B68D40] hover:bg-white sm:h-10 sm:min-w-[150px] sm:px-3 sm:text-sm"
+        onClick={() => setOpen((current) => !current)}
+        className="inline-flex h-10 max-w-full items-center gap-2 rounded-2xl border border-[#D4AF37]/30 bg-white/95 px-3 text-sm font-semibold text-[#0D2B52] shadow-[0_8px_22px_rgba(13,43,82,0.08)] transition-all duration-200 hover:border-[#B68D40]/60 hover:bg-[#FFFCF7] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 sm:min-w-[145px] sm:justify-between lg:h-11"
       >
-        <span className="flex min-w-0 items-center gap-2">
-          <Globe2 className="h-4 w-4 shrink-0 text-[#B68D40]" />
-          <span className="truncate">{current.label}</span>
+        <span className="inline-flex min-w-0 items-center gap-2">
+          <CountryFlag countryCode={activeLanguage.countryCode} />
+          <span className="sm:hidden">{activeLanguage.shortLabel}</span>
+          <span className="hidden truncate sm:inline">{activeLanguage.label}</span>
         </span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition ${
+          className={`h-4 w-4 shrink-0 text-[#B68D40] transition-transform duration-200 ${
             open ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-white p-2 shadow-xl">
-          {languages.map((item) => (
-            <button
-              key={item.code}
-              type="button"
-              onClick={() => {
-                setLanguage(item.code);
-                setOpen(false);
-              }}
-              className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                item.code === language
-                  ? "bg-[#0D2B52] text-white"
-                  : "text-[#0D2B52] hover:bg-[#F8F6F1]"
-              }`}
-            >
-              <span>{item.label}</span>
-              {item.code === language && (
-                <span className="text-xs opacity-80">✓</span>
-              )}
-            </button>
-          ))}
+        <div
+          role="listbox"
+          aria-label="Opciones de idioma"
+          className="absolute right-0 top-full z-[70] mt-2 w-52 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#D4AF37]/25 bg-white p-1.5 shadow-[0_18px_45px_rgba(13,43,82,0.16)]"
+        >
+          {languageOptions.map((item) => {
+            const active = item.code === language;
+
+            return (
+              <button
+                key={item.code}
+                type="button"
+                role="option"
+                aria-selected={active}
+                aria-label={item.ariaLabel}
+                onClick={() => handleSelect(item.code)}
+                className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
+                  active
+                    ? "bg-[#0D2B52] text-white shadow-sm"
+                    : "text-[#0D2B52] hover:bg-[#F8F6F1] hover:text-[#B68D40]"
+                }`}
+              >
+                <span className="inline-flex min-w-0 items-center gap-2">
+                  <CountryFlag countryCode={item.countryCode} />
+                  <span className="truncate">{item.label}</span>
+                </span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    active ? "bg-white/15 text-white" : "bg-[#F8F6F1] text-[#B68D40]"
+                  }`}
+                >
+                  {item.shortLabel}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

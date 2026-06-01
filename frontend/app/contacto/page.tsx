@@ -130,7 +130,7 @@ export default function ContactoPage() {
 
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
-      <section className="mx-auto grid max-w-7xl gap-10 px-6 py-12 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:py-16">
+      <section className="premium-reveal mx-auto grid max-w-7xl gap-10 px-6 py-12 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:py-16">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.25em] text-[#B48A5A]">
             {t("contact.eyebrow")}
@@ -149,7 +149,7 @@ export default function ContactoPage() {
               return (
                 <Card
                   key={item.labelKey}
-                  className="rounded-2xl border border-[#D4AF37]/15 bg-white shadow-sm"
+                  className="premium-hover-lift rounded-2xl border border-[#D4AF37]/15 bg-white shadow-sm"
                 >
                   <CardContent className="p-5">
                     <Icon className="h-5 w-5 text-[#B48A5A]" />
@@ -168,7 +168,7 @@ export default function ContactoPage() {
           </div>
         </div>
 
-        <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
+        <Card className="premium-form premium-reveal premium-delay-1 rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
           <CardContent className="space-y-5 p-6 lg:p-8">
             <div>
               <h2 className="text-2xl font-semibold">
@@ -230,7 +230,7 @@ export default function ContactoPage() {
               type="button"
               onClick={submitContact}
               disabled={loading}
-              className="h-12 w-full rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
+              className="premium-soft-button h-12 w-full rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
             >
               {loading ? (
                 t("contact.sending")
@@ -244,7 +244,7 @@ export default function ContactoPage() {
 
             {feedback && (
               <div
-                className={`rounded-xl p-4 text-sm ${
+                className={`premium-reveal rounded-xl p-4 text-sm ${
                   success
                     ? "bg-green-50 text-green-700"
                     : "bg-[#F8F6F1] text-slate-700"

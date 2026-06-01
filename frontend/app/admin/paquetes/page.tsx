@@ -12,6 +12,13 @@ import { apiUrl } from "@/lib/api";
 import MediaGalleryEditor, {
   AdminMediaItem,
 } from "@/components/admin/MediaGalleryEditor";
+import ProductWizardProgress, {
+  ProductWizardStep,
+} from "@/components/admin/ProductWizardProgress";
+import ProductFeatureSelector, {
+  fetchFeatureAssignments,
+  saveFeatureAssignments,
+} from "@/components/admin/ProductFeatureSelector";
 
 type PackageItem = {
   id: number;
@@ -176,10 +183,59 @@ export default function AdminPaquetesPage() {
   const [extras, setExtras] = useState<ExtraService[]>([]);
   const [extraForm, setExtraForm] = useState<ExtraForm>(emptyExtraForm);
   const [extraSaving, setExtraSaving] = useState(false);
+  const [activeStep, setActiveStep] = useState<
+    "basic" | "media" | "features" | "pricing" | "premium" | "components" | "review"
+  >("basic");
+  const [wizardError, setWizardError] = useState("");
+  const [featureIds, setFeatureIds] = useState<number[]>([]);
 
   const canManage = useMemo(() => ["SUPERADMIN", "ADMIN"].includes(role), [
     role,
   ]);
+  const wizardSteps = useMemo<ProductWizardStep<typeof activeStep>[]>(
+    () => [
+      {
+        key: "basic",
+        label: "Informacion basica",
+        description: "Titulo, ubicacion, duracion y capacidad.",
+      },
+      {
+        key: "media",
+        label: "Multimedia",
+        description: "Imagen principal y galeria.",
+      },
+      {
+        key: "features",
+        label: "Caracteristicas",
+        description: "Filtros publicos del paquete.",
+      },
+      {
+        key: "pricing",
+        label: "Precios y condiciones",
+        description: "Tarifa, incluye, politicas y recomendaciones.",
+      },
+      {
+        key: "premium",
+        label: "Servicios premium",
+        description: "Complementos opcionales.",
+      },
+      {
+        key: "components",
+        label: "Componentes",
+        description: "Experiencias incluidas en el paquete.",
+      },
+      {
+        key: "review",
+        label: "Revision",
+        description: "Resumen antes de guardar.",
+      },
+    ],
+    []
+  );
+  const activeStepIndex = wizardSteps.findIndex(
+    (step) => step.key === activeStep
+  );
+  const isLastStep = activeStepIndex === wizardSteps.length - 1;
 
   async function fetchPackages() {
     try {
@@ -227,6 +283,51 @@ export default function AdminPaquetesPage() {
       ...current,
       [key]: value,
     }));
+  }
+
+  function validateStep(step = activeStep) {
+    if (step === "basic") {
+      if (!form.title.trim()) return "El titulo del paquete es obligatorio.";
+      if (!form.shortDescription.trim()) {
+        return "La descripcion corta es obligatoria.";
+      }
+      if (Number(form.maxGuests || 0) < 1) {
+        return "La capacidad debe ser mayor a cero.";
+      }
+    }
+
+    if (step === "pricing" && Number(form.basePrice || 0) < 1) {
+      return "El precio base debe ser mayor a cero.";
+    }
+
+    return "";
+  }
+
+  function goToStep(step: typeof activeStep) {
+    setWizardError("");
+    setActiveStep(step);
+  }
+
+  function goNext() {
+    const validationMessage = validateStep();
+    if (validationMessage) {
+      setWizardError(validationMessage);
+      return;
+    }
+
+    const next = wizardSteps[activeStepIndex + 1];
+    if (next) {
+      setWizardError("");
+      setActiveStep(next.key);
+    }
+  }
+
+  function goPrevious() {
+    const previous = wizardSteps[activeStepIndex - 1];
+    if (previous) {
+      setWizardError("");
+      setActiveStep(previous.key);
+    }
   }
 
   function addComponent() {
@@ -290,6 +391,9 @@ export default function AdminPaquetesPage() {
     setForm(emptyForm);
     setExtras([]);
     setExtraForm(emptyExtraForm);
+    setFeatureIds([]);
+    setActiveStep("basic");
+    setWizardError("");
     setMessage("");
   }
 
@@ -308,7 +412,15 @@ export default function AdminPaquetesPage() {
   function startEdit(item: PackageItem) {
     setEditingId(item.id);
     setForm(toForm(item));
+    setFeatureIds([]);
+    fetchFeatureAssignments("PACKAGE", item.id)
+      .then((assignments) =>
+        setFeatureIds(assignments.map((assignment: any) => Number(assignment.featureId)))
+      )
+      .catch(() => setFeatureIds([]));
     fetchPackageExtras(item.id);
+    setActiveStep("basic");
+    setWizardError("");
     setMessage("");
   }
 
@@ -318,8 +430,11 @@ export default function AdminPaquetesPage() {
       return;
     }
 
-    if (!form.title.trim() || !form.shortDescription.trim()) {
-      setMessage("Titulo y descripcion corta son requeridos.");
+    const validationMessage = validateStep("basic") || validateStep("pricing");
+    if (validationMessage) {
+      setActiveStep(validationMessage.includes("precio") ? "pricing" : "basic");
+      setWizardError(validationMessage);
+      setMessage(validationMessage);
       return;
     }
 
@@ -392,6 +507,15 @@ export default function AdminPaquetesPage() {
       }
 
       setEditingId(data.id);
+      try {
+        await saveFeatureAssignments("PACKAGE", data.id, featureIds);
+      } catch (featureError: any) {
+        setMessage(
+          `Paquete guardado, pero no se pudieron guardar sus caracteristicas: ${
+            featureError?.message || "error desconocido"
+          }`
+        );
+      }
       await fetchPackageExtras(data.id);
       setMessage(
         editingId
@@ -691,26 +815,75 @@ export default function AdminPaquetesPage() {
                 </p>
               </div>
 
-              <Input placeholder="Titulo" value={form.title} onChange={(e) => updateForm("title", e.target.value)} disabled={!canManage} />
-              <Input placeholder="Slug opcional" value={form.slug} onChange={(e) => updateForm("slug", e.target.value)} disabled={!canManage} />
-              <Textarea placeholder="Descripcion corta" value={form.shortDescription} onChange={(e) => updateForm("shortDescription", e.target.value)} disabled={!canManage} />
-              <Textarea placeholder="Descripcion completa" value={form.description} onChange={(e) => updateForm("description", e.target.value)} disabled={!canManage} className="min-h-28" />
+              <ProductWizardProgress
+                steps={wizardSteps}
+                activeKey={activeStep}
+                onChange={goToStep}
+              />
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Input placeholder="Duracion" value={form.duration} onChange={(e) => updateForm("duration", e.target.value)} disabled={!canManage} />
-                <Input placeholder="Ubicacion" value={form.location} onChange={(e) => updateForm("location", e.target.value)} disabled={!canManage} />
-                <Input type="number" min={1} placeholder="Capacidad" value={form.maxGuests} onChange={(e) => updateForm("maxGuests", e.target.value)} disabled={!canManage} />
-                <Input type="number" min={0} placeholder="Precio base" value={form.basePrice} onChange={(e) => updateForm("basePrice", e.target.value)} disabled={!canManage} />
-              </div>
+              {wizardError && (
+                <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+                  {wizardError}
+                </div>
+              )}
 
-              <Input placeholder="Categoria" value={form.category} onChange={(e) => updateForm("category", e.target.value)} disabled={!canManage} />
-              <Input placeholder="Imagen principal URL" value={form.mainImage} onChange={(e) => updateForm("mainImage", e.target.value)} disabled={!canManage} />
-              <Textarea placeholder="Incluye" value={form.includes} onChange={(e) => updateForm("includes", e.target.value)} disabled={!canManage} />
-              <Textarea placeholder="No incluye" value={form.notIncludes} onChange={(e) => updateForm("notIncludes", e.target.value)} disabled={!canManage} />
-              <Textarea placeholder="Itinerario" value={form.itinerary} onChange={(e) => updateForm("itinerary", e.target.value)} disabled={!canManage} />
-              <Textarea placeholder="Politicas" value={form.policies} onChange={(e) => updateForm("policies", e.target.value)} disabled={!canManage} />
-              <Textarea placeholder="Recomendaciones" value={form.recommendations} onChange={(e) => updateForm("recommendations", e.target.value)} disabled={!canManage} />
+              {activeStep === "basic" && (
+                <div className="space-y-4">
+                  <Input placeholder="Titulo" value={form.title} onChange={(e) => updateForm("title", e.target.value)} disabled={!canManage} />
+                  <Input placeholder="Slug opcional" value={form.slug} onChange={(e) => updateForm("slug", e.target.value)} disabled={!canManage} />
+                  <Textarea placeholder="Descripcion corta" value={form.shortDescription} onChange={(e) => updateForm("shortDescription", e.target.value)} disabled={!canManage} />
+                  <Textarea placeholder="Descripcion completa" value={form.description} onChange={(e) => updateForm("description", e.target.value)} disabled={!canManage} className="min-h-28" />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Input placeholder="Duracion" value={form.duration} onChange={(e) => updateForm("duration", e.target.value)} disabled={!canManage} />
+                    <Input placeholder="Ubicacion" value={form.location} onChange={(e) => updateForm("location", e.target.value)} disabled={!canManage} />
+                    <Input type="number" min={1} placeholder="Capacidad" value={form.maxGuests} onChange={(e) => updateForm("maxGuests", e.target.value)} disabled={!canManage} />
+                    <Input placeholder="Categoria" value={form.category} onChange={(e) => updateForm("category", e.target.value)} disabled={!canManage} />
+                  </div>
+                  <label className="flex items-center gap-3 rounded-xl border border-[#D4AF37]/20 p-3 text-sm text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={form.active}
+                      onChange={(event) => updateForm("active", event.target.checked)}
+                      disabled={!canManage}
+                    />
+                    Publicar paquete activo
+                  </label>
+                </div>
+              )}
 
+              {activeStep === "media" && (
+                <div className="space-y-4">
+                  <Input placeholder="Imagen principal URL" value={form.mainImage} onChange={(e) => updateForm("mainImage", e.target.value)} disabled={!canManage} />
+                  <MediaGalleryEditor
+                    value={form.images}
+                    onChange={(images) => updateForm("images", images)}
+                    disabled={!canManage}
+                  />
+                </div>
+              )}
+
+              {activeStep === "features" && (
+                <ProductFeatureSelector
+                  productType="PACKAGE"
+                  productId={editingId}
+                  selectedFeatureIds={featureIds}
+                  onChange={setFeatureIds}
+                  disabled={!canManage}
+                />
+              )}
+
+              {activeStep === "pricing" && (
+                <div className="space-y-4">
+                  <Input type="number" min={0} placeholder="Precio base" value={form.basePrice} onChange={(e) => updateForm("basePrice", e.target.value)} disabled={!canManage} />
+                  <Textarea placeholder="Incluye" value={form.includes} onChange={(e) => updateForm("includes", e.target.value)} disabled={!canManage} />
+                  <Textarea placeholder="No incluye" value={form.notIncludes} onChange={(e) => updateForm("notIncludes", e.target.value)} disabled={!canManage} />
+                  <Textarea placeholder="Itinerario" value={form.itinerary} onChange={(e) => updateForm("itinerary", e.target.value)} disabled={!canManage} />
+                  <Textarea placeholder="Politicas" value={form.policies} onChange={(e) => updateForm("policies", e.target.value)} disabled={!canManage} />
+                  <Textarea placeholder="Recomendaciones" value={form.recommendations} onChange={(e) => updateForm("recommendations", e.target.value)} disabled={!canManage} />
+                </div>
+              )}
+
+              {activeStep === "components" && (
               <section className="rounded-2xl border border-[#D4AF37]/20 bg-[#F8F6F2] p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
@@ -911,35 +1084,9 @@ export default function AdminPaquetesPage() {
                   </div>
                 )}
               </section>
-
-              <MediaGalleryEditor
-                value={form.images}
-                onChange={(images) => updateForm("images", images)}
-                disabled={!canManage}
-              />
-
-              <label className="flex items-center gap-3 rounded-xl border border-[#D4AF37]/20 p-3 text-sm text-slate-600">
-                <input
-                  type="checkbox"
-                  checked={form.active}
-                  onChange={(event) => updateForm("active", event.target.checked)}
-                  disabled={!canManage}
-                />
-                Publicar paquete activo
-              </label>
-
-              {canManage && (
-                <Button
-                  type="button"
-                  onClick={savePackage}
-                  disabled={saving}
-                  className="h-12 w-full rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  {saving ? "Guardando..." : "Guardar paquete"}
-                </Button>
               )}
 
+              {activeStep === "premium" && (
               <div className="border-t border-[#D4AF37]/20 pt-5">
                 <div>
                   <h3 className="text-xl font-semibold text-[#0D2B52]">
@@ -1051,6 +1198,68 @@ export default function AdminPaquetesPage() {
                     )}
                   </div>
                 )}
+              </div>
+              )}
+
+              {activeStep === "review" && (
+                <div className="space-y-4 rounded-2xl border border-[#D4AF37]/20 bg-[#F8F6F2] p-4">
+                  <h3 className="text-xl font-semibold text-[#0D2B52]">
+                    Revision final
+                  </h3>
+                  <div className="grid gap-3 text-sm sm:grid-cols-2">
+                    <p><strong>Paquete:</strong> {form.title || "Sin titulo"}</p>
+                    <p><strong>Ubicacion:</strong> {form.location || "Sin ubicacion"}</p>
+                    <p><strong>Duracion:</strong> {form.duration || "Sin duracion"}</p>
+                    <p><strong>Precio:</strong> {money(Number(form.basePrice || 0))}</p>
+                    <p><strong>Capacidad:</strong> {form.maxGuests || "1"} personas</p>
+                    <p><strong>Componentes:</strong> {form.components.filter((component) => component.title?.trim()).length}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 border-t border-[#D4AF37]/20 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={goPrevious}
+                  disabled={activeStepIndex <= 0}
+                  className="rounded-xl"
+                >
+                  Anterior
+                </Button>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={startCreate}
+                    className="rounded-xl"
+                  >
+                    Cancelar
+                  </Button>
+                  {!isLastStep ? (
+                    <Button
+                      type="button"
+                      onClick={goNext}
+                      className="rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
+                    >
+                      Siguiente
+                    </Button>
+                  ) : canManage ? (
+                    <Button
+                      type="button"
+                      onClick={savePackage}
+                      disabled={saving}
+                      className="rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
+                    >
+                      <Save className="mr-2 h-4 w-4" />
+                      {saving
+                        ? "Guardando..."
+                        : editingId
+                          ? "Guardar cambios"
+                          : "Crear paquete"}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             </CardContent>
           </Card>

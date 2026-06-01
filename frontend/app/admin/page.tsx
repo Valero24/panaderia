@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import {
+  Activity,
   Banknote,
+  BriefcaseBusiness,
   CalendarCheck,
   Clock,
-  CreditCard,
-  RefreshCw,
+  Contact,
+  Home,
+  Package,
+  Plus,
   ShieldCheck,
+  Sparkles,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -25,281 +30,386 @@ import {
 } from "@/components/ui/table";
 import { apiUrl } from "@/lib/api";
 
-type Metrics = {
-  pending: number;
-  assigned: number;
-  paymentPending: number;
-  confirmed: number;
-  cancelled: number;
-  paymentsPending: number;
-  advisorsActive: number;
-  unattended: number;
-  totalRevenue: number;
-  bookingsConfirmed: number;
-  occupancy: number;
+type DashboardSummary = {
+  role: "SUPERADMIN" | "ADVISOR";
+  metrics: Record<string, any>;
+  recentActivity: AuditLog[];
+  latestRequests: DashboardRequest[];
+  latestConfirmedBookings: DashboardBooking[];
+  latestContacts: DashboardContact[];
 };
 
-type Advisor = {
+type DashboardRequest = {
+  id: string;
+  customerName: string;
+  email: string;
+  customerPhone?: string | null;
+  status: string;
+  finalTotal?: number | null;
+  totalEstimate?: number | null;
+  createdAt: string;
+  assignedTo?: {
+    name?: string | null;
+    email?: string | null;
+  } | null;
+  items?: {
+    name?: string | null;
+    type: string;
+  }[];
+};
+
+type DashboardBooking = {
+  id: number;
+  reservationCode?: string | null;
+  preReservationId?: string | null;
+  customerName?: string | null;
+  productName?: string | null;
+  totalPrice: number;
+  advisorName?: string | null;
+  createdAt: string;
+};
+
+type DashboardContact = {
   id: number;
   name: string;
   email: string;
-  isActive: boolean;
-  metrics: {
-    totalAssigned: number;
-    confirmed: number;
-    pending: number;
-  };
+  whatsapp: string;
+  interestType: string;
+  subject: string;
+  createdAt: string;
 };
 
-const emptyMetrics: Metrics = {
-  pending: 0,
-  assigned: 0,
-  paymentPending: 0,
-  confirmed: 0,
-  cancelled: 0,
-  paymentsPending: 0,
-  advisorsActive: 0,
-  unattended: 0,
-  totalRevenue: 0,
-  bookingsConfirmed: 0,
-  occupancy: 0,
+type AuditLog = {
+  id: number;
+  actorName?: string | null;
+  actorRole?: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  message?: string | null;
+  createdAt: string;
+};
+
+const emptySummary: DashboardSummary = {
+  role: "ADVISOR",
+  metrics: {},
+  recentActivity: [],
+  latestRequests: [],
+  latestConfirmedBookings: [],
+  latestContacts: [],
 };
 
 function money(value: number) {
   return `$${Number(value || 0).toLocaleString("es-CO")}`;
 }
 
-function readRole() {
+function date(value: string) {
+  return new Intl.DateTimeFormat("es-CO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function readUser() {
   try {
-    return JSON.parse(localStorage.getItem("user") || "{}")?.role;
+    return JSON.parse(localStorage.getItem("user") || "{}");
   } catch {
     return null;
   }
 }
 
-export default function AdminDashboard() {
-  const router = useRouter();
-  const [metrics, setMetrics] = useState<Metrics>(emptyMetrics);
-  const [advisors, setAdvisors] = useState<Advisor[]>([]);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
+function productLabel(request: DashboardRequest) {
+  return request.items?.[0]?.name || request.items?.[0]?.type || "Producto pendiente";
+}
 
-  async function fetchDashboard() {
+export default function AdminDashboard() {
+  const [summary, setSummary] = useState<DashboardSummary>(emptySummary);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const user = useMemo(() => readUser(), []);
+  const isSuperAdmin = summary.role === "SUPERADMIN";
+
+  async function fetchSummary() {
     try {
       setLoading(true);
       setMessage("");
 
       const token = localStorage.getItem("token");
-      const role = readRole();
 
-      if (role === "ADVISOR") {
-        router.replace("/admin/reservas");
+      if (!token) {
+        setMessage("Debes iniciar sesion para ver el dashboard.");
         return;
       }
 
-      if (!token || role !== "SUPERADMIN") {
-        setMessage("Acceso exclusivo para Super Admin.");
+      const res = await fetch(apiUrl("/dashboard/summary"), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data?.message || "No se pudo cargar el dashboard.");
         return;
       }
 
-      const [dashboardRes, advisorsRes] = await Promise.all([
-        fetch(apiUrl("/admin-operations/dashboard"), {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(apiUrl("/admin-operations/advisors"), {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const dashboard = await dashboardRes.json();
-      const advisorsData = await advisorsRes.json();
-
-      if (!dashboardRes.ok || !advisorsRes.ok) {
-        setMessage(dashboard.message || "No se pudo cargar el dashboard.");
-        return;
-      }
-
-      setMetrics(dashboard);
-      setAdvisors(Array.isArray(advisorsData) ? advisorsData : []);
+      setSummary(data);
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexión cargando dashboard.");
+      setMessage("Error de conexion cargando dashboard.");
     } finally {
       setLoading(false);
     }
   }
 
-  async function toggleAdvisor(advisor: Advisor) {
-    const token = localStorage.getItem("token");
-    const res = await fetch(
-      apiUrl(`/admin-operations/advisors/${advisor.id}/status`),
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ isActive: !advisor.isActive }),
-      }
-    );
-
-    if (!res.ok) {
-      const data = await res.json();
-      setMessage(data.message || "No se pudo actualizar el asesor.");
-      return;
-    }
-
-    await fetchDashboard();
-  }
-
   useEffect(() => {
-    fetchDashboard();
+    fetchSummary();
   }, []);
 
+  const metricCards = isSuperAdmin
+    ? [
+        {
+          icon: Clock,
+          label: "Solicitudes pendientes",
+          value: summary.metrics.pendingRequests,
+        },
+        {
+          icon: UserCheck,
+          label: "Solicitudes en gestion",
+          value: summary.metrics.requestsInManagement,
+        },
+        {
+          icon: CalendarCheck,
+          label: "Reservas confirmadas",
+          value: summary.metrics.confirmedRequests,
+        },
+        {
+          icon: ShieldCheck,
+          label: "Reservas canceladas",
+          value: summary.metrics.cancelledRequests,
+        },
+        {
+          icon: Banknote,
+          label: "Ingresos estimados",
+          value: money(summary.metrics.estimatedRevenue),
+        },
+        {
+          icon: Contact,
+          label: "Contactos recibidos",
+          value: summary.metrics.contactsReceived,
+        },
+        {
+          icon: Users,
+          label: "Asesores activos",
+          value: summary.metrics.activeAdvisors,
+        },
+        {
+          icon: BriefcaseBusiness,
+          label: "Productos activos",
+          value: `${summary.metrics.productsActive?.properties || 0} / ${
+            summary.metrics.productsActive?.experiences || 0
+          } / ${summary.metrics.productsActive?.packages || 0}`,
+          hint: "Alojamientos / Experiencias / Paquetes",
+        },
+      ]
+    : [
+        {
+          icon: UserCheck,
+          label: "Mis solicitudes asignadas",
+          value: summary.metrics.myAssignedRequests,
+        },
+        {
+          icon: Clock,
+          label: "En validacion",
+          value: summary.metrics.myValidatingRequests,
+        },
+        {
+          icon: CalendarCheck,
+          label: "Mis reservas confirmadas",
+          value: summary.metrics.myConfirmedRequests,
+        },
+        {
+          icon: Activity,
+          label: "Pendientes de gestion",
+          value: summary.metrics.myPendingManagement,
+        },
+        {
+          icon: Users,
+          label: "Clientes recientes",
+          value: summary.metrics.myRecentClients,
+        },
+      ];
+
+  const quickActions = isSuperAdmin
+    ? [
+        { label: "Ver solicitudes pendientes", href: "/admin/reservas", icon: Clock },
+        { label: "Crear alojamiento", href: "/admin/alojamientos/crear", icon: Home },
+        { label: "Crear experiencia", href: "/admin/experiencias", icon: Sparkles },
+        { label: "Crear paquete", href: "/admin/paquetes", icon: Package },
+        { label: "Ver asesores", href: "/admin/asesores", icon: Users },
+        { label: "Ver historial", href: "/admin/logs", icon: Activity },
+      ]
+    : [
+        { label: "Ver solicitudes pendientes", href: "/admin/reservas", icon: Clock },
+        { label: "Ver mis reservas", href: "/admin/reservas", icon: CalendarCheck },
+        { label: "Ver contactos", href: "/admin/contactos", icon: Contact },
+        { label: "Ir a productos", href: "/admin/alojamientos", icon: BriefcaseBusiness },
+      ];
+
   return (
-    <div className="min-h-screen bg-[#F8F6F2] px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6 lg:space-y-8">
-        <div className="premium-enter premium-surface rounded-2xl p-5 sm:p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm font-medium uppercase tracking-[0.25em] text-[#B48A5A]">
-                Super Admin
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52] sm:text-4xl">
-                Centro de control operativo
-              </h1>
-              <p className="mt-2 max-w-2xl text-slate-500">
-                Visión operativa global de solicitudes, pagos, asesores e ingresos.
-              </p>
-            </div>
-
-            <Button
-              type="button"
-              onClick={fetchDashboard}
-              variant="outline"
-              disabled={loading}
-              className="h-12 rounded-xl bg-white premium-focus"
-            >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-              />
-              Actualizar
-            </Button>
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.28em] text-[#B48A5A]">
+              {isSuperAdmin ? "Super Admin" : "Asesor de viajes"}
+            </p>
+            <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52] sm:text-4xl">
+              Centro operativo
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              Hola{user?.name ? `, ${user.name}` : ""}. Aqui tienes el estado de la operacion y las acciones mas importantes para continuar.
+            </p>
           </div>
-
-          <div className="mt-6 grid gap-3 border-t border-[#D4AF37]/15 pt-5 sm:grid-cols-3">
-            <PulseTile label="Sin atender" value={metrics.unattended} tone="amber" />
-            <PulseTile label="Confirmadas" value={metrics.confirmed} tone="blue" />
-            <PulseTile label="Ocupacion" value={`${metrics.occupancy || 0}%`} tone="green" />
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={fetchSummary}
+            disabled={loading}
+            className="rounded-xl bg-white"
+          >
+            <Activity className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            Actualizar
+          </Button>
         </div>
+      </section>
 
-        {message && (
-          <div className="premium-enter rounded-xl border border-[#D4AF37]/20 bg-white p-4 text-sm text-[#0D2B52] shadow-sm">
-            {message}
-          </div>
-        )}
+      {message && (
+        <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {message}
+        </p>
+      )}
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard loading={loading} icon={Clock} label="Pendientes" value={metrics.pending} />
-          <MetricCard loading={loading} icon={UserCheck} label="Asignadas" value={metrics.assigned} />
-          <MetricCard loading={loading} icon={CreditCard} label="Pendiente pago" value={metrics.paymentPending} />
-          <MetricCard loading={loading} icon={CalendarCheck} label="Confirmadas" value={metrics.confirmed} />
-          <MetricCard loading={loading} icon={Banknote} label="Ingresos" value={money(metrics.totalRevenue)} />
-          <MetricCard loading={loading} icon={CreditCard} label="Pagos pendientes" value={metrics.paymentsPending} />
-          <MetricCard loading={loading} icon={Users} label="Asesores activos" value={metrics.advisorsActive} />
-          <MetricCard loading={loading} icon={ShieldCheck} label="Canceladas" value={metrics.cancelled} />
-        </div>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {metricCards.map((metric) => (
+          <MetricCard
+            key={metric.label}
+            loading={loading}
+            icon={metric.icon}
+            label={metric.label}
+            value={metric.value ?? 0}
+            hint={metric.hint}
+          />
+        ))}
+      </section>
 
-        <Card className="premium-enter premium-surface rounded-2xl">
-          <CardContent className="space-y-5 p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-semibold text-[#0D2B52]">
-                  Gestión de asesores
+                <h2 className="text-xl font-semibold text-[#0D2B52]">
+                  Acciones rapidas
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Estado operativo y rendimiento básico por asesor.
+                  Atajos para mover la operacion sin buscar en el menu.
                 </p>
               </div>
-              <Badge variant="outline" className="w-fit rounded-md border-[#D4AF37]/30 bg-[#F8F6F2]">
-                {advisors.length} perfiles
-              </Badge>
+              <Plus className="h-5 w-5 text-[#B48A5A]" />
             </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {quickActions.map((action) => {
+                const Icon = action.icon;
 
-            <div className="overflow-x-auto rounded-xl border border-slate-100">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Asesor</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Asignadas</TableHead>
-                  <TableHead>Confirmadas</TableHead>
-                  <TableHead>Pendientes</TableHead>
-                  <TableHead>Acción</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading && (
-                  <>
-                    {[1, 2, 3].map((item) => (
-                      <TableRow key={item}>
-                        <TableCell colSpan={6} className="py-4">
-                          <div className="h-12 rounded-xl premium-skeleton" />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </>
-                )}
-
-                {!loading && advisors.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-12 text-center">
-                      <div className="mx-auto flex max-w-sm flex-col items-center">
-                        <Users className="h-9 w-9 text-[#B48A5A]" />
-                        <p className="mt-3 font-medium text-[#0D2B52]">
-                          No hay asesores registrados
-                        </p>
-                        <p className="mt-1 text-sm text-slate-500">
-                          Cuando crees asesores, su operación aparecerá aquí.
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-
-                {advisors.map((advisor) => (
-                  <TableRow key={advisor.id} className="transition-colors hover:bg-[#F8F6F2]/70">
-                    <TableCell>
-                      <p className="font-medium text-[#0D2B52]">{advisor.name}</p>
-                      <p className="text-xs text-slate-500">{advisor.email}</p>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={advisor.isActive ? "default" : "secondary"}>
-                        {advisor.isActive ? "Activo" : "Bloqueado"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{advisor.metrics.totalAssigned}</TableCell>
-                    <TableCell>{advisor.metrics.confirmed}</TableCell>
-                    <TableCell>{advisor.metrics.pending}</TableCell>
-                    <TableCell>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => toggleAdvisor(advisor)}
-                        className="rounded-xl premium-focus"
-                      >
-                        {advisor.isActive ? "Bloquear" : "Activar"}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                return (
+                  <Link
+                    key={action.label}
+                    href={action.href}
+                    className="group flex items-center gap-3 rounded-xl border border-[#D4AF37]/20 bg-[#F8F6F2] p-4 text-sm font-semibold text-[#0D2B52] transition hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
+                  >
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#B48A5A] transition group-hover:bg-[#0D2B52] group-hover:text-white">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    {action.label}
+                  </Link>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
-      </div>
+
+        <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold text-[#0D2B52]">
+                  Actividad reciente
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Eventos operativos registrados en el sistema.
+                </p>
+              </div>
+              <Badge variant="outline" className="rounded-md">
+                {summary.recentActivity.length}
+              </Badge>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              {loading ? (
+                [1, 2, 3].map((item) => (
+                  <div key={item} className="h-16 rounded-xl premium-skeleton" />
+                ))
+              ) : summary.recentActivity.length === 0 ? (
+                <EmptyState text="Aun no hay actividad reciente para mostrar." />
+              ) : (
+                summary.recentActivity.slice(0, 6).map((log) => (
+                  <div
+                    key={log.id}
+                    className="rounded-xl border border-[#D4AF37]/15 bg-[#F8F6F2] p-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <Badge variant="outline" className="rounded-md bg-white">
+                        {log.action}
+                      </Badge>
+                      <span className="text-xs text-slate-500">{date(log.createdAt)}</span>
+                    </div>
+                    <p className="mt-2 text-sm font-medium text-[#0D2B52]">
+                      {log.message || "Evento registrado"}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {log.actorName || "Sistema"} · {log.entityType} #{log.entityId}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <RequestsPanel
+          title={isSuperAdmin ? "Ultimas 5 solicitudes" : "Mis ultimas 5 solicitudes"}
+          requests={summary.latestRequests}
+          loading={loading}
+        />
+        <BookingsPanel
+          title={
+            isSuperAdmin
+              ? "Ultimas 5 reservas confirmadas"
+              : "Mis ultimas 5 reservas confirmadas"
+          }
+          bookings={summary.latestConfirmedBookings}
+          loading={loading}
+        />
+      </section>
+
+      {isSuperAdmin && (
+        <ContactsPanel
+          contacts={summary.latestContacts}
+          loading={loading}
+        />
+      )}
     </div>
   );
 }
@@ -308,17 +418,19 @@ function MetricCard({
   icon: Icon,
   label,
   value,
+  hint,
   loading,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: number | string;
+  hint?: string;
   loading?: boolean;
 }) {
   return (
-    <Card className="premium-enter premium-surface rounded-2xl">
-      <CardContent className="p-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F8F6F2]">
+    <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
+      <CardContent className="p-5">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F8F6F2]">
           <Icon className="h-5 w-5 text-[#B48A5A]" />
         </div>
         <p className="mt-4 text-sm text-slate-500">{label}</p>
@@ -327,32 +439,218 @@ function MetricCard({
         ) : (
           <h2 className="mt-2 text-3xl font-semibold text-[#0D2B52]">{value}</h2>
         )}
+        {hint && <p className="mt-2 text-xs text-slate-400">{hint}</p>}
       </CardContent>
     </Card>
   );
 }
 
-function PulseTile({
-  label,
-  value,
-  tone,
+function RequestsPanel({
+  title,
+  requests,
+  loading,
 }: {
-  label: string;
-  value: number | string;
-  tone: "amber" | "blue" | "green";
+  title: string;
+  requests: DashboardRequest[];
+  loading: boolean;
 }) {
-  const toneClass = {
-    amber: "bg-amber-50 text-amber-700 border-amber-200",
-    blue: "bg-[#EAF0F8] text-[#0D2B52] border-[#0D2B52]/15",
-    green: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  }[tone];
-
   return (
-    <div className={`rounded-xl border px-4 py-3 ${toneClass}`}>
-      <p className="text-xs font-medium uppercase tracking-[0.16em] opacity-70">
-        {label}
-      </p>
-      <p className="mt-1 text-xl font-semibold">{value}</p>
+    <TablePanel title={title}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Producto</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead>Accion</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <LoadingRows colSpan={4} />
+          ) : requests.length === 0 ? (
+            <EmptyRow colSpan={4} text="No hay solicitudes para mostrar." />
+          ) : (
+            requests.map((request) => (
+              <TableRow key={request.id}>
+                <TableCell>
+                  <p className="font-medium text-[#0D2B52]">{request.customerName}</p>
+                  <p className="text-xs text-slate-500">{date(request.createdAt)}</p>
+                </TableCell>
+                <TableCell className="max-w-48 truncate">{productLabel(request)}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="rounded-md">
+                    {request.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Button asChild variant="outline" className="rounded-xl">
+                    <Link href="/admin/reservas">Ver detalle</Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TablePanel>
+  );
+}
+
+function BookingsPanel({
+  title,
+  bookings,
+  loading,
+}: {
+  title: string;
+  bookings: DashboardBooking[];
+  loading: boolean;
+}) {
+  return (
+    <TablePanel title={title}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Codigo</TableHead>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Total</TableHead>
+            <TableHead>Accion</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <LoadingRows colSpan={4} />
+          ) : bookings.length === 0 ? (
+            <EmptyRow colSpan={4} text="No hay reservas confirmadas." />
+          ) : (
+            bookings.map((booking) => (
+              <TableRow key={booking.id}>
+                <TableCell>
+                  <p className="font-semibold text-[#0D2B52]">
+                    {booking.reservationCode || `#${booking.id}`}
+                  </p>
+                  <p className="text-xs text-slate-500">{date(booking.createdAt)}</p>
+                </TableCell>
+                <TableCell>
+                  <p className="font-medium text-[#0D2B52]">
+                    {booking.customerName || "Cliente"}
+                  </p>
+                  <p className="max-w-52 truncate text-xs text-slate-500">
+                    {booking.productName || "Producto"}
+                  </p>
+                </TableCell>
+                <TableCell>{money(booking.totalPrice)}</TableCell>
+                <TableCell>
+                  <Button asChild variant="outline" className="rounded-xl">
+                    <Link href="/admin/reservas">Ver detalle</Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TablePanel>
+  );
+}
+
+function ContactsPanel({
+  contacts,
+  loading,
+}: {
+  contacts: DashboardContact[];
+  loading: boolean;
+}) {
+  return (
+    <TablePanel title="Ultimos 5 contactos">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Contacto</TableHead>
+            <TableHead>Interes</TableHead>
+            <TableHead>Asunto</TableHead>
+            <TableHead>Accion</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <LoadingRows colSpan={4} />
+          ) : contacts.length === 0 ? (
+            <EmptyRow colSpan={4} text="No hay contactos recibidos." />
+          ) : (
+            contacts.map((contact) => (
+              <TableRow key={contact.id}>
+                <TableCell>
+                  <p className="font-medium text-[#0D2B52]">{contact.name}</p>
+                  <p className="text-xs text-slate-500">{contact.email}</p>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="rounded-md">
+                    {contact.interestType}
+                  </Badge>
+                </TableCell>
+                <TableCell className="max-w-72 truncate">{contact.subject}</TableCell>
+                <TableCell>
+                  <Button asChild variant="outline" className="rounded-xl">
+                    <Link href="/admin/contactos">Ver</Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TablePanel>
+  );
+}
+
+function TablePanel({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white">
+      <CardContent className="p-0">
+        <div className="border-b border-[#D4AF37]/15 p-5">
+          <h2 className="text-xl font-semibold text-[#0D2B52]">{title}</h2>
+        </div>
+        <div className="overflow-x-auto">{children}</div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LoadingRows({ colSpan }: { colSpan: number }) {
+  return (
+    <>
+      {[1, 2, 3].map((item) => (
+        <TableRow key={item}>
+          <TableCell colSpan={colSpan} className="py-4">
+            <div className="h-12 rounded-xl premium-skeleton" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+function EmptyRow({ colSpan, text }: { colSpan: number; text: string }) {
+  return (
+    <TableRow>
+      <TableCell colSpan={colSpan} className="py-8 text-center">
+        <EmptyState text={text} />
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-[#D4AF37]/30 bg-[#F8F6F2] px-4 py-5 text-center text-sm text-slate-500">
+      {text}
     </div>
   );
 }

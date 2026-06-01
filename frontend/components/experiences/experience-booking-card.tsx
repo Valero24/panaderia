@@ -96,7 +96,7 @@ export default function ExperienceBookingCard({
             return (
               <div
                 key={extra.id}
-                className={`rounded-xl border p-4 text-sm ${
+                className={`premium-hover-lift rounded-xl border p-4 text-sm ${
                   selected
                     ? "border-[#B48A5A] bg-[#F8F6F1]"
                     : "border-[#D4AF37]/20"
@@ -168,7 +168,7 @@ export default function ExperienceBookingCard({
               basePrice + extrasTotal
             )
           }
-          className="h-12 w-full rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
+          className="premium-soft-button h-12 w-full rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
         >
           {t("experience.book")}
         </Button>

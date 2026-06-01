@@ -1,350 +1,171 @@
-git commit -m "Actulizado"
-git add .
-git branch -M main
-git remote add origin https://github.com/Valero24/panaderia.git
-git push -u origin main
+# Cartagena Tailored Travel
 
+Plataforma web de viajes premium en Cartagena orientada a reservas asistidas por asesores. No funciona como un Airbnb automatico: el cliente envia una solicitud, el equipo valida disponibilidad y detalles, y luego un asesor confirma la reserva manualmente.
 
-"# panaderia" 
-# panaderia
+## Problema que resuelve
 
+Los viajes premium requieren validacion humana, coordinacion de detalles, servicios adicionales y control operativo. El sistema centraliza:
 
+- productos turisticos: alojamientos, experiencias y paquetes;
+- solicitudes asistidas;
+- gestion de asesores;
+- confirmacion manual de reservas;
+- comprobantes PDF;
+- dashboard operativo;
+- logs e historial;
+- contactos comerciales.
 
-"Para Cartagena Tailored Travel, ya que tienes:
+## Modelo de negocio
 
-text
-Next.js
-NestJS
-Prisma
-PostgreSQL
+Cartagena Tailored Travel opera como una plataforma de atencion personalizada para viajeros que quieren alojamientos, experiencias y paquetes premium en Cartagena. El cliente no paga inmediatamente desde el checkout. Primero envia una solicitud; un asesor la toma, valida disponibilidad, ajusta cotizacion y genera la reserva.
 
+## Stack tecnologico
 
-yo no instalaría librerías "porque sí". Instalaría únicamente las que te ayuden a convertirlo en un producto premium.
+- Frontend: Next.js, React, TypeScript, Tailwind CSS.
+- Backend: NestJS, TypeScript.
+- Base de datos: PostgreSQL.
+- ORM: Prisma.
+- Autenticacion: JWT.
+- PDF: generacion backend con service de invoice.
+- Deploy demo sugerido: Vercel + Render + Supabase/Neon.
 
-Las dividiría por bloques:
+## Estructura general
 
----
+```text
+frontend/   Aplicacion publica y panel administrativo.
+backend/    API NestJS, Prisma, PDF, auth, reservas, productos.
+env/        Ejemplos de variables de entorno.
+ops/        Scripts y ejemplos operativos.
+backups/    Carpeta local para respaldos.
+```
 
-# 1. UI / Diseño Premium
+## Estado actual
 
-### Radix UI
+Listo:
 
-bash
-npm install @radix-ui/react-dialog
-npm install @radix-ui/react-dropdown-menu
-npm install @radix-ui/react-accordion
-npm install @radix-ui/react-tabs
-npm install @radix-ui/react-tooltip
+- sitio publico;
+- alojamientos;
+- experiencias;
+- paquetes;
+- pagina nosotros y contacto;
+- checkout asistido;
+- panel admin;
+- roles SUPERADMIN y ADVISOR;
+- reservas manuales;
+- codigo RES;
+- PDF/comprobante;
+- dashboard operativo;
+- logs/historial;
+- modo demo.
 
+Simulado o desactivado en demo:
 
-Te sirve para:
+- pagos reales Wompi/Stripe;
+- Factus/DIAN real;
+- Airbnb/iCal real;
+- WhatsApp automatico real.
 
-* modales
-* dropdowns
-* acordeones
-* tabs
-* tooltips
+## Modo demo
 
----
+La demo usa:
 
-### shadcn/ui
+```env
+ENABLE_REAL_PAYMENTS=false
+ENABLE_REAL_AVAILABILITY=false
+WOMPI_ENABLED=false
+FACTUS_ENABLED=false
+DIAN_MODE=mock
+ENABLE_WHATSAPP_NOTIFICATIONS=false
+```
 
-No es una librería, es un sistema de componentes.
+Documentacion relacionada:
 
-bash
-npx shadcn@latest init
+- [README_DEMO.md](README_DEMO.md)
+- [DEPLOY_DEMO.md](DEPLOY_DEMO.md)
 
+## Usuarios demo
 
-Para:
+SUPERADMIN:
 
-* cards premium
-* dashboards
-* formularios
-* tablas
-* modales
+```text
+superadmin@test.com / 123456
+```
 
----
+ADVISOR:
 
-# 2. Animaciones
+```text
+advisor@test.com / 123456
+```
 
-### Framer Motion
+Estas credenciales son solo para demo. No deben usarse en produccion.
 
-bash
-npm install framer-motion
-
-
-Te sirve para:
-
-* efectos scroll
-* fade in
-* reveal
-* hover premium
-* galerías
-
-Es probablemente la mejor inversión para UX.
-
----
-
-# 3. Formularios
-
-### React Hook Form
-
-bash
-npm install react-hook-form
-
-
-### Zod
-
-bash
-npm install zod
-npm install @hookform/resolvers
-
-
-Para:
-
-* validaciones
-* formularios admin
-* checkout
-
----
-
-# 4. Tablas Admin
-
-### TanStack Table
-
-bash
-npm install @tanstack/react-table
-
-
-Para:
-
-* asesores
-* reservas
-* contactos
-
----
-
-# 5. Calendarios
-
-### React Day Picker
-
-bash
-npm install react-day-picker
-
-
-o
-
-bash
-npm install react-datepicker
-
-
-Para:
-
-* fechas de reserva
-* disponibilidad
-
----
-
-# 6. Carruseles
-
-### Embla
-
-bash
-npm install embla-carousel-react
-
-
-Mucho mejor que Swiper para Next.js.
-
-Te sirve para:
-
-* alojamientos
-* experiencias
-* paquetes
-
----
-
-# 7. Galerías Premium
-
-### yet-another-react-lightbox
-
-bash
-npm install yet-another-react-lightbox
-
-
-Para:
-
-* fotos
-* videos
-* tours visuales
-
----
-
-# 8. Mapas
-
-### Leaflet
-
-bash
-npm install leaflet react-leaflet
-
-
-Para:
-
-* ubicación de propiedades
-* experiencias
-
----
-
-# 9. Gráficas Admin
-
-### Recharts
-
-bash
-npm install recharts
-
-
-Para:
-
-* dashboard superadmin
-* reservas
-* ventas
-
----
-
-# 10. Seguridad
-
-### DOMPurify
-
-bash
-npm install dompurify
-
-
-Para limpiar:
-
-text
-descripciones
-comentarios
-políticas
-contenido admin
-
-
----
-
-# 11. Uploads
-
-### React Dropzone
-
-bash
-npm install react-dropzone
-
-
-Para:
-
-* imágenes
-* videos
-
-Muchísimo mejor que input file básico.
-
----
-
-# 12. PDF Premium
-
-Ya tienes PDF.
-
-Pero para mejorarlo:
-
-### QR
-
-bash
-npm install qrcode
-
-
-Para:
-
-* QR DIAN futuro
-* QR reserva
-
----
-
-# 13. Internacionalización
-
-Si no lo tienes bien:
-
-### next-intl
-
-bash
-npm install next-intl
-
-
-Mucho mejor que sistemas caseros.
-
----
-
-# 14. Logs
-
-### Pino
+## Comandos principales
 
 Backend:
 
-bash
-npm install pino pino-pretty
-
-
-NestJS:
-
-bash
-npm install nestjs-pino
-
-
----
-
-# 15. Testing
+```bash
+cd backend
+npm install
+npx prisma migrate dev
+npm run prisma:seed
+npm run start:dev
+```
 
 Frontend:
 
-bash
-npm install -D playwright
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
+Build:
 
-Para:
+```bash
+cd backend && npm run build
+cd frontend && npm run build
+```
 
-* pruebas automáticas
-* login
-* reservas
-* checkout
+## Rutas principales
 
----
+Publicas:
 
-# Las 10 que instalaría YA
+- `/`
+- `/alojamientos`
+- `/experiencias`
+- `/paquetes`
+- `/nosotros`
+- `/contacto`
+- `/checkout/[id]`
 
-Si me dieras el proyecto hoy:
+Internas:
 
-bash
-npm install framer-motion
-npm install react-hook-form
-npm install zod
-npm install @hookform/resolvers
-npm install @tanstack/react-table
-npm install embla-carousel-react
-npm install react-dropzone
-npm install yet-another-react-lightbox
-npm install dompurify
-npm install qrcode
+- `/staff-login`
+- `/admin`
+- `/admin/reservas`
+- `/admin/alojamientos`
+- `/admin/experiencias`
+- `/admin/paquetes`
+- `/admin/asesores`
+- `/admin/contactos`
+- `/admin/logs`
 
+## Documentacion del proyecto
 
-Porque son las que más impacto tienen en:
+- [DOCUMENTACION_FUNCIONAL.md](DOCUMENTACION_FUNCIONAL.md)
+- [DOCUMENTACION_TECNICA.md](DOCUMENTACION_TECNICA.md)
+- [ROLES_Y_PERMISOS.md](ROLES_Y_PERMISOS.md)
+- [FLUJO_RESERVAS.md](FLUJO_RESERVAS.md)
+- [VARIABLES_ENTORNO.md](VARIABLES_ENTORNO.md)
+- [FACTURA_PDF.md](FACTURA_PDF.md)
+- [ROADMAP.md](ROADMAP.md)
+- [CHECKLIST_MVP.md](CHECKLIST_MVP.md)
 
-text
-UX
-Admin
-Galerías
-Seguridad
-PDF
-Experiencia premium
+## Advertencias de seguridad
 
-
-sin meterte todavía en:
-
-* Wompi
-* Factus
-* Airbnb
-* producción."
+- No subir archivos `.env` reales.
+- No incluir tokens, claves privadas ni connection strings reales.
+- Cambiar `JWT_SECRET` en cualquier demo publica.
+- Cambiar o desactivar usuarios demo antes de produccion.
+- Mantener pagos reales desactivados hasta terminar pruebas sandbox.
+- Mantener Factus/DIAN real desactivado hasta completar integracion oficial.

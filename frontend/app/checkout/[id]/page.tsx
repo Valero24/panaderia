@@ -548,7 +548,7 @@ export default function CheckoutPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <section className="premium-reveal max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-8">
           <p className="text-xs uppercase tracking-[0.32em] text-[#B68D40]">
             {t("checkout.eyebrow")}
@@ -583,7 +583,7 @@ export default function CheckoutPage({ params }: PageProps) {
 
         <div className="grid min-w-0 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_420px]">
           <div className="min-w-0 space-y-6">
-            <Card className="rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
+            <Card className="premium-hover-lift rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="p-5">
                 <div className="flex flex-col gap-5 sm:flex-row">
                   <div className="h-48 w-full shrink-0 overflow-hidden rounded-lg bg-slate-200 sm:h-32 sm:w-44">
@@ -654,7 +654,7 @@ export default function CheckoutPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
+            <Card className="premium-form premium-reveal rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5 text-[#B68D40]" />
@@ -687,7 +687,7 @@ export default function CheckoutPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
+            <Card className="premium-form premium-scroll-reveal rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center gap-3">
                   <CalendarDays className="h-5 w-5 text-[#B68D40]" />
@@ -748,7 +748,7 @@ export default function CheckoutPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
+            <Card className="premium-scroll-reveal rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
                   <Gem className="h-5 w-5 text-[#B68D40]" />
@@ -824,7 +824,7 @@ export default function CheckoutPage({ params }: PageProps) {
           </div>
 
           <aside className="min-w-0 space-y-5 lg:sticky lg:top-6">
-            <Card className="rounded-lg border border-[#D4AF37]/30 bg-white shadow-sm">
+            <Card className="premium-reveal premium-delay-1 rounded-lg border border-[#D4AF37]/30 bg-white shadow-sm transition-shadow duration-300 hover:shadow-xl">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
                   <CreditCard className="h-5 w-5 text-[#B68D40]" />
@@ -912,8 +912,7 @@ export default function CheckoutPage({ params }: PageProps) {
                     ))}
                   </select>
                   <p className="mt-2 text-xs leading-5 text-slate-500">
-                    El pago será coordinado por un asesor después de validar tu
-                    solicitud. No se realiza ningún cobro en este paso.
+                    {t("checkout.paymentManualNote")}
                   </p>
                 </div>
 
@@ -943,7 +942,7 @@ export default function CheckoutPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg border border-[#D4AF37]/30 bg-white shadow-sm">
+            <Card className="premium-scroll-reveal rounded-lg border border-[#D4AF37]/30 bg-white shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="h-5 w-5 text-[#B68D40]" />

@@ -24,6 +24,25 @@ enum BookingType {
   PACKAGE
 }
 
+enum ProductFeatureAppliesTo {
+  PROPERTY
+  EXPERIENCE
+  PACKAGE
+  ALL
+}
+
+enum ProductFeatureCategory {
+  AMENITY
+  LOCATION_STYLE
+  EXPERIENCE_STYLE
+  TRAVEL_TYPE
+  SERVICE_LEVEL
+  INCLUDED
+  NOT_INCLUDED
+  CONDITION
+  OTHER
+}
+
 enum MediaType {
   IMAGE
   VIDEO
@@ -218,6 +237,47 @@ model PropertyFeature {
 
   propertyId Int
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+//////////////////////////////////////////////////////
+// DYNAMIC PRODUCT FEATURES
+//////////////////////////////////////////////////////
+
+model ProductFeature {
+  id Int @id @default(autoincrement())
+
+  name        String
+  slug        String                 @unique
+  description String?
+  icon        String?
+  category    ProductFeatureCategory @default(OTHER)
+  appliesTo   ProductFeatureAppliesTo
+  active      Boolean                @default(true)
+
+  assignments ProductFeatureAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([active])
+  @@index([appliesTo])
+  @@index([category])
+}
+
+model ProductFeatureAssignment {
+  id Int @id @default(autoincrement())
+
+  featureId Int
+  feature   ProductFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  productType BookingType
+  productId   Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([featureId, productType, productId])
+  @@index([productType, productId])
+  @@index([featureId])
 }
 
 //////////////////////////////////////////////////////
@@ -603,6 +663,32 @@ model CompanySettings {
   invoiceFooter String?
   legalInfo     String?
 
+  businessName                 String  @default("Cartagena Tailored Travel")
+  legalName                    String?
+  nit                          String?
+  phone                        String?
+  whatsappNumber               String?
+  city                         String  @default("Cartagena")
+  country                      String  @default("Colombia")
+  websiteUrl                   String?
+  instagramUrl                 String?
+  facebookUrl                  String?
+  tiktokUrl                    String?
+  faviconUrl                   String?
+  primaryColor                 String  @default("#0D2B52")
+  secondaryColor               String  @default("#B48A5A")
+  defaultCurrency              String  @default("COP")
+  taxRate                      Float   @default(0)
+  serviceFeeRate               Float   @default(0)
+  footerText                   String?
+  invoiceNotes                 String?
+  bookingTerms                 String?
+  privacyPolicyText            String?
+  demoModeEnabled              Boolean @default(true)
+  realPaymentsEnabled          Boolean @default(false)
+  realAvailabilityEnabled      Boolean @default(false)
+  whatsappNotificationsEnabled Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
@@ -651,16 +737,23 @@ model OperationalNotification {
 model AuditLog {
   id Int @id @default(autoincrement())
 
-  actorId    Int?
-  actorRole  String?
-  action     String
-  entityType String
-  entityId   String
-  metadata   Json?
+  actorId       Int?
+  actorRole     String?
+  actorName     String?
+  action        String
+  entityType    String
+  entityId      String
+  message       String?
+  previousValue Json?
+  newValue      Json?
+  metadata      Json?
+  ip            String?
+  userAgent     String?
 
   createdAt DateTime @default(now())
 
   @@index([actorId])
   @@index([entityType, entityId])
   @@index([action])
+  @@index([createdAt])
 }

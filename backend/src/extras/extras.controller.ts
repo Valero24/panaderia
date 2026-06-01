@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Request,
 } from "@nestjs/common";
 
 import { ExtrasService } from "./extras.service";
@@ -36,9 +37,14 @@ export class ExtrasController {
       experienceId?: number;
       packageId?: number;
       active?: boolean;
-    }
+    },
+    @Request() req
   ) {
-    return this.extrasService.create(body);
+    return this.extrasService.create(body, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 
   // =========================================
@@ -122,11 +128,17 @@ export class ExtrasController {
       experienceId?: number;
       packageId?: number;
       active?: boolean;
-    }
+    },
+    @Request() req
   ) {
     return this.extrasService.update(
       id,
-      body
+      body,
+      {
+        userId: req.user.userId,
+        role: req.user.role,
+        email: req.user.email,
+      }
     );
   }
 
@@ -138,8 +150,13 @@ export class ExtrasController {
   @Delete(":id")
   remove(
     @Param("id", ParseIntPipe)
-    id: number
+    id: number,
+    @Request() req
   ) {
-    return this.extrasService.remove(id);
+    return this.extrasService.remove(id, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 }

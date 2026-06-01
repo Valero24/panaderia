@@ -22,6 +22,11 @@ import { ExperiencesModule } from "./experiences/experiences.module";
 import { PackagesModule } from "./packages/packages.module";
 import { ContactModule } from "./contact/contact.module";
 import { UsersModule } from "./users/users.module";
+import { OperationalLogsModule } from "./operational-logs/operational-logs.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
+import { SystemSettingsModule } from "./system-settings/system-settings.module";
+import { HealthModule } from "./health/health.module";
+import { ProductFeaturesModule } from "./product-features/product-features.module";
 
 @Module({
   imports: [
@@ -54,6 +59,11 @@ import { UsersModule } from "./users/users.module";
     PackagesModule,
     ContactModule,
     UsersModule,
+    OperationalLogsModule,
+    DashboardModule,
+    SystemSettingsModule,
+    HealthModule,
+    ProductFeaturesModule,
   ],
 
   controllers: [AppController],

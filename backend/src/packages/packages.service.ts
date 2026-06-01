@@ -7,10 +7,24 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { CreatePackageDto } from "./dto/create-package.dto";
 import { UpdatePackageDto } from "./dto/update-package.dto";
+import { AuditService } from "../common/audit.service";
+import { ProductFeaturesService } from "../product-features/product-features.service";
+import { BookingType } from "@prisma/client";
+
+type AuditActor = {
+  userId?: number;
+  role?: string;
+  name?: string;
+  email?: string;
+};
 
 @Injectable()
 export class PackagesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly productFeatures: ProductFeaturesService
+  ) {}
 
   private generateSlug(title: string): string {
     return title
@@ -81,9 +95,18 @@ export class PackagesService {
     };
   }
 
-  async findAllPublic() {
+  async findAllPublic(features?: string) {
+    const featureProductIds =
+      await this.productFeatures.productIdsMatchingFeatures(
+        BookingType.PACKAGE,
+        features
+      );
+
     return this.prisma.package.findMany({
-      where: { active: true },
+      where: {
+        active: true,
+        ...(featureProductIds ? { id: { in: featureProductIds } } : {}),
+      },
       include: {
         images: {
           where: { active: true },
@@ -157,7 +180,7 @@ export class PackagesService {
     return item;
   }
 
-  async create(data: CreatePackageDto) {
+  async create(data: CreatePackageDto, actor?: AuditActor) {
     if (!data.title?.trim()) {
       throw new BadRequestException("Titulo requerido");
     }
@@ -193,7 +216,7 @@ export class PackagesService {
 
     await this.assertUniqueSlug(slug);
 
-    return this.prisma.package.create({
+    const created = await this.prisma.package.create({
       data: {
         title: data.title.trim(),
         slug,
@@ -216,10 +239,30 @@ export class PackagesService {
       },
       include: { images: true, components: true },
     });
+
+    await this.audit.record({
+      actor,
+      action: "PACKAGE_CREATED",
+      entityType: "Package",
+      entityId: created.id,
+      message: "Superadmin creo un paquete",
+      newValue: {
+        id: created.id,
+        title: created.title,
+        slug: created.slug,
+        active: created.active,
+        basePrice: created.basePrice,
+      },
+      metadata: {
+        componentsCount: created.components.length,
+      },
+    });
+
+    return created;
   }
 
-  async update(id: number, data: UpdatePackageDto) {
-    await this.findOneAdmin(id);
+  async update(id: number, data: UpdatePackageDto, actor?: AuditActor) {
+    const previous = await this.findOneAdmin(id);
 
     const slug =
       data.slug !== undefined || data.title !== undefined
@@ -298,7 +341,7 @@ export class PackagesService {
       };
     }
 
-    return this.prisma.package.update({
+    const updated = await this.prisma.package.update({
       where: { id },
       data: nextData,
       include: {
@@ -310,15 +353,69 @@ export class PackagesService {
         },
       },
     });
+
+    await this.audit.record({
+      actor,
+      action:
+        data.active !== undefined
+          ? data.active
+            ? "PACKAGE_ACTIVATED"
+            : "PACKAGE_DEACTIVATED"
+          : "PACKAGE_UPDATED",
+      entityType: "Package",
+      entityId: updated.id,
+      message: "Superadmin actualizo un paquete",
+      previousValue: {
+        id: previous.id,
+        title: previous.title,
+        slug: previous.slug,
+        active: previous.active,
+        basePrice: previous.basePrice,
+        componentsCount: previous.components.length,
+      },
+      newValue: {
+        id: updated.id,
+        title: updated.title,
+        slug: updated.slug,
+        active: updated.active,
+        basePrice: updated.basePrice,
+        componentsCount: updated.components.length,
+      },
+      metadata: {
+        changedFields: Object.keys(nextData),
+      },
+    });
+
+    return updated;
   }
 
-  async remove(id: number) {
-    await this.findOneAdmin(id);
+  async remove(id: number, actor?: AuditActor) {
+    const previous = await this.findOneAdmin(id);
 
-    return this.prisma.package.update({
+    const updated = await this.prisma.package.update({
       where: { id },
       data: { active: false },
       include: { images: true, components: true },
     });
+
+    await this.audit.record({
+      actor,
+      action: "PACKAGE_DEACTIVATED",
+      entityType: "Package",
+      entityId: updated.id,
+      message: "Superadmin desactivo un paquete",
+      previousValue: {
+        id: previous.id,
+        title: previous.title,
+        active: previous.active,
+      },
+      newValue: {
+        id: updated.id,
+        title: updated.title,
+        active: updated.active,
+      },
+    });
+
+    return updated;
   }
 }

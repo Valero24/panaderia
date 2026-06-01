@@ -7,6 +7,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
+  Request,
 } from "@nestjs/common";
 
 import { Public } from "../auth/public.decorator";
@@ -21,8 +23,8 @@ export class PackagesController {
 
   @Public()
   @Get()
-  findAllPublic() {
-    return this.packagesService.findAllPublic();
+  findAllPublic(@Query("features") features?: string) {
+    return this.packagesService.findAllPublic(features);
   }
 
   @Roles("ADMIN", "SUPERADMIN", "ADVISOR")
@@ -45,22 +47,35 @@ export class PackagesController {
 
   @Roles("ADMIN", "SUPERADMIN")
   @Post()
-  create(@Body() body: CreatePackageDto) {
-    return this.packagesService.create(body);
+  create(@Body() body: CreatePackageDto, @Request() req) {
+    return this.packagesService.create(body, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 
   @Roles("ADMIN", "SUPERADMIN")
   @Patch(":id")
   update(
     @Param("id", ParseIntPipe) id: number,
-    @Body() body: UpdatePackageDto
+    @Body() body: UpdatePackageDto,
+    @Request() req
   ) {
-    return this.packagesService.update(id, body);
+    return this.packagesService.update(id, body, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 
   @Roles("ADMIN", "SUPERADMIN")
   @Delete(":id")
-  remove(@Param("id", ParseIntPipe) id: number) {
-    return this.packagesService.remove(id);
+  remove(@Param("id", ParseIntPipe) id: number, @Request() req) {
+    return this.packagesService.remove(id, {
+      userId: req.user.userId,
+      role: req.user.role,
+      email: req.user.email,
+    });
   }
 }

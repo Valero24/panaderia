@@ -6,6 +6,14 @@ import {
 import { Role } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../common/audit.service";
+
+type AuditActor = {
+  userId?: number;
+  role?: string;
+  name?: string;
+  email?: string;
+};
 
 type AdvisorPayload = {
   name?: string;
@@ -36,7 +44,10 @@ const advisorSelect = {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService
+  ) {}
 
   listAdvisors() {
     return this.prisma.user.findMany({
@@ -49,7 +60,7 @@ export class UsersService {
     });
   }
 
-  async createAdvisor(data: AdvisorPayload) {
+  async createAdvisor(data: AdvisorPayload, actor?: AuditActor) {
     if (!data.name?.trim()) {
       throw new BadRequestException("El nombre es requerido");
     }
@@ -76,7 +87,7 @@ export class UsersService {
 
     const password = await bcrypt.hash(data.password, 10);
 
-    return this.prisma.user.create({
+    const advisor = await this.prisma.user.create({
       data: {
         name: data.name.trim(),
         email,
@@ -88,12 +99,38 @@ export class UsersService {
       },
       select: advisorSelect,
     });
+
+    await this.audit.record({
+      actor,
+      action: "ADVISOR_CREATED",
+      entityType: "User",
+      entityId: advisor.id,
+      message: "Superadmin creo un asesor",
+      newValue: {
+        id: advisor.id,
+        name: advisor.name,
+        email: advisor.email,
+        phone: advisor.phone,
+        isActive: advisor.isActive,
+        role: advisor.role,
+      },
+    });
+
+    return advisor;
   }
 
-  async updateAdvisor(id: number, data: AdvisorPayload) {
+  async updateAdvisor(id: number, data: AdvisorPayload, actor?: AuditActor) {
     const advisor = await this.prisma.user.findUnique({
       where: { id },
-      select: { id: true, role: true, email: true, deletedAt: true },
+      select: {
+        id: true,
+        role: true,
+        email: true,
+        name: true,
+        phone: true,
+        isActive: true,
+        deletedAt: true,
+      },
     });
 
     if (!advisor || advisor.role !== Role.ADVISOR) {
@@ -149,19 +186,55 @@ export class UsersService {
       updates.deactivatedAt = data.isActive ? null : new Date();
     }
 
-    return this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { id },
       data: updates,
       select: advisorSelect,
     });
+
+    await this.audit.record({
+      actor,
+      action:
+        data.isActive !== undefined
+          ? data.isActive
+            ? "ADVISOR_ACTIVATED"
+            : "ADVISOR_DEACTIVATED"
+          : "ADVISOR_UPDATED",
+      entityType: "User",
+      entityId: id,
+      message:
+        data.isActive !== undefined
+          ? data.isActive
+            ? "Superadmin activo un asesor"
+            : "Superadmin desactivo un asesor"
+          : "Superadmin actualizo un asesor",
+      previousValue: {
+        id: advisor.id,
+        name: advisor.name,
+        email: advisor.email,
+        phone: advisor.phone,
+        isActive: advisor.isActive,
+        role: advisor.role,
+      },
+      newValue: {
+        id: updated.id,
+        name: updated.name,
+        email: updated.email,
+        phone: updated.phone,
+        isActive: updated.isActive,
+        role: updated.role,
+      },
+    });
+
+    return updated;
   }
 
-  async setAdvisorStatus(id: number, isActive: boolean) {
-    return this.updateAdvisor(id, { isActive });
+  async setAdvisorStatus(id: number, isActive: boolean, actor?: AuditActor) {
+    return this.updateAdvisor(id, { isActive }, actor);
   }
 
-  async removeAdvisor(id: number, actorId: number) {
-    if (id === actorId) {
+  async removeAdvisor(id: number, actor: AuditActor) {
+    if (id === actor.userId) {
       throw new BadRequestException("No puedes eliminar tu propio usuario");
     }
 
@@ -191,15 +264,35 @@ export class UsersService {
       });
     }
 
-    return this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { id },
       data: {
         isActive: false,
         deactivatedAt: new Date(),
         deletedAt: new Date(),
-        deletedById: actorId,
+        deletedById: actor.userId,
       },
       select: advisorSelect,
     });
+
+    await this.audit.record({
+      actor,
+      action: "ADVISOR_ARCHIVED",
+      entityType: "User",
+      entityId: updated.id,
+      message: "Superadmin archivo un asesor",
+      previousValue: {
+        id: advisor.id,
+        isActive: true,
+        role: advisor.role,
+      },
+      newValue: {
+        id: updated.id,
+        isActive: updated.isActive,
+        deletedAt: updated.deletedAt,
+      },
+    });
+
+    return updated;
   }
 }

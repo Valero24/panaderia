@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import Image from "next/image";
 import {
   ArrowRight,
-  Clock,
   Headphones,
-  MapPin,
   MapPinned,
   ShieldCheck,
   Sparkles,
-  Users,
 } from "lucide-react";
 
 import ProductCarousel from "@/components/home/ProductCarousel";
-import PublicImage from "@/components/PublicImage";
+import PublicProductCard from "@/components/public-product-card";
 import TranslatedText from "@/components/TranslatedText";
 import TrackedLink from "@/components/TrackedLink";
 import { apiUrl } from "@/lib/api";
@@ -198,13 +195,13 @@ export default async function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
 
-        <div className="relative z-10 mx-auto flex min-h-[72vh] max-w-7xl items-center px-6 py-14 lg:min-h-[76vh] lg:px-8">
-          <div className="max-w-3xl">
+        <div className="relative z-10 mx-auto flex min-h-[72vh] max-w-7xl items-center px-5 py-14 sm:px-6 lg:min-h-[76vh] lg:px-8">
+          <div className="max-w-3xl premium-reveal-slow">
             <p className="mb-5 text-xs uppercase tracking-[0.4em] text-[#D4AF37] md:text-sm">
               <TranslatedText k="home.eyebrow" />
             </p>
 
-            <h1 className="text-5xl font-bold leading-[0.98] text-white md:text-7xl">
+            <h1 className="text-4xl font-bold leading-[1.04] text-white sm:text-5xl md:text-7xl md:leading-[0.98]">
               <TranslatedText k="home.titleLine1" />
               <br />
               <TranslatedText k="home.titleLine2" />
@@ -214,12 +211,12 @@ export default async function HomePage() {
               <TranslatedText k="home.subtitle" />
             </p>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-9 flex max-w-full flex-col gap-3 sm:flex-row">
               <TrackedLink
                 href="#alojamientos"
                 trackingLabel="explorar_alojamientos"
                 trackingLocation="home_hero"
-                className="inline-flex h-14 items-center justify-center rounded-full bg-[#0D2B52] px-8 text-sm font-semibold text-white transition hover:bg-[#12396d]"
+                className="premium-soft-button inline-flex h-14 w-full max-w-full items-center justify-center rounded-full bg-[#0D2B52] px-6 text-center text-sm font-semibold text-white transition hover:bg-[#12396d] sm:w-auto sm:px-8"
               >
                 <TranslatedText k="home.exploreProperties" />
               </TrackedLink>
@@ -228,7 +225,7 @@ export default async function HomePage() {
                 href="/contacto"
                 trackingLabel="planear_mi_viaje"
                 trackingLocation="home_hero"
-                className="inline-flex h-14 items-center justify-center rounded-full border border-[#D4AF37]/60 bg-white/10 px-8 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/20"
+                className="premium-soft-button inline-flex h-14 w-full max-w-full items-center justify-center rounded-full border border-[#D4AF37]/60 bg-white/10 px-6 text-center text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/20 sm:w-auto sm:px-8"
               >
                 <TranslatedText k="home.planJourney" />
               </TrackedLink>
@@ -250,6 +247,7 @@ export default async function HomePage() {
           <ProductCard
             key={property.id}
             href={`/alojamientos/${property.id}`}
+            reserveHref={`/checkout/${property.id}?type=PROPERTY`}
             image={primaryImage(property, stayFallback)}
             fallbackImage={stayFallback}
             badge={<TranslatedText k="properties.curated" />}
@@ -262,6 +260,7 @@ export default async function HomePage() {
                 <TranslatedText k="properties.guests" />
               </>
             }
+            metaIcon="users"
             button={<TranslatedText k="properties.view" />}
             trackingLabel={`abrir_alojamiento_${property.id}`}
           />
@@ -281,10 +280,12 @@ export default async function HomePage() {
           <ProductCard
             key={experience.id}
             href={`/experiencias/${experience.id}`}
+            reserveHref={`/checkout/${experience.id}?type=EXPERIENCE`}
             image={primaryImage(experience, experienceFallback)}
             fallbackImage={experienceFallback}
             badge={<TranslatedText k="shared.premiumExperience" />}
             title={cleanPublicCopy(experience.title)}
+            description={cleanPublicCopy(experience.shortDescription || "")}
             location={experience.location || "Cartagena"}
             price={money(experience.basePrice)}
             meta={
@@ -311,10 +312,12 @@ export default async function HomePage() {
           <ProductCard
             key={item.id}
             href={`/paquetes/${item.id}`}
+            reserveHref={`/checkout/${item.id}?type=PACKAGE`}
             image={primaryImage(item, packageFallback)}
             fallbackImage={packageFallback}
             badge={<TranslatedText k="shared.premiumPackage" />}
             title={cleanPublicCopy(item.title)}
+            description={cleanPublicCopy(item.shortDescription || "")}
             location={item.location || "Cartagena"}
             price={money(item.basePrice)}
             meta={
@@ -328,7 +331,7 @@ export default async function HomePage() {
         ))}
       </ProductSection>
 
-      <section className="border-y border-[#D4AF37]/15 bg-white">
+      <section className="premium-scroll-reveal border-y border-[#D4AF37]/15 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-16">
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.4fr] lg:items-start">
             <div>
@@ -350,7 +353,7 @@ export default async function HomePage() {
                 return (
                   <div
                     key={item.title}
-                    className="rounded-2xl border border-[#D4AF37]/15 bg-[#F8F6F1] p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-md"
+                    className="premium-hover-lift rounded-2xl border border-[#D4AF37]/15 bg-[#F8F6F1] p-5 shadow-sm transition duration-300 hover:bg-white"
                   >
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0D2B52] text-white">
                       <Icon className="h-5 w-5" />
@@ -369,7 +372,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
+      <section className="premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
         <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-[#0D2B52] px-6 py-12 text-white shadow-sm md:px-10 lg:px-14">
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
@@ -388,7 +391,7 @@ export default async function HomePage() {
                 href="/contacto"
                 trackingLabel="hablar_con_asesor"
                 trackingLocation="home_final_cta"
-                className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[#0D2B52] transition hover:bg-[#F8F6F1]"
+                className="premium-soft-button inline-flex h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[#0D2B52] transition hover:bg-[#F8F6F1]"
               >
                 <TranslatedText k="home.talkAdvisor" />
               </TrackedLink>
@@ -396,7 +399,7 @@ export default async function HomePage() {
                 href="/contacto"
                 trackingLabel="whatsapp_contacto"
                 trackingLocation="home_final_cta"
-                className="inline-flex h-12 items-center justify-center rounded-xl border border-white/25 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="premium-soft-button inline-flex h-12 items-center justify-center rounded-xl border border-white/25 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 <TranslatedText k="common.whatsapp" />
               </TrackedLink>
@@ -428,7 +431,7 @@ function ProductSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
+    <section id={id} className="premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
@@ -446,7 +449,7 @@ function ProductSection({
             href={ctaHref}
             trackingLabel={trackingLabel}
             trackingLocation={`home_${id}`}
-            className="inline-flex h-11 w-fit items-center gap-2 rounded-xl border border-[#D4AF37]/35 bg-white px-5 text-sm font-semibold text-[#0D2B52] transition hover:border-[#B48A5A] hover:text-[#B48A5A]"
+            className="premium-soft-button inline-flex h-11 w-fit items-center gap-2 rounded-xl border border-[#D4AF37]/35 bg-white px-5 text-sm font-semibold text-[#0D2B52] transition hover:border-[#B48A5A] hover:text-[#B48A5A]"
           >
             <TranslatedText k={ctaKey} />
             <ArrowRight className="h-4 w-4" />
@@ -459,88 +462,8 @@ function ProductSection({
   );
 }
 
-function ProductCard({
-  href,
-  image,
-  fallbackImage,
-  badge,
-  title,
-  location,
-  price,
-  meta,
-  button,
-  trackingLabel,
-}: {
-  href: string;
-  image: string;
-  fallbackImage: string;
-  badge: ReactNode;
-  title: string;
-  location: string;
-  price: string;
-  meta: ReactNode;
-  button: ReactNode;
-  trackingLabel: string;
-}) {
-  return (
-    <article className="group h-full overflow-hidden rounded-2xl border border-[#D4AF37]/15 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <TrackedLink
-        href={href}
-        trackingLabel={trackingLabel}
-        trackingLocation="home_product_card"
-        className="flex h-full flex-col"
-      >
-        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-          <PublicImage
-            src={image}
-            fallbackSrc={fallbackImage}
-            alt={title}
-            fill
-            sizes="(min-width: 1280px) 390px, (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-            quality={72}
-            optimizeWidth={900}
-            className="object-cover transition duration-700 group-hover:scale-105"
-          />
-          <div className="absolute left-4 top-4 rounded-md bg-white/90 px-3 py-1 text-xs font-medium text-[#0D2B52] shadow-sm backdrop-blur">
-            {badge}
-          </div>
-        </div>
-
-        <div className="flex flex-1 flex-col p-5">
-          <div className="min-h-[104px]">
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <MapPin className="h-4 w-4 text-[#B48A5A]" />
-              <span className="line-clamp-1">{location}</span>
-            </div>
-            <h3 className="mt-2 line-clamp-2 min-h-[64px] text-2xl font-semibold leading-8 text-[#0D2B52]">
-              {title}
-            </h3>
-          </div>
-
-          <div className="mt-5 flex min-h-[76px] flex-wrap gap-3 text-sm text-slate-600">
-            <span className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#F8F6F1] px-3 py-2">
-              <Clock className="h-4 w-4 text-[#B48A5A]" />
-              <span className="line-clamp-1">{meta}</span>
-            </span>
-            <span className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#F8F6F1] px-3 py-2">
-              <Users className="h-4 w-4 text-[#B48A5A]" />
-              <TranslatedText k="shared.validationAssisted" />
-            </span>
-          </div>
-
-          <div className="mt-auto flex items-center justify-between gap-4 border-t border-[#D4AF37]/20 pt-5">
-            <div>
-              <p className="text-xs text-slate-500">
-                <TranslatedText k="properties.from" />
-              </p>
-              <p className="font-semibold text-[#0D2B52]">{price}</p>
-            </div>
-            <span className="inline-flex h-11 items-center justify-center rounded-xl bg-[#0D2B52] px-4 text-sm font-semibold text-white transition group-hover:bg-[#12396d]">
-              {button}
-            </span>
-          </div>
-        </div>
-      </TrackedLink>
-    </article>
-  );
+function ProductCard(
+  props: Omit<ComponentProps<typeof PublicProductCard>, "trackingLocation">
+) {
+  return <PublicProductCard {...props} trackingLocation="home_product_card" />;
 }

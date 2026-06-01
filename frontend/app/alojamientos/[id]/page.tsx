@@ -272,7 +272,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
-      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+      <section className="premium-reveal max-w-7xl mx-auto px-6 lg:px-8 py-10">
         <div className="mb-6">
           <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
             <span className="inline-flex items-center gap-2">
@@ -302,7 +302,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="mb-10">
+        <div className="premium-reveal mb-10">
           <ProductMediaGallery
             title={property.title}
             media={property.images}
@@ -341,7 +341,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                   return (
                     <div
                       key={item.label}
-                      className="rounded-lg border border-[#D4AF37]/20 bg-white p-4"
+                      className="premium-hover-lift rounded-lg border border-[#D4AF37]/20 bg-white p-4"
                     >
                       <Icon className="h-5 w-5 text-[#B68D40]" />
                       <p className="mt-3 text-sm text-slate-500">
@@ -375,7 +375,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                   {property.features.map((feature) => (
                     <div
                       key={feature.id}
-                      className="flex items-center gap-3 rounded-lg border border-[#D4AF37]/20 bg-white p-4"
+                      className="premium-hover-lift flex items-center gap-3 rounded-lg border border-[#D4AF37]/20 bg-white p-4"
                     >
                       <Sparkles className="h-5 w-5 text-[#B68D40]" />
                       <span className="text-slate-700">{feature.name}</span>
@@ -402,7 +402,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                     return (
                       <label
                         key={item.id}
-                        className={`grid cursor-pointer gap-4 rounded-lg border bg-white p-4 transition sm:grid-cols-[1fr_auto] ${
+                        className={`premium-hover-lift grid cursor-pointer gap-4 rounded-lg border bg-white p-4 transition sm:grid-cols-[1fr_auto] ${
                           selected
                             ? "border-[#B68D40] ring-1 ring-[#B68D40]"
                             : "border-[#D4AF37]/20 hover:border-[#B68D40]"
@@ -442,7 +442,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
               <h2 className="text-2xl font-semibold">{t("property.rules")}</h2>
 
               <div className="mt-5 grid sm:grid-cols-2 gap-4">
-                <div className="rounded-lg border border-[#D4AF37]/20 bg-white p-5">
+                <div className="premium-hover-lift rounded-lg border border-[#D4AF37]/20 bg-white p-5">
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-[#B68D40]" />
                     <p className="font-semibold">{t("property.checkInOut")}</p>
@@ -453,7 +453,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-[#D4AF37]/20 bg-white p-5">
+                <div className="premium-hover-lift rounded-lg border border-[#D4AF37]/20 bg-white p-5">
                   <div className="flex items-center gap-3">
                     <ShieldCheck className="h-5 w-5 text-[#B68D40]" />
                     <p className="font-semibold">{t("property.cancellation")}</p>
@@ -471,7 +471,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                   return (
                     <div
                       key={rule.label}
-                      className="rounded-lg border border-[#D4AF37]/20 bg-white p-4"
+                      className="premium-hover-lift rounded-lg border border-[#D4AF37]/20 bg-white p-4"
                     >
                       <Icon className="h-5 w-5 text-[#B68D40]" />
                       <p className="mt-3 text-sm text-slate-500">
@@ -487,7 +487,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
             <section>
               <h2 className="text-2xl font-semibold">{t("property.location")}</h2>
 
-              <div className="mt-5 rounded-lg border border-[#D4AF37]/20 bg-white p-5">
+              <div className="premium-hover-lift mt-5 rounded-lg border border-[#D4AF37]/20 bg-white p-5">
                 <div className="flex items-start gap-3">
                   <MapPin className="mt-1 h-5 w-5 text-[#B68D40]" />
                   <div>
@@ -510,7 +510,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
             </section>
           </div>
 
-          <aside className="sticky top-6 rounded-lg border border-[#D4AF37]/30 bg-white p-6 shadow-sm">
+          <aside className="premium-reveal premium-delay-1 sticky top-24 rounded-lg border border-[#D4AF37]/30 bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-xl">
             <p className="text-sm uppercase tracking-[0.28em] text-[#B68D40]">
               {t("property.reserve")}
             </p>
@@ -600,7 +600,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                 trackInitiateCheckout("PROPERTY", property.id, pricing.total)
               }
             >
-              <Button className="mt-6 h-12 w-full rounded-md bg-[#0D2B52] hover:bg-[#12396d]">
+              <Button className="premium-soft-button mt-6 h-12 w-full rounded-md bg-[#0D2B52] hover:bg-[#12396d]">
                 {t("property.bookNow")}
               </Button>
             </Link>

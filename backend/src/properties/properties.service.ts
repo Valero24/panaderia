@@ -13,11 +13,22 @@ import {
   MediaType,
   PropertyStatus,
 } from "@prisma/client";
+import { AuditService } from "../common/audit.service";
+import { ProductFeaturesService } from "../product-features/product-features.service";
+
+type AuditActor = {
+  userId?: number;
+  role?: string;
+  name?: string;
+  email?: string;
+};
 
 @Injectable()
 export class PropertiesService {
   constructor(
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly productFeatures: ProductFeaturesService
   ) {}
 
   // =====================================================
@@ -78,8 +89,20 @@ export class PropertiesService {
   // FIND ALL
   // =====================================================
 
-  async findAll() {
+  async findAll(features?: string) {
+    const featureProductIds =
+      await this.productFeatures.productIdsMatchingFeatures(
+        BookingType.PROPERTY,
+        features
+      );
+
     return this.prisma.property.findMany({
+      where: featureProductIds
+        ? {
+            id: { in: featureProductIds },
+            status: { in: [PropertyStatus.ACTIVE, PropertyStatus.FEATURED] },
+          }
+        : undefined,
       orderBy: {
         createdAt: "desc",
       },
@@ -127,7 +150,7 @@ export class PropertiesService {
   // CREATE
   // =====================================================
 
-  async create(data: any) {
+  async create(data: any, actor?: AuditActor) {
     if (!data.title?.trim()) {
       throw new BadRequestException(
         "Title is required"
@@ -173,7 +196,7 @@ export class PropertiesService {
       );
     }
 
-    return this.prisma.property.create({
+    const created = await this.prisma.property.create({
       data: {
         // COMMERCIAL
         title: data.title.trim(),
@@ -327,6 +350,23 @@ export class PropertiesService {
         features: true,
       },
     });
+
+    await this.audit.record({
+      actor,
+      action: "PROPERTY_CREATED",
+      entityType: "Property",
+      entityId: created.id,
+      message: "Superadmin creo un alojamiento",
+      newValue: {
+        id: created.id,
+        title: created.title,
+        slug: created.slug,
+        status: created.status,
+        pricePerNight: created.pricePerNight,
+      },
+    });
+
+    return created;
   }
 
   // =====================================================
@@ -335,7 +375,8 @@ export class PropertiesService {
 
   async update(
     id: number,
-    data: any
+    data: any,
+    actor?: AuditActor
   ) {
     const current = await this.findOne(id);
 
@@ -556,7 +597,7 @@ export class PropertiesService {
       };
     }
 
-    return this.prisma.property.update({
+    const updated = await this.prisma.property.update({
       where: {
         id: Number(id),
       },
@@ -567,14 +608,47 @@ export class PropertiesService {
         features: true,
       },
     });
+
+    await this.audit.record({
+      actor,
+      action:
+        data.status !== undefined
+          ? data.status === PropertyStatus.ACTIVE ||
+            data.status === PropertyStatus.FEATURED
+            ? "PROPERTY_ACTIVATED"
+            : "PROPERTY_UPDATED"
+          : "PROPERTY_UPDATED",
+      entityType: "Property",
+      entityId: updated.id,
+      message: "Superadmin actualizo un alojamiento",
+      previousValue: {
+        id: current.id,
+        title: current.title,
+        slug: current.slug,
+        status: current.status,
+        pricePerNight: current.pricePerNight,
+      },
+      newValue: {
+        id: updated.id,
+        title: updated.title,
+        slug: updated.slug,
+        status: updated.status,
+        pricePerNight: updated.pricePerNight,
+      },
+      metadata: {
+        changedFields: Object.keys(payload),
+      },
+    });
+
+    return updated;
   }
 
   // =====================================================
   // DELETE
   // =====================================================
 
-  async remove(id: number) {
-    await this.findOne(id);
+  async remove(id: number, actor?: AuditActor) {
+    const current = await this.findOne(id);
 
     // delete bookings tied to this property
     await this.prisma.booking.deleteMany({
@@ -592,10 +666,26 @@ export class PropertiesService {
     });
 
     // images / extras / features use CASCADE
-    return this.prisma.property.delete({
+    const deleted = await this.prisma.property.delete({
       where: {
         id: Number(id),
       },
     });
+
+    await this.audit.record({
+      actor,
+      action: "PROPERTY_DELETED",
+      entityType: "Property",
+      entityId: deleted.id,
+      message: "Superadmin elimino un alojamiento",
+      previousValue: {
+        id: current.id,
+        title: current.title,
+        slug: current.slug,
+        status: current.status,
+      },
+    });
+
+    return deleted;
   }
 }
