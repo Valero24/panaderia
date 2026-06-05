@@ -28,6 +28,14 @@ const allowedFields = [
   "primaryColor",
   "secondaryColor",
   "defaultCurrency",
+  "baseCurrency",
+  "enabledDisplayCurrencies",
+  "defaultDisplayCurrency",
+  "exchangeRateMode",
+  "exchangeRateSource",
+  "exchangeRateDate",
+  "currencyConversionEnabled",
+  "exchangeRatesFromCOP",
   "taxRate",
   "serviceFeeRate",
   "footerText",
@@ -38,7 +46,21 @@ const allowedFields = [
   "realPaymentsEnabled",
   "realAvailabilityEnabled",
   "whatsappNotificationsEnabled",
+  "factusEnabled",
+  "factusMode",
+  "factusNumberingRangeId",
+  "factusDefaultDocumentCode",
+  "factusDefaultPaymentForm",
+  "factusDefaultPaymentMethodCode",
+  "factusDefaultUnitMeasureId",
+  "factusDefaultStandardCodeId",
+  "factusDefaultTributeId",
+  "factusDefaultMunicipalityId",
 ] as const;
+
+const supportedDisplayCurrencies = ["COP", "USD", "EUR", "BRL"] as const;
+const exchangeRateModes = ["MANUAL", "AUTO", "DISABLED"] as const;
+const exchangeRateSources = ["MANUAL", "TRM", "API"] as const;
 
 @Injectable()
 export class SystemSettingsService {
@@ -109,17 +131,33 @@ export class SystemSettingsService {
       city: "Cartagena",
       country: "Colombia",
       defaultCurrency: "COP",
+      baseCurrency: "COP",
+      enabledDisplayCurrencies: ["COP", "USD", "EUR", "BRL"],
+      defaultDisplayCurrency: "COP",
+      exchangeRateMode: "MANUAL",
+      exchangeRateSource: "MANUAL",
+      exchangeRateDate: new Date(),
+      currencyConversionEnabled: true,
+      exchangeRatesFromCOP: {
+        COP: 1,
+        USD: 0.00025,
+        EUR: 0.00023,
+        BRL: 0.0014,
+      },
       primaryColor: "#0D2B52",
       secondaryColor: "#B48A5A",
       demoModeEnabled: true,
       realPaymentsEnabled: false,
       realAvailabilityEnabled: false,
       whatsappNotificationsEnabled: false,
+      factusEnabled: false,
+      factusMode: "mock",
+      factusDefaultDocumentCode: "01",
     };
   }
 
   private normalize(data: Record<string, unknown>) {
-    const payload: Record<string, string | number | boolean | null> = {};
+    const payload: Record<string, unknown> = {};
 
     for (const field of allowedFields) {
       if (data[field] === undefined) continue;
@@ -130,9 +168,66 @@ export class SystemSettingsService {
           "realPaymentsEnabled",
           "realAvailabilityEnabled",
           "whatsappNotificationsEnabled",
+          "factusEnabled",
+          "currencyConversionEnabled",
         ].includes(field)
       ) {
         payload[field] = Boolean(data[field]);
+        continue;
+      }
+
+      if (field === "baseCurrency") {
+        payload.baseCurrency = "COP";
+        payload.defaultCurrency = "COP";
+        continue;
+      }
+
+      if (field === "defaultCurrency") {
+        payload.defaultCurrency = "COP";
+        payload.baseCurrency = "COP";
+        continue;
+      }
+
+      if (field === "enabledDisplayCurrencies") {
+        payload.enabledDisplayCurrencies = this.normalizeDisplayCurrencies(
+          data[field]
+        );
+        continue;
+      }
+
+      if (field === "defaultDisplayCurrency") {
+        payload.defaultDisplayCurrency = this.normalizeCurrency(
+          data[field],
+          "COP"
+        );
+        continue;
+      }
+
+      if (field === "exchangeRateMode") {
+        payload.exchangeRateMode = this.normalizeEnum(
+          data[field],
+          exchangeRateModes,
+          "MANUAL"
+        );
+        continue;
+      }
+
+      if (field === "exchangeRateSource") {
+        payload.exchangeRateSource = this.normalizeEnum(
+          data[field],
+          exchangeRateSources,
+          "MANUAL"
+        );
+        continue;
+      }
+
+      if (field === "exchangeRateDate") {
+        payload.exchangeRateDate = this.normalizeDate(data[field]);
+        continue;
+      }
+
+      if (field === "exchangeRatesFromCOP") {
+        payload.exchangeRatesFromCOP = this.normalizeExchangeRates(data[field]);
         continue;
       }
 
@@ -178,11 +273,85 @@ export class SystemSettingsService {
       throw new BadRequestException("Moneda requerida");
     }
 
-    if (payload.defaultCurrency) {
-      payload.defaultCurrency = String(payload.defaultCurrency).toUpperCase();
+    payload.baseCurrency = "COP";
+    payload.defaultCurrency = "COP";
+
+    if (
+      Array.isArray(payload.enabledDisplayCurrencies) &&
+      payload.defaultDisplayCurrency &&
+      !payload.enabledDisplayCurrencies.includes(payload.defaultDisplayCurrency)
+    ) {
+      payload.defaultDisplayCurrency = "COP";
     }
 
     return payload;
+  }
+
+  private normalizeCurrency(value: unknown, fallback: string) {
+    const currency = typeof value === "string" ? value.trim().toUpperCase() : "";
+
+    return supportedDisplayCurrencies.includes(currency as any)
+      ? currency
+      : fallback;
+  }
+
+  private normalizeDisplayCurrencies(value: unknown) {
+    const input = Array.isArray(value)
+      ? value
+      : typeof value === "string"
+        ? value.split(",")
+        : [];
+
+    const currencies = input
+      .map((currency) => this.normalizeCurrency(currency, ""))
+      .filter(Boolean);
+    const unique = Array.from(new Set(["COP", ...currencies]));
+
+    return unique.filter((currency) =>
+      supportedDisplayCurrencies.includes(currency as any)
+    );
+  }
+
+  private normalizeEnum<T extends readonly string[]>(
+    value: unknown,
+    allowed: T,
+    fallback: T[number]
+  ) {
+    const normalized =
+      typeof value === "string" ? value.trim().toUpperCase() : "";
+
+    return allowed.includes(normalized as T[number])
+      ? normalized
+      : fallback;
+  }
+
+  private normalizeDate(value: unknown) {
+    if (!value) return new Date();
+
+    const date = new Date(String(value));
+
+    if (Number.isNaN(date.getTime())) {
+      throw new BadRequestException("Fecha de tasa de cambio invalida");
+    }
+
+    return date;
+  }
+
+  private normalizeExchangeRates(value: unknown) {
+    const source =
+      value && typeof value === "object"
+        ? (value as Record<string, unknown>)
+        : {};
+    const rates: Record<string, number> = { COP: 1 };
+
+    for (const currency of supportedDisplayCurrencies) {
+      if (currency === "COP") continue;
+
+      const rate = Number(source[currency]);
+      rates[currency] = Number.isFinite(rate) && rate > 0 ? rate : 0;
+    }
+
+    return rates;
   }
 
   private validateUrl(field: string, value: string) {

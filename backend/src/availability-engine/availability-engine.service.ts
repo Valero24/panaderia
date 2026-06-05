@@ -209,15 +209,15 @@ export class AvailabilityService {
         (new Date(checkOut).getTime() - new Date(checkIn).getTime()) /
         (1000 * 60 * 60 * 24);
 
-      total = nights * (item.pricePerNight || 300);
+      total = nights * (item.priceCop ?? item.pricePerNight ?? 300);
     }
 
     if (type === "EXPERIENCE") {
-      total = Number(item.basePrice || 0) * guests;
+      total = Number(item.priceCop ?? item.basePrice ?? 0) * guests;
     }
 
     if (type === "PACKAGE") {
-      total = item.basePrice || 500;
+      total = item.priceCop ?? item.basePrice ?? 500;
     }
 
     return { total };

@@ -5,6 +5,8 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import TranslationEditor from "@/components/admin/TranslationEditor";
+import type { TranslationMap } from "@/components/admin/translations-model";
 import { apiUrl } from "@/lib/api";
 
 function NewExtraForm() {
@@ -24,6 +26,7 @@ function NewExtraForm() {
     description: "",
     price: "",
     propertyId: propertyIdFromUrl,
+    translations: {} as TranslationMap,
   });
 
   useEffect(() => {
@@ -77,6 +80,7 @@ function NewExtraForm() {
         description: form.description,
         price: Number(form.price),
         propertyId: Number(form.propertyId),
+        translations: form.translations,
       }),
     });
 
@@ -186,6 +190,22 @@ function NewExtraForm() {
               className="w-full rounded-xl border p-4"
             />
           </div>
+
+          <TranslationEditor
+            title="Traducciones del servicio"
+            fields={[
+              { key: "name", label: "Nombre", baseValue: form.name },
+              {
+                key: "description",
+                label: "Descripcion",
+                type: "textarea",
+                baseValue: form.description,
+              },
+            ]}
+            value={form.translations}
+            onChange={(value) => setForm({ ...form, translations: value })}
+            disabled={!canManage}
+          />
 
           <div>
             <label className="block text-sm font-medium mb-2">

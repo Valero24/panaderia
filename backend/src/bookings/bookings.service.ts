@@ -58,7 +58,7 @@ export class BookingsService {
         );
       }
 
-      pricePerNight = item.pricePerNight;
+      pricePerNight = item.priceCop ?? item.pricePerNight;
     }
 
     // ===============================

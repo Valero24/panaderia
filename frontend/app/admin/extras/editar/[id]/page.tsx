@@ -2,6 +2,11 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import TranslationEditor from "@/components/admin/TranslationEditor";
+import {
+  normalizeTranslations,
+  type TranslationMap,
+} from "@/components/admin/translations-model";
 import { apiUrl } from "@/lib/api";
 
 type Extra = {
@@ -11,6 +16,7 @@ type Extra = {
   price: number;
   active: boolean;
   propertyId: number;
+  translations?: TranslationMap;
   property?: {
     title: string;
   };
@@ -47,7 +53,10 @@ export default function EditExtraPage({ params }: PageProps) {
         cache: "no-store",
       });
       const data = await res.json();
-      setExtra(data);
+      setExtra({
+        ...data,
+        translations: normalizeTranslations(data?.translations),
+      });
     }
 
     getExtra();
@@ -77,6 +86,7 @@ export default function EditExtraPage({ params }: PageProps) {
         price: Number(extra.price),
         propertyId: extra.propertyId,
         active: extra.active,
+        translations: extra.translations || {},
       }),
     });
 
@@ -172,6 +182,22 @@ export default function EditExtraPage({ params }: PageProps) {
               className="w-full mt-2 rounded-xl border p-4"
             />
           </div>
+
+          <TranslationEditor
+            title="Traducciones del servicio"
+            fields={[
+              { key: "name", label: "Nombre", baseValue: extra.name },
+              {
+                key: "description",
+                label: "Descripcion",
+                type: "textarea",
+                baseValue: extra.description,
+              },
+            ]}
+            value={extra.translations || {}}
+            onChange={(value) => setExtra({ ...extra, translations: value })}
+            disabled={!canManage}
+          />
 
           <div>
             <label className="text-sm font-medium text-[#0D2B52]">

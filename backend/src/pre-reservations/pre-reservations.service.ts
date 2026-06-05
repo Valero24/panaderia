@@ -13,6 +13,7 @@ import { CalendarService } from "../calendar/calendar.service";
 import { AuditService } from "../common/audit.service";
 import { InvoiceService } from "../invoice/invoice.service";
 import { NotificationsService } from "../notifications/notifications.service";
+import { CurrencyService } from "../currency/currency.service";
 
 import {
   BookingType,
@@ -54,6 +55,31 @@ type AssistedQuoteUpdateInput = {
   internalNotes?: string;
 };
 
+type BillingInput = {
+  billingLegalOrganizationType?: string;
+  billingIdentificationDocumentType?: string;
+  billingIdentificationNumber?: string;
+  billingVerificationDigit?: string;
+  billingCustomerName?: string;
+  billingEmail?: string;
+  billingPhone?: string;
+  billingDepartment?: string;
+  billingMunicipalityId?: string;
+  billingMunicipalityName?: string;
+  billingAddress?: string;
+  billingTaxResponsibility?: string;
+  billingTributeId?: string;
+  billingDataAccepted?: boolean;
+};
+
+type CurrencySnapshotInput = {
+  displayCurrency?: string;
+  subtotalCop: number;
+  taxCop: number;
+  discountCop: number;
+  totalCop: number;
+};
+
 @Injectable()
 export class PreReservationsService {
   private readonly logger = new Logger(PreReservationsService.name);
@@ -64,7 +90,8 @@ export class PreReservationsService {
     private calendarService: CalendarService,
     private audit: AuditService,
     private invoiceService: InvoiceService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private currencyService: CurrencyService
   ) { }
 
   private isSuperAdmin(actor: ReservationActor) {
@@ -73,6 +100,84 @@ export class PreReservationsService {
 
   private isRealAvailabilityEnabled() {
     return process.env.ENABLE_REAL_AVAILABILITY === "true";
+  }
+
+  private async buildCurrencySnapshot(data: CurrencySnapshotInput) {
+    const displayCurrency = String(data.displayCurrency || "COP")
+      .trim()
+      .toUpperCase();
+    const [subtotalConversion, totalConversion] = await Promise.all([
+      this.currencyService.convertCopToDisplayCurrency(
+        data.subtotalCop,
+        displayCurrency
+      ),
+      this.currencyService.convertCopToDisplayCurrency(
+        data.totalCop,
+        displayCurrency
+      ),
+    ]);
+
+    const source =
+      totalConversion.source || subtotalConversion.source || "SYSTEM";
+    const rateDate =
+      totalConversion.rateDate || subtotalConversion.rateDate || new Date();
+    const effectiveDisplayCurrency = totalConversion.displayCurrency;
+
+    return {
+      baseCurrency: "COP",
+      displayCurrency: effectiveDisplayCurrency,
+      subtotalCop: this.toMoney(data.subtotalCop),
+      taxCop: this.toMoney(data.taxCop),
+      discountCop: this.toMoney(data.discountCop),
+      totalCop: this.toMoney(data.totalCop),
+      displaySubtotal: Number(subtotalConversion.displayAmount),
+      displayTotal: Number(totalConversion.displayAmount),
+      exchangeRate: Number(totalConversion.rate),
+      exchangeRateSource: source,
+      exchangeRateDate: rateDate,
+      currencyNote:
+        effectiveDisplayCurrency === "COP"
+          ? "Valores liquidados en pesos colombianos COP."
+          : `Valor aproximado en ${effectiveDisplayCurrency}. Cobro y facturacion en COP.`,
+    };
+  }
+
+  private buildCurrencySnapshotFromFrozenRate(
+    data: CurrencySnapshotInput,
+    existing: {
+      displayCurrency?: string | null;
+      exchangeRate?: number | null;
+      exchangeRateSource?: string | null;
+      exchangeRateDate?: Date | null;
+    }
+  ) {
+    const displayCurrency = String(existing.displayCurrency || "COP")
+      .trim()
+      .toUpperCase();
+    const rate = Number(existing.exchangeRate || 1);
+    const safeRate = Number.isFinite(rate) && rate > 0 ? rate : 1;
+    const displaySubtotal =
+      displayCurrency === "COP" ? data.subtotalCop : data.subtotalCop / safeRate;
+    const displayTotal =
+      displayCurrency === "COP" ? data.totalCop : data.totalCop / safeRate;
+
+    return {
+      baseCurrency: "COP",
+      displayCurrency,
+      subtotalCop: this.toMoney(data.subtotalCop),
+      taxCop: this.toMoney(data.taxCop),
+      discountCop: this.toMoney(data.discountCop),
+      totalCop: this.toMoney(data.totalCop),
+      displaySubtotal: this.toMoney(displaySubtotal),
+      displayTotal: this.toMoney(displayTotal),
+      exchangeRate: safeRate,
+      exchangeRateSource: existing.exchangeRateSource || "SYSTEM",
+      exchangeRateDate: existing.exchangeRateDate || new Date(),
+      currencyNote:
+        displayCurrency === "COP"
+          ? "Valores liquidados en pesos colombianos COP."
+          : `Valor aproximado en ${displayCurrency}. Cobro y facturacion en COP.`,
+    };
   }
 
   private async getManagedReservation(
@@ -135,6 +240,114 @@ export class PreReservationsService {
     }
 
     return Math.round(parsed * 100) / 100;
+  }
+
+  private cleanString(value: unknown) {
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+  }
+
+  private isEmail(value?: string | null) {
+    return Boolean(value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));
+  }
+
+  private normalizeBilling(data?: BillingInput) {
+    const billing = {
+      billingLegalOrganizationType: this.cleanString(data?.billingLegalOrganizationType),
+      billingIdentificationDocumentType: this.cleanString(data?.billingIdentificationDocumentType),
+      billingIdentificationNumber: this.cleanString(data?.billingIdentificationNumber),
+      billingVerificationDigit: this.cleanString(data?.billingVerificationDigit),
+      billingCustomerName: this.cleanString(data?.billingCustomerName),
+      billingEmail: this.cleanString(data?.billingEmail),
+      billingPhone: this.cleanString(data?.billingPhone),
+      billingDepartment: this.cleanString(data?.billingDepartment),
+      billingMunicipalityId: this.cleanString(data?.billingMunicipalityId),
+      billingMunicipalityName: this.cleanString(data?.billingMunicipalityName),
+      billingAddress: this.cleanString(data?.billingAddress),
+      billingTaxResponsibility: this.cleanString(data?.billingTaxResponsibility),
+      billingTributeId: this.cleanString(data?.billingTributeId),
+      billingDataAccepted: Boolean(data?.billingDataAccepted),
+    };
+
+    const hasBillingData = Object.entries(billing).some(([key, value]) => {
+      return key !== "billingDataAccepted" && Boolean(value);
+    });
+
+    if (!hasBillingData) {
+      return {
+        ...billing,
+        billingDataAccepted: false,
+        billingIsComplete: false,
+      };
+    }
+
+    if (
+      billing.billingIdentificationNumber &&
+      !/^[0-9-]{5,20}$/.test(billing.billingIdentificationNumber)
+    ) {
+      throw new BadRequestException(
+        "Numero de identificacion de facturacion invalido"
+      );
+    }
+
+    if (billing.billingEmail && !this.isEmail(billing.billingEmail)) {
+      throw new BadRequestException("Correo de facturacion invalido");
+    }
+
+    if (
+      billing.billingIdentificationDocumentType === "NIT" &&
+      !billing.billingVerificationDigit
+    ) {
+      throw new BadRequestException(
+        "El digito de verificacion es requerido para NIT"
+      );
+    }
+
+    const requiredFields = [
+      billing.billingLegalOrganizationType,
+      billing.billingIdentificationDocumentType,
+      billing.billingIdentificationNumber,
+      billing.billingCustomerName,
+      billing.billingEmail,
+      billing.billingPhone,
+      billing.billingDepartment,
+      billing.billingMunicipalityName,
+      billing.billingAddress,
+      billing.billingTaxResponsibility,
+    ];
+
+    const billingIsComplete =
+      requiredFields.every(Boolean) && billing.billingDataAccepted;
+
+    if (billing.billingDataAccepted && !billingIsComplete) {
+      throw new BadRequestException(
+        "Para aceptar datos fiscales debes completar los campos minimos de facturacion"
+      );
+    }
+
+    return {
+      ...billing,
+      billingIsComplete,
+    };
+  }
+
+  private billingFieldsFrom(record: any) {
+    return {
+      billingLegalOrganizationType: record.billingLegalOrganizationType,
+      billingIdentificationDocumentType: record.billingIdentificationDocumentType,
+      billingIdentificationNumber: record.billingIdentificationNumber,
+      billingVerificationDigit: record.billingVerificationDigit,
+      billingCustomerName: record.billingCustomerName,
+      billingEmail: record.billingEmail,
+      billingPhone: record.billingPhone,
+      billingDepartment: record.billingDepartment,
+      billingMunicipalityId: record.billingMunicipalityId,
+      billingMunicipalityName: record.billingMunicipalityName,
+      billingAddress: record.billingAddress,
+      billingTaxResponsibility: record.billingTaxResponsibility,
+      billingTributeId: record.billingTributeId,
+      billingDataAccepted: record.billingDataAccepted,
+      billingIsComplete: record.billingIsComplete,
+    };
   }
 
   private getNights(checkIn: Date, checkOut: Date) {
@@ -258,6 +471,7 @@ export class PreReservationsService {
         customerName: booking.customerName || "Cliente",
         customerEmail: booking.customerEmail || "",
         customerPhone: booking.customerPhone,
+        ...this.billingFieldsFrom(booking),
         productName: booking.productName || `Producto #${booking.referenceId}`,
         checkIn: booking.checkIn,
         checkOut: booking.checkOut,
@@ -486,7 +700,7 @@ export class PreReservationsService {
       }
 
       const quantity = Math.max(Number(requested.quantity || 1), 1);
-      const unitPrice = this.toMoney(extra.price);
+      const unitPrice = this.toMoney(extra.priceCop ?? extra.price);
 
       return {
         id: extra.id,
@@ -504,7 +718,7 @@ export class PreReservationsService {
     );
 
     const stayTotal = this.toMoney(
-      nights * Number(property.pricePerNight || 0)
+      nights * Number(property.priceCop ?? property.pricePerNight ?? 0)
     );
     const baseSubtotal = this.toMoney(
       stayTotal +
@@ -614,7 +828,7 @@ export class PreReservationsService {
       }
 
       const quantity = Math.max(Number(requested.quantity || 1), 1);
-      const unitPrice = this.toMoney(extra.price);
+      const unitPrice = this.toMoney(extra.priceCop ?? extra.price);
 
       return {
         id: extra.id,
@@ -632,7 +846,7 @@ export class PreReservationsService {
     );
 
     const baseSubtotal = this.toMoney(
-      Number(experience.basePrice || 0) * data.guests
+      Number(experience.priceCop ?? experience.basePrice ?? 0) * data.guests
     );
     const subtotal = this.toMoney(baseSubtotal + extrasTotal);
     const taxesAmount = this.toMoney(data.taxesAmount || 0);
@@ -733,7 +947,7 @@ export class PreReservationsService {
       }
 
       const quantity = Math.max(Number(requested.quantity || 1), 1);
-      const unitPrice = this.toMoney(extra.price);
+      const unitPrice = this.toMoney(extra.priceCop ?? extra.price);
 
       return {
         id: extra.id,
@@ -750,7 +964,9 @@ export class PreReservationsService {
       0
     );
 
-    const baseSubtotal = this.toMoney(Number(packageItem.basePrice || 0));
+    const baseSubtotal = this.toMoney(
+      Number(packageItem.priceCop ?? packageItem.basePrice ?? 0)
+    );
     const subtotal = this.toMoney(baseSubtotal + extrasTotal);
     const taxesAmount = this.toMoney(data.taxesAmount || 0);
     const discountAmount = this.toMoney(data.discountAmount || 0);
@@ -812,12 +1028,14 @@ export class PreReservationsService {
       quantity?: number;
     }[];
     extraIds?: number[];
-  }) {
+    displayCurrency?: string;
+  } & BillingInput) {
     const type = data.type ?? BookingType.PROPERTY;
     const referenceId = Number(data.referenceId ?? data.propertyId);
     const guests = Number(data.guests ?? 1);
     const checkIn = data.checkIn ? new Date(data.checkIn) : undefined;
     const checkOut = data.checkOut ? new Date(data.checkOut) : undefined;
+    const billing = this.normalizeBilling(data);
 
     if (!referenceId || Number.isNaN(referenceId)) {
       throw new BadRequestException("Producto requerido");
@@ -900,7 +1118,7 @@ export class PreReservationsService {
           if (!extra) return null;
 
           const quantity = Math.max(Number(requested.quantity || 1), 1);
-          const unitPrice = Number(extra.price || 0);
+          const unitPrice = Number(extra.priceCop ?? extra.price ?? 0);
 
           return {
             id: extra.id,
@@ -918,7 +1136,8 @@ export class PreReservationsService {
         0
       );
 
-      const stayTotal = nights * Number(property.pricePerNight || 0);
+      const stayTotal =
+        nights * Number(property.priceCop ?? property.pricePerNight ?? 0);
       const cleaningFee = Number(property.cleaningFee || 0);
       const serviceFee = Number(property.serviceFee || 0);
       taxesAmount = Number(property.taxes || 0);
@@ -991,6 +1210,17 @@ export class PreReservationsService {
       itemName = quote.packageItem.title;
     }
 
+    const subtotalCop = this.toMoney(Math.max(totalEstimate - taxesAmount, 0));
+    const discountCop = 0;
+    const totalCop = this.toMoney(totalEstimate);
+    const currencySnapshot = await this.buildCurrencySnapshot({
+      displayCurrency: data.displayCurrency,
+      subtotalCop,
+      taxCop: taxesAmount,
+      discountCop,
+      totalCop,
+    });
+
     const updated = await this.prisma.$transaction(async (tx) => {
       const pre = await tx.preReservation.create({
         data: {
@@ -1001,6 +1231,7 @@ export class PreReservationsService {
           paymentMethodPreferred: data.paymentMethodPreferred || null,
           specialRequests: data.specialRequests || null,
           selectedExtras: selectedExtrasSnapshot,
+          ...billing,
           checkIn,
           checkOut,
           adults: data.adults ? Number(data.adults) : null,
@@ -1009,6 +1240,18 @@ export class PreReservationsService {
           totalEstimate: totalEstimate || null,
           taxesAmount: taxesAmount || null,
           finalTotal: totalEstimate || null,
+          baseCurrency: currencySnapshot.baseCurrency,
+          displayCurrency: currencySnapshot.displayCurrency,
+          subtotalCop: currencySnapshot.subtotalCop,
+          taxCop: currencySnapshot.taxCop,
+          discountCop: currencySnapshot.discountCop,
+          totalCop: currencySnapshot.totalCop,
+          displaySubtotal: currencySnapshot.displaySubtotal,
+          displayTotal: currencySnapshot.displayTotal,
+          exchangeRate: currencySnapshot.exchangeRate,
+          exchangeRateSource: currencySnapshot.exchangeRateSource,
+          exchangeRateDate: currencySnapshot.exchangeRateDate,
+          currencyNote: currencySnapshot.currencyNote,
           status: PreReservationStatus.PENDING_ADVISOR,
         },
       });
@@ -1051,10 +1294,58 @@ export class PreReservationsService {
           checkOut,
           guests,
           totalEstimate,
+          totalCop: currencySnapshot.totalCop,
+          displayCurrency: currencySnapshot.displayCurrency,
+          displayTotal: currencySnapshot.displayTotal,
+          exchangeRate: currencySnapshot.exchangeRate,
+          exchangeRateSource: currencySnapshot.exchangeRateSource,
+          billingIsComplete: billing.billingIsComplete,
         },
         metadata: {
           source: "public-checkout",
           extrasCount: selectedExtrasSnapshot.length,
+          billingProvided: billing.billingIsComplete || billing.billingDataAccepted,
+        },
+      });
+
+      await this.audit.record({
+        action: "CHECKOUT_CURRENCY_APPLIED",
+        entityType: "PreReservation",
+        entityId: updated.id,
+        message: "Trazabilidad monetaria aplicada al checkout",
+        newValue: {
+          baseCurrency: currencySnapshot.baseCurrency,
+          displayCurrency: currencySnapshot.displayCurrency,
+          subtotalCop: currencySnapshot.subtotalCop,
+          taxCop: currencySnapshot.taxCop,
+          discountCop: currencySnapshot.discountCop,
+          totalCop: currencySnapshot.totalCop,
+          displaySubtotal: currencySnapshot.displaySubtotal,
+          displayTotal: currencySnapshot.displayTotal,
+          exchangeRate: currencySnapshot.exchangeRate,
+          exchangeRateSource: currencySnapshot.exchangeRateSource,
+          exchangeRateDate: currencySnapshot.exchangeRateDate,
+        },
+        metadata: {
+          source: "public-checkout",
+          type,
+          referenceId,
+        },
+      });
+
+      await this.audit.record({
+        action: billing.billingIsComplete
+          ? "BILLING_DATA_COMPLETE"
+          : "BILLING_DATA_INCOMPLETE",
+        entityType: "PreReservation",
+        entityId: updated.id,
+        message: billing.billingIsComplete
+          ? "Cliente envio datos fiscales completos"
+          : "Solicitud creada sin datos fiscales completos",
+        metadata: {
+          source: "public-checkout",
+          billingDataAccepted: billing.billingDataAccepted,
+          billingIsComplete: billing.billingIsComplete,
         },
       });
 
@@ -1186,10 +1477,11 @@ export class PreReservationsService {
       });
 
       const extrasTotal = selectedExtras.reduce((acc, extra) => {
-        return acc + Number(extra.price || 0);
+        return acc + Number(extra.priceCop ?? extra.price ?? 0);
       }, 0);
 
-      const stayTotal = nights * Number(property.pricePerNight || 0);
+      const stayTotal =
+        nights * Number(property.priceCop ?? property.pricePerNight ?? 0);
 
       officialName = property.title;
       officialUnitPrice =
@@ -1383,7 +1675,11 @@ export class PreReservationsService {
           items: true,
           assignedTo: true,
           payments: { orderBy: { createdAt: "desc" } },
-          booking: true,
+          booking: {
+            include: {
+              invoices: { orderBy: { createdAt: "desc" } },
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -1407,7 +1703,11 @@ export class PreReservationsService {
           items: true,
           assignedTo: true,
           payments: { orderBy: { createdAt: "desc" } },
-          booking: true,
+          booking: {
+            include: {
+              invoices: { orderBy: { createdAt: "desc" } },
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -1460,7 +1760,11 @@ export class PreReservationsService {
         items: true,
         assignedTo: true,
         payments: { orderBy: { createdAt: "desc" } },
-        booking: true,
+        booking: {
+          include: {
+            invoices: { orderBy: { createdAt: "desc" } },
+          },
+        },
       },
     });
 
@@ -1499,6 +1803,64 @@ export class PreReservationsService {
     }
 
     return pre;
+  }
+
+  async updateBillingData(
+    id: string,
+    data: BillingInput,
+    actor: ReservationActor
+  ) {
+    await this.getManagedReservation(id, actor);
+    const billing = this.normalizeBilling(data);
+
+    const updated = await this.prisma.preReservation.update({
+      where: { id },
+      data: billing,
+      include: {
+        items: true,
+        assignedTo: true,
+        payments: { orderBy: { createdAt: "desc" } },
+        booking: {
+          include: {
+            invoices: { orderBy: { createdAt: "desc" } },
+          },
+        },
+      },
+    });
+
+    if (updated.booking) {
+      await this.prisma.booking.update({
+        where: { id: updated.booking.id },
+        data: billing,
+      });
+    }
+
+    await this.audit.record({
+      actor,
+      action: billing.billingIsComplete
+        ? "BILLING_DATA_COMPLETE"
+        : "BILLING_DATA_INCOMPLETE",
+      entityType: "PreReservation",
+      entityId: id,
+      message: billing.billingIsComplete
+        ? "Datos fiscales actualizados y completos"
+        : "Datos fiscales actualizados incompletos",
+      metadata: {
+        source: "admin-reservations",
+        billingDataAccepted: billing.billingDataAccepted,
+        billingIsComplete: billing.billingIsComplete,
+      },
+    });
+
+    return {
+      ...updated,
+      booking: updated.booking
+        ? {
+            ...updated.booking,
+            ...billing,
+          }
+        : updated.booking,
+    };
   }
 
   // ===============================
@@ -2086,6 +2448,7 @@ export class PreReservationsService {
           customerName: pre.customerName,
           customerEmail: pre.email,
           customerPhone: pre.customerPhone,
+          ...this.billingFieldsFrom(pre),
           advisorId: pre.assignedToId,
           advisorName: pre.assignedTo?.name,
           paymentMethod: "Manual concierge",
@@ -2378,6 +2741,16 @@ export class PreReservationsService {
             !datesChanged
           ? PreReservationStatus.AVAILABLE
           : PreReservationStatus.VALIDATING;
+    const currencySnapshot = this.buildCurrencySnapshotFromFrozenRate(
+      {
+        displayCurrency: pre.displayCurrency,
+        subtotalCop: quote.subtotal,
+        taxCop: quote.taxesAmount,
+        discountCop: quote.discountAmount,
+        totalCop: quote.finalTotal,
+      },
+      pre
+    );
 
     const updated = await this.prisma.$transaction(async (tx) => {
       if (currentItem) {
@@ -2430,6 +2803,18 @@ export class PreReservationsService {
           discountAmount: quote.discountAmount,
           manualAdjustmentAmount: quote.manualAdjustmentAmount,
           finalTotal: quote.finalTotal,
+          baseCurrency: currencySnapshot.baseCurrency,
+          displayCurrency: currencySnapshot.displayCurrency,
+          subtotalCop: currencySnapshot.subtotalCop,
+          taxCop: currencySnapshot.taxCop,
+          discountCop: currencySnapshot.discountCop,
+          totalCop: currencySnapshot.totalCop,
+          displaySubtotal: currencySnapshot.displaySubtotal,
+          displayTotal: currencySnapshot.displayTotal,
+          exchangeRate: currencySnapshot.exchangeRate,
+          exchangeRateSource: currencySnapshot.exchangeRateSource,
+          exchangeRateDate: currencySnapshot.exchangeRateDate,
+          currencyNote: currencySnapshot.currencyNote,
           advisorNotes:
             data.advisorNotes !== undefined
               ? data.advisorNotes

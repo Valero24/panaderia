@@ -1,3 +1,6 @@
+import type { Language } from "@/i18n";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
+
 export type PublicProductType = "PROPERTY" | "EXPERIENCE" | "PACKAGE";
 
 export type PublicFeature = {
@@ -5,6 +8,7 @@ export type PublicFeature = {
   name: string;
   slug: string;
   description?: string | null;
+  translations?: DynamicTranslations | null;
   category: string;
   count: number;
 };
@@ -54,8 +58,12 @@ function preferenceScore(feature: PublicFeature) {
 
 export function buildFeaturedCollections(
   features: PublicFeature[],
-  resultText: string
+  resultText: string,
+  language: Language = "es"
 ): FeaturedCollection[] {
+  const featureName = (feature: PublicFeature) =>
+    getDynamicText(feature, "name", language);
+
   return features
     .filter((feature) => feature.count > 0)
     .sort((a, b) => {
@@ -66,15 +74,15 @@ export function buildFeaturedCollections(
         scoreA.slug - scoreB.slug ||
         scoreA.category - scoreB.category ||
         b.count - a.count ||
-        a.name.localeCompare(b.name)
+        featureName(a).localeCompare(featureName(b))
       );
     })
     .slice(0, 6)
     .map((feature) => ({
-      title: feature.name,
+      title: featureName(feature),
       text:
-        feature.description ||
-        `${feature.name} · ${feature.count} ${resultText}`,
+        getDynamicText(feature, "description", language) ||
+        `${featureName(feature)} · ${feature.count} ${resultText}`,
       slug: feature.slug,
       countLabel: `${feature.count}`,
     }));

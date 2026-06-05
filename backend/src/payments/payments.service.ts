@@ -223,6 +223,7 @@ export class PaymentsService {
     }
 
     const amount = Number(
+      pre.totalCop ??
       pre.finalTotal ??
       pre.totalEstimate ??
       pre.totalPrice
@@ -304,9 +305,19 @@ export class PaymentsService {
     const payment = await this.prisma.payment.create({
       data: {
         amount,
+        amountCop: amount,
         currency,
+        displayCurrency: pre.displayCurrency || "COP",
+        displayAmount: pre.displayTotal ?? amount,
+        exchangeRate: pre.exchangeRate || 1,
+        exchangeRateSource: pre.exchangeRateSource || "SYSTEM",
+        exchangeRateDate: pre.exchangeRateDate || new Date(),
+        paymentMethod: pre.paymentMethodPreferred || "CARD",
         provider: "WOMPI",
+        paymentProvider: "WOMPI",
         status: PaymentStatus.PENDING,
+        providerReference: wompiReference,
+        providerStatus: "PENDING",
         wompiReference,
         wompiPaymentLinkId: paymentLinkId,
         paymentLinkUrl: this.getWompiLinkUrl(paymentLinkId),
@@ -322,7 +333,35 @@ export class PaymentsService {
       metadata: {
         paymentId: payment.id,
         amount,
+        amountCop: amount,
         currency,
+        displayCurrency: pre.displayCurrency || "COP",
+        exchangeRate: pre.exchangeRate || 1,
+        wompiReference,
+      },
+    });
+
+    await this.audit.record({
+      actor,
+      action: "PAYMENT_CURRENCY_SAVED",
+      entityType: "Payment",
+      entityId: payment.id,
+      message: "Trazabilidad monetaria del pago guardada en COP",
+      newValue: {
+        amountCop: payment.amountCop,
+        currency: payment.currency,
+        displayCurrency: payment.displayCurrency,
+        displayAmount: payment.displayAmount,
+        exchangeRate: payment.exchangeRate,
+        exchangeRateSource: payment.exchangeRateSource,
+        exchangeRateDate: payment.exchangeRateDate,
+        paymentMethod: payment.paymentMethod,
+        paymentProvider: payment.paymentProvider,
+        providerReference: payment.providerReference,
+        providerStatus: payment.providerStatus,
+      },
+      metadata: {
+        preReservationId: pre.id,
         wompiReference,
       },
     });
@@ -680,7 +719,18 @@ export class PaymentsService {
       data: {
         status,
         amount: amount ?? payment.amount,
-        currency: transaction.currency || payment.currency,
+        amountCop: amount ?? payment.amountCop ?? payment.amount,
+        currency: "COP",
+        providerStatus: transaction.status || payment.providerStatus,
+        providerTransactionId:
+          transaction.id || payment.providerTransactionId,
+        providerReference:
+          transaction.reference || payment.providerReference,
+        paidAt:
+          status === PaymentStatus.APPROVED
+            ? new Date()
+            : payment.paidAt,
+        rawProviderResponse: payload,
         wompiTransactionId:
           transaction.id || payment.wompiTransactionId,
       },
@@ -794,7 +844,21 @@ export class PaymentsService {
       await this.prisma.payment.create({
         data: {
           amount: paymentIntent.amount / 100,
+          amountCop: paymentIntent.amount / 100,
           status: "PAID",
+          currency: "COP",
+          displayCurrency: "COP",
+          displayAmount: paymentIntent.amount / 100,
+          exchangeRate: 1,
+          exchangeRateSource: "LEGACY_STRIPE",
+          exchangeRateDate: new Date(),
+          paymentMethod: "CARD",
+          provider: "STRIPE",
+          paymentProvider: "STRIPE",
+          providerTransactionId: paymentIntent.id,
+          providerStatus: "PAID",
+          paidAt: new Date(),
+          rawProviderResponse: paymentIntent,
           stripePaymentIntentId: paymentIntent.id,
           bookingId: booking.id,
         },

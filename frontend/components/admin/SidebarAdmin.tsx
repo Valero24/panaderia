@@ -18,6 +18,8 @@ import {
   History,
   ServerCog,
   Tags,
+  ReceiptText,
+  Coins,
 } from "lucide-react";
 
 const menuItems = [
@@ -50,6 +52,18 @@ const menuItems = [
     href: "/admin/pagos",
     icon: DollarSign,
     roles: ["SUPERADMIN", "ADMIN"],
+  },
+  {
+    title: "Facturas",
+    href: "/admin/facturas",
+    icon: ReceiptText,
+    roles: ["SUPERADMIN"],
+  },
+  {
+    title: "Monedas",
+    href: "/admin/monedas",
+    icon: Coins,
+    roles: ["SUPERADMIN"],
   },
   {
     title: "Servicios Premium",

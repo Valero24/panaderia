@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout } from "@/lib/analytics";
+import { formatMoneyByLanguage } from "@/lib/currency";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 
 type ExtraService = {
   id: number;
@@ -15,6 +17,7 @@ type ExtraService = {
   description?: string | null;
   price: number;
   active?: boolean;
+  translations?: DynamicTranslations | null;
 };
 
 type ExperienceBookingCardProps = {
@@ -23,16 +26,13 @@ type ExperienceBookingCardProps = {
   extras: ExtraService[];
 };
 
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
-
 export default function ExperienceBookingCard({
   experienceId,
   basePrice,
   extras,
 }: ExperienceBookingCardProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
+  const money = (value?: number | null) => formatMoneyByLanguage(value, language);
   const [selectedExtraIds, setSelectedExtraIds] = useState<number[]>([]);
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
@@ -111,10 +111,12 @@ export default function ExperienceBookingCard({
                       className="mt-1 shrink-0"
                     />
                     <span className="min-w-0">
-                      <span className="block font-semibold">{extra.name}</span>
-                      {extra.description && (
+                      <span className="block font-semibold">
+                        {getDynamicText(extra, "name", language)}
+                      </span>
+                      {getDynamicText(extra, "description", language) && (
                         <span className="mt-2 block whitespace-pre-line leading-6 text-slate-500">
-                          {extra.description}
+                          {getDynamicText(extra, "description", language)}
                         </span>
                       )}
                     </span>
@@ -157,6 +159,9 @@ export default function ExperienceBookingCard({
           <span>{t("checkout.totalEstimate")}</span>
           <span>{money(basePrice + extrasTotal)}</span>
         </div>
+        <p className="pt-1 text-xs leading-5 text-slate-500">
+          {t("checkout.currencyApproxNote")}
+        </p>
       </div>
 
       <Link href={checkoutUrl}>

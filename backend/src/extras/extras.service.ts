@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../common/audit.service";
+import { normalizeTranslations } from "../common/translations";
 
 type AuditActor = {
   userId?: number;
@@ -16,7 +17,10 @@ type AuditActor = {
 type ExtraServiceInput = {
   name: string;
   description?: string;
-  price: number;
+  translations?: Record<string, Record<string, string>>;
+  price?: number;
+  priceCop?: number;
+  baseCurrency?: string;
   propertyId?: number | null;
   experienceId?: number | null;
   packageId?: number | null;
@@ -87,7 +91,7 @@ export class ExtrasService {
       throw new BadRequestException("Nombre requerido");
     }
 
-    const price = Number(data.price);
+    const price = Number(data.priceCop ?? data.price);
 
     if (!Number.isFinite(price) || price < 0) {
       throw new BadRequestException("Precio invalido");
@@ -99,7 +103,10 @@ export class ExtrasService {
       data: {
         name: data.name.trim(),
         description: data.description?.trim() || null,
+        translations: normalizeTranslations(data.translations),
         price,
+        priceCop: price,
+        baseCurrency: "COP",
         active: data.active ?? true,
         propertyId: target.propertyId,
         experienceId: target.experienceId,
@@ -230,14 +237,20 @@ export class ExtrasService {
       nextData.description = data.description?.trim() || null;
     }
 
-    if (data.price !== undefined) {
-      const price = Number(data.price);
+    if (data.translations !== undefined) {
+      nextData.translations = normalizeTranslations(data.translations);
+    }
+
+    if (data.price !== undefined || data.priceCop !== undefined) {
+      const price = Number(data.priceCop ?? data.price);
 
       if (!Number.isFinite(price) || price < 0) {
         throw new BadRequestException("Precio invalido");
       }
 
       nextData.price = price;
+      nextData.priceCop = price;
+      nextData.baseCurrency = "COP";
     }
 
     if (data.active !== undefined) {

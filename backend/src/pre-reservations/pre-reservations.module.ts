@@ -6,6 +6,7 @@ import { AvailabilityEngineModule } from "../availability-engine/availability-en
 import { CalendarModule } from "../calendar/calendar.module";
 import { InvoiceService } from "../invoice/invoice.service";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { CurrencyModule } from "../currency/currency.module";
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { NotificationsModule } from "../notifications/notifications.module";
     AvailabilityEngineModule,
     CalendarModule,
     NotificationsModule,
+    CurrencyModule,
   ],
   controllers: [PreReservationsController],
   providers: [PreReservationsService, InvoiceService],

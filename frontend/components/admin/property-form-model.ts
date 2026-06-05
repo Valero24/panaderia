@@ -1,5 +1,9 @@
 import type { AdminMediaItem } from "@/components/admin/MediaGalleryEditor";
 import type { ProductWizardStep } from "@/components/admin/ProductWizardProgress";
+import {
+  normalizeTranslations,
+  type TranslationMap,
+} from "@/components/admin/translations-model";
 
 export type PropertyStatus =
   | "DRAFT"
@@ -10,6 +14,7 @@ export type PropertyStatus =
 
 export type PropertyFormStep =
   | "basic"
+  | "translations"
   | "pricing"
   | "media"
   | "features"
@@ -52,6 +57,7 @@ export type PropertyFormState = {
   internalNotes: string;
   images: AdminMediaItem[];
   featureIds: number[];
+  translations: TranslationMap;
 };
 
 export type PropertyFormUpdate = (
@@ -69,6 +75,11 @@ export const propertyWizardSteps: ProductWizardStep<PropertyFormStep>[] = [
     key: "media",
     label: "Multimedia",
     description: "Fotos, videos y recorrido visual.",
+  },
+  {
+    key: "translations",
+    label: "Traducciones",
+    description: "Versiones EN, FR, PT e IT con fallback a espanol.",
   },
   {
     key: "features",
@@ -129,6 +140,7 @@ export function emptyPropertyForm(): PropertyFormState {
     internalNotes: "",
     images: [],
     featureIds: [],
+    translations: {},
   };
 }
 
@@ -188,5 +200,6 @@ export function buildPropertyFormState(
     internalNotes: toInputValue(property.internalNotes),
     images: Array.isArray(property.images) ? property.images : [],
     featureIds: featureAssignments.map((item) => Number(item.featureId)),
+    translations: normalizeTranslations(property.translations),
   };
 }

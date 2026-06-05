@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Min,
@@ -53,6 +54,10 @@ export class CreateExperienceDto {
   @IsString()
   description!: string;
 
+  @IsOptional()
+  @IsObject()
+  translations?: Record<string, Record<string, string>>;
+
   @IsString()
   location!: string;
 
@@ -66,6 +71,15 @@ export class CreateExperienceDto {
   @IsNumber()
   @Min(0)
   basePrice!: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  priceCop?: number;
+
+  @IsOptional()
+  @IsString()
+  baseCurrency?: string;
 
   @IsString()
   category!: string;

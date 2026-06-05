@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Filter, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
+import { getDynamicText } from "@/lib/dynamic-translations";
 import type { PublicFilter } from "./PublicFilterPanel";
 
 type PublicFilterModalProps = {
@@ -50,7 +51,7 @@ export default function PublicFilterModal({
   onApply,
   onClose,
 }: PublicFilterModalProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [draftSlugs, setDraftSlugs] = useState<string[]>(selectedSlugs);
 
   useEffect(() => {
@@ -149,7 +150,7 @@ export default function PublicFilterModal({
                   <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#0D2B52]">
                     {t(categoryKeys[group.category] || "filters.category.other")}
                   </h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex flex-wrap gap-2">
                     {group.filters.map((filter) => {
                       const selected = draftSlugs.includes(filter.slug);
 
@@ -158,38 +159,24 @@ export default function PublicFilterModal({
                           key={filter.id}
                           type="button"
                           onClick={() => toggleSlug(filter.slug)}
-                          className={`min-w-0 rounded-2xl border p-4 text-left transition ${
+                          className={`inline-flex min-w-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
                             selected
                               ? "border-[#0D2B52] bg-[#0D2B52] text-white shadow-sm"
                               : "border-[#D4AF37]/20 bg-white text-[#0D2B52] hover:border-[#D4AF37]/60 hover:bg-[#F8F6F1]"
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <Filter className="h-4 w-4 shrink-0 text-[#B48A5A]" />
-                                <p className="font-semibold">{filter.name}</p>
-                              </div>
-                              {filter.description && (
-                                <p
-                                  className={`mt-2 line-clamp-2 text-sm leading-6 ${
-                                    selected ? "text-white/75" : "text-slate-500"
-                                  }`}
-                                >
-                                  {filter.description}
-                                </p>
-                              )}
-                            </div>
-                            <span
-                              className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                selected
-                                  ? "bg-white/15 text-white"
-                                  : "bg-[#D4AF37]/10 text-[#8A6A24]"
-                              }`}
-                            >
-                              {selected ? <Check className="h-3.5 w-3.5" /> : filter.count}
-                            </span>
-                          </div>
+                          <span className="truncate">
+                            {getDynamicText(filter, "name", language)}
+                          </span>
+                          <span
+                            className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                              selected
+                                ? "bg-white/15 text-white"
+                                : "bg-[#D4AF37]/10 text-[#8A6A24]"
+                            }`}
+                          >
+                            {selected ? <Check className="h-3.5 w-3.5" /> : filter.count}
+                          </span>
                         </button>
                       );
                     })}

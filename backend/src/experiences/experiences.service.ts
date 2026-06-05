@@ -8,6 +8,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
 import { AuditService } from "../common/audit.service";
+import { normalizeTranslations } from "../common/translations";
 import { ProductFeaturesService } from "../product-features/product-features.service";
 import { BookingType } from "@prisma/client";
 
@@ -172,7 +173,9 @@ export class ExperiencesService {
       throw new BadRequestException("Capacidad invalida");
     }
 
-    if (!Number.isFinite(Number(data.basePrice)) || Number(data.basePrice) < 0) {
+    const priceCop = Number(data.priceCop ?? data.basePrice);
+
+    if (!Number.isFinite(priceCop) || priceCop < 0) {
       throw new BadRequestException("Precio base invalido");
     }
 
@@ -189,10 +192,13 @@ export class ExperiencesService {
         slug,
         shortDescription: data.shortDescription.trim(),
         description: data.description.trim(),
+        translations: normalizeTranslations(data.translations),
         location: data.location.trim(),
         duration: data.duration.trim(),
         maxGuests: Number(data.maxGuests),
-        basePrice: Number(data.basePrice),
+        basePrice: priceCop,
+        priceCop,
+        baseCurrency: "COP",
         category: data.category?.trim() || "Concierge",
         mainImage: data.mainImage?.trim() || null,
         active: data.active ?? true,
@@ -261,6 +267,10 @@ export class ExperiencesService {
       nextData.slug = slug;
     }
 
+    if (data.translations !== undefined) {
+      nextData.translations = normalizeTranslations(data.translations);
+    }
+
     if (data.maxGuests !== undefined) {
       if (!Number.isInteger(data.maxGuests) || data.maxGuests < 1) {
         throw new BadRequestException("Capacidad invalida");
@@ -269,15 +279,19 @@ export class ExperiencesService {
       nextData.maxGuests = Number(data.maxGuests);
     }
 
-    if (data.basePrice !== undefined) {
+    if (data.basePrice !== undefined || data.priceCop !== undefined) {
+      const priceCop = Number(data.priceCop ?? data.basePrice);
+
       if (
-        !Number.isFinite(Number(data.basePrice)) ||
-        Number(data.basePrice) < 0
+        !Number.isFinite(priceCop) ||
+        priceCop < 0
       ) {
         throw new BadRequestException("Precio base invalido");
       }
 
-      nextData.basePrice = Number(data.basePrice);
+      nextData.basePrice = priceCop;
+      nextData.priceCop = priceCop;
+      nextData.baseCurrency = "COP";
     }
 
     if (data.active !== undefined) {

@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import TranslationEditor from "@/components/admin/TranslationEditor";
 import type { PackageComponent, PackageForm } from "../package-form-model";
 
 type PackageComponentsStepProps = {
@@ -74,14 +75,62 @@ export default function PackageComponentsStep({
                 <Input placeholder="Titulo del componente" value={component.title} onChange={(event) => updateComponent(index, { title: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
                 <Textarea placeholder="Descripcion corta" value={component.shortDescription || ""} onChange={(event) => updateComponent(index, { shortDescription: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
                 <Textarea placeholder="Descripcion completa" value={component.description || ""} onChange={(event) => updateComponent(index, { description: event.target.value })} disabled={!canManage} className="min-h-32 w-full min-w-0" />
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-3">
                   <Input placeholder="Duracion" value={component.duration || ""} onChange={(event) => updateComponent(index, { duration: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
+                  <Input placeholder="Ubicacion" value={component.location || ""} onChange={(event) => updateComponent(index, { location: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
                   <Input type="number" placeholder="Orden" value={component.sortOrder ?? index} onChange={(event) => updateComponent(index, { sortOrder: Number(event.target.value) })} disabled={!canManage} className="w-full min-w-0" />
                 </div>
                 <Textarea placeholder="Que incluye" value={component.includes || ""} onChange={(event) => updateComponent(index, { includes: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
                 <Textarea placeholder="Que no incluye" value={component.excludes || ""} onChange={(event) => updateComponent(index, { excludes: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
                 <Textarea placeholder="Condiciones" value={component.conditions || ""} onChange={(event) => updateComponent(index, { conditions: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
                 <Textarea placeholder="Recomendaciones" value={component.recommendations || ""} onChange={(event) => updateComponent(index, { recommendations: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
+                <TranslationEditor
+                  title="Traducciones del componente"
+                  fields={[
+                    { key: "title", label: "Titulo", baseValue: component.title },
+                    {
+                      key: "shortDescription",
+                      label: "Descripcion corta",
+                      type: "textarea",
+                      baseValue: component.shortDescription,
+                    },
+                    {
+                      key: "description",
+                      label: "Descripcion completa",
+                      type: "textarea",
+                      baseValue: component.description,
+                    },
+                    { key: "duration", label: "Duracion", baseValue: component.duration },
+                    { key: "location", label: "Ubicacion", baseValue: component.location },
+                    {
+                      key: "includes",
+                      label: "Que incluye",
+                      type: "textarea",
+                      baseValue: component.includes,
+                    },
+                    {
+                      key: "excludes",
+                      label: "Que no incluye",
+                      type: "textarea",
+                      baseValue: component.excludes,
+                    },
+                    {
+                      key: "conditions",
+                      label: "Condiciones",
+                      type: "textarea",
+                      baseValue: component.conditions,
+                    },
+                    {
+                      key: "recommendations",
+                      label: "Recomendaciones",
+                      type: "textarea",
+                      baseValue: component.recommendations,
+                    },
+                  ]}
+                  value={component.translations || {}}
+                  onChange={(value) => updateComponent(index, { translations: value })}
+                  disabled={!canManage}
+                />
                 <label className="flex items-center gap-3 rounded-xl border border-[#D4AF37]/20 bg-[#F8F6F2] p-3 text-sm text-slate-600">
                   <input type="checkbox" checked={component.active !== false} onChange={(event) => updateComponent(index, { active: event.target.checked })} disabled={!canManage} />
                   Componente activo

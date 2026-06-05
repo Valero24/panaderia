@@ -1,5 +1,9 @@
 import type { AdminMediaItem } from "@/components/admin/MediaGalleryEditor";
 import type { ProductWizardStep } from "@/components/admin/ProductWizardProgress";
+import {
+  normalizeTranslations,
+  type TranslationMap,
+} from "@/components/admin/translations-model";
 
 export type PackageComponent = {
   id?: number;
@@ -10,9 +14,11 @@ export type PackageComponent = {
   excludes?: string | null;
   conditions?: string | null;
   duration?: string | null;
+  location?: string | null;
   recommendations?: string | null;
   sortOrder?: number;
   active?: boolean;
+  translations?: TranslationMap;
 };
 
 export type PackageItem = {
@@ -35,6 +41,7 @@ export type PackageItem = {
   active: boolean;
   images?: AdminMediaItem[];
   components?: PackageComponent[];
+  translations?: unknown;
 };
 
 export type ExtraService = {
@@ -44,6 +51,7 @@ export type ExtraService = {
   price: number;
   active: boolean;
   packageId?: number | null;
+  translations?: unknown;
 };
 
 export type PackageForm = {
@@ -65,22 +73,25 @@ export type PackageForm = {
   active: boolean;
   images: AdminMediaItem[];
   components: PackageComponent[];
+  translations: TranslationMap;
 };
 
 export type PackageFormUpdate = (
   key: keyof PackageForm,
-  value: string | boolean | AdminMediaItem[] | PackageComponent[]
+  value: string | boolean | AdminMediaItem[] | PackageComponent[] | TranslationMap
 ) => void;
 
 export type ExtraForm = {
   name: string;
   description: string;
   price: string;
+  translations: TranslationMap;
 };
 
 export type PackageWizardStep =
   | "basic"
   | "media"
+  | "translations"
   | "features"
   | "pricing"
   | "premium"
@@ -97,6 +108,11 @@ export const packageWizardSteps: ProductWizardStep<PackageWizardStep>[] = [
     key: "media",
     label: "Multimedia",
     description: "Imagen principal y galeria.",
+  },
+  {
+    key: "translations",
+    label: "Traducciones",
+    description: "Versiones EN, FR, PT e IT con fallback a espanol.",
   },
   {
     key: "features",
@@ -144,6 +160,7 @@ export const emptyForm: PackageForm = {
   active: true,
   images: [],
   components: [],
+  translations: {},
 };
 
 export const emptyComponent: PackageComponent = {
@@ -154,15 +171,18 @@ export const emptyComponent: PackageComponent = {
   excludes: "",
   conditions: "",
   duration: "",
+  location: "",
   recommendations: "",
   sortOrder: 0,
   active: true,
+  translations: {},
 };
 
 export const emptyExtraForm: ExtraForm = {
   name: "",
   description: "",
   price: "0",
+  translations: {},
 };
 
 export function money(value?: number | null) {
@@ -201,6 +221,10 @@ export function toForm(item: PackageItem): PackageForm {
     recommendations: item.recommendations || "",
     active: Boolean(item.active),
     images: item.images || [],
-    components: item.components || [],
+    components: (item.components || []).map((component) => ({
+      ...component,
+      translations: normalizeTranslations(component.translations),
+    })),
+    translations: normalizeTranslations(item.translations),
   };
 }

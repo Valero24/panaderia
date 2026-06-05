@@ -25,6 +25,8 @@ import { apiUrl } from "@/lib/api";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout, trackViewContent } from "@/lib/analytics";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import { formatMoneyByLanguage } from "@/lib/currency";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 
 type PropertyImage = {
   id: number;
@@ -40,6 +42,7 @@ type PropertyImage = {
 type PropertyFeature = {
   id: number;
   name: string;
+  translations?: DynamicTranslations | null;
 };
 
 type Property = {
@@ -72,6 +75,7 @@ type Property = {
   longitude?: number | null;
   images?: PropertyImage[];
   features?: PropertyFeature[];
+  translations?: DynamicTranslations | null;
 };
 
 type ExtraService = {
@@ -80,6 +84,7 @@ type ExtraService = {
   description?: string;
   price: number;
   propertyId: number;
+  translations?: DynamicTranslations | null;
 };
 
 type ExtrasApiResponse =
@@ -98,10 +103,6 @@ type PageProps = {
 const fallbackImage =
   "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=1200";
 
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString()}`;
-}
-
 function normalizeExtras(data: ExtrasApiResponse): ExtraService[] {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.data)) return data.data;
@@ -110,7 +111,8 @@ function normalizeExtras(data: ExtrasApiResponse): ExtraService[] {
 }
 
 export default function PropertyDetailPage({ params }: PageProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
+  const money = (value?: number | null) => formatMoneyByLanguage(value, language);
   const { id } = use(params);
   const propertyId = Number(id);
 
@@ -157,9 +159,9 @@ export default function PropertyDetailPage({ params }: PageProps) {
 
   useEffect(() => {
     if (property) {
-      trackViewContent("PROPERTY", property.id, property.title);
+      trackViewContent("PROPERTY", property.id, getDynamicText(property, "title", language));
     }
-  }, [property]);
+  }, [language, property]);
 
   const selectedExtrasData = useMemo(() => {
     return extras.filter((item) =>
@@ -277,13 +279,15 @@ export default function PropertyDetailPage({ params }: PageProps) {
           <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
             <span className="inline-flex items-center gap-2">
               <MapPin className="h-4 w-4 text-[#B68D40]" />
-              {property.area}, {property.city}
+              {getDynamicText(property, "area", language, property.area)}, {getDynamicText(property, "city", language, property.city)}
             </span>
-            {property.address && <span>{property.address}</span>}
+            {getDynamicText(property, "address", language, property.address) && (
+              <span>{getDynamicText(property, "address", language, property.address)}</span>
+            )}
           </div>
 
           <h1 className="mt-3 text-4xl md:text-5xl font-semibold tracking-normal text-[#0D2B52]">
-            {property.title}
+            {getDynamicText(property, "title", language)}
           </h1>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -304,7 +308,8 @@ export default function PropertyDetailPage({ params }: PageProps) {
 
         <div className="premium-reveal mb-10">
           <ProductMediaGallery
-            title={property.title}
+            title={getDynamicText(property, "title", language)}
+            titleEntity={property}
             media={property.images}
             fallbackImage={fallbackImage}
           />
@@ -361,7 +366,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                 {t("property.about")}
               </h2>
               <p className="mt-4 max-w-3xl text-base leading-8 text-slate-700">
-                {property.description || t("property.descriptionPending")}
+                {getDynamicText(property, "description", language) || t("property.descriptionPending")}
               </p>
             </section>
 
@@ -378,7 +383,9 @@ export default function PropertyDetailPage({ params }: PageProps) {
                       className="premium-hover-lift flex items-center gap-3 rounded-lg border border-[#D4AF37]/20 bg-white p-4"
                     >
                       <Sparkles className="h-5 w-5 text-[#B68D40]" />
-                      <span className="text-slate-700">{feature.name}</span>
+                      <span className="text-slate-700">
+                        {getDynamicText(feature, "name", language)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -418,11 +425,11 @@ export default function PropertyDetailPage({ params }: PageProps) {
 
                           <div className="min-w-0">
                             <p className="font-semibold text-[#0D2B52]">
-                              {item.name}
+                              {getDynamicText(item, "name", language)}
                             </p>
-                            {item.description && (
+                            {getDynamicText(item, "description", language) && (
                               <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-500">
-                                {item.description}
+                                {getDynamicText(item, "description", language)}
                               </p>
                             )}
                           </div>
@@ -492,11 +499,11 @@ export default function PropertyDetailPage({ params }: PageProps) {
                   <MapPin className="mt-1 h-5 w-5 text-[#B68D40]" />
                   <div>
                     <p className="font-semibold">
-                      {property.area}, {property.city}
+                      {getDynamicText(property, "area", language, property.area)}, {getDynamicText(property, "city", language, property.city)}
                     </p>
-                    {property.address && (
+                    {getDynamicText(property, "address", language, property.address) && (
                       <p className="mt-1 text-sm text-slate-600">
-                        {property.address}
+                        {getDynamicText(property, "address", language, property.address)}
                       </p>
                     )}
                     {property.latitude && property.longitude && (
@@ -574,7 +581,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                 <div className="mt-3 space-y-2 text-sm text-slate-600">
                   {selectedExtrasData.map((extra) => (
                     <div key={extra.id} className="flex justify-between gap-3">
-                      <span>{extra.name}</span>
+                      <span>{getDynamicText(extra, "name", language)}</span>
                       <span>{money(extra.price)}</span>
                     </div>
                   ))}
@@ -591,6 +598,9 @@ export default function PropertyDetailPage({ params }: PageProps) {
               </div>
               <p className="mt-2 text-xs leading-5 text-slate-500">
                 {t("property.finalAfterDates")}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                {t("checkout.currencyApproxNote")}
               </p>
             </div>
 

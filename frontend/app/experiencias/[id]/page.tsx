@@ -5,11 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ExperienceBookingCard from "@/components/experiences/experience-booking-card";
+import MoneyText from "@/components/MoneyText";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
 import { cleanPublicCopy } from "@/lib/public-copy";
+import type { DynamicTranslations } from "@/lib/dynamic-translations";
 
 type PageProps = {
   params: Promise<{
@@ -40,6 +43,7 @@ type Experience = {
     active?: boolean | null;
     sortOrder?: number | null;
   }[];
+  translations?: DynamicTranslations | null;
 };
 
 type ExtraService = {
@@ -48,14 +52,11 @@ type ExtraService = {
   description?: string | null;
   price: number;
   active?: boolean;
+  translations?: DynamicTranslations | null;
 };
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200";
-
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
 
 async function getExperience(id: string): Promise<Experience | null> {
   try {
@@ -139,14 +140,15 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
               <div className="relative">
                 <ProductMediaGallery
                   title={cleanPublicCopy(experience.title)}
+                  titleEntity={experience}
                   media={experience.images}
                   fallbackImage={experience.mainImage || fallbackImage}
                   layout="experience"
                 />
                 <div className="absolute left-5 top-5 z-10">
                   <Badge className="rounded-md bg-white text-[#0D2B52] hover:bg-white">
-                    {cleanPublicCopy(experience.category)}
-                  </Badge>
+                  <TranslatedDynamicText entity={experience} field="category" />
+                </Badge>
                 </div>
               </div>
               <div className="p-6 lg:p-8">
@@ -154,10 +156,10 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
                   <TranslatedText k="experience.eyebrow" />
                 </p>
                 <h1 className="mt-3 text-3xl font-semibold sm:text-5xl">
-                  {cleanPublicCopy(experience.title)}
+                  <TranslatedDynamicText entity={experience} field="title" />
                 </h1>
                 <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-                  {cleanPublicCopy(experience.shortDescription)}
+                  <TranslatedDynamicText entity={experience} field="shortDescription" />
                 </p>
               </div>
             </div>
@@ -168,7 +170,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
                   <TranslatedText k="experience.detail" />
                 </h2>
                 <p className="whitespace-pre-line leading-8 text-slate-600">
-                  {cleanPublicCopy(experience.description)}
+                  <TranslatedDynamicText entity={experience} field="description" />
                 </p>
               </CardContent>
             </Card>
@@ -185,7 +187,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
                         </h2>
                       </div>
                       <p className="mt-4 whitespace-pre-line leading-7 text-slate-600">
-                        {cleanPublicCopy(experience.policies)}
+                        <TranslatedDynamicText entity={experience} field="policies" />
                       </p>
                     </CardContent>
                   </Card>
@@ -201,7 +203,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
                         </h2>
                       </div>
                       <p className="mt-4 whitespace-pre-line leading-7 text-slate-600">
-                        {cleanPublicCopy(experience.recommendations)}
+                        <TranslatedDynamicText entity={experience} field="recommendations" />
                       </p>
                     </CardContent>
                   </Card>
@@ -218,7 +220,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
                     <TranslatedText k="properties.from" />
                   </span>
                   <p className="mt-1 text-3xl font-semibold text-[#B48A5A]">
-                    {money(experience.basePrice)}
+                    <MoneyText value={experience.basePrice} />
                   </p>
                   <p className="mt-2 text-sm text-slate-500">
                     <TranslatedText k="experience.baseNote" />
@@ -228,11 +230,11 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
                 <div className="space-y-3 rounded-xl bg-[#F8F6F1] p-4 text-sm text-slate-700">
                   <div className="flex items-center gap-3">
                     <MapPin className="h-4 w-4 text-[#B48A5A]" />
-                    {cleanPublicCopy(experience.location)}
+                    <TranslatedDynamicText entity={experience} field="location" />
                   </div>
                   <div className="flex items-center gap-3">
                     <Clock className="h-4 w-4 text-[#B48A5A]" />
-                    {cleanPublicCopy(experience.duration)}
+                    <TranslatedDynamicText entity={experience} field="duration" />
                   </div>
                   <div className="flex items-center gap-3">
                     <Users className="h-4 w-4 text-[#B48A5A]" />

@@ -14,6 +14,7 @@ import {
   PropertyStatus,
 } from "@prisma/client";
 import { AuditService } from "../common/audit.service";
+import { normalizeTranslations } from "../common/translations";
 import { ProductFeaturesService } from "../product-features/product-features.service";
 
 type AuditActor = {
@@ -170,7 +171,8 @@ export class PropertiesService {
     }
 
     const pricePerNight = this.toNumber(
-      data.pricePerNight
+      data.priceCop,
+      this.toNumber(data.pricePerNight)
     );
 
     if (!pricePerNight || pricePerNight <= 0) {
@@ -203,6 +205,7 @@ export class PropertiesService {
         slug,
         description:
           data.description || "",
+        translations: normalizeTranslations(data.translations),
 
         city: data.city.trim(),
         area: data.area.trim(),
@@ -213,6 +216,8 @@ export class PropertiesService {
 
         // PRICING
         pricePerNight,
+        priceCop: pricePerNight,
+        baseCurrency: "COP",
 
         cleaningFee:
           this.toNumber(
@@ -419,6 +424,10 @@ export class PropertiesService {
       payload.description =
         data.description;
 
+    if (data.translations !== undefined) {
+      payload.translations = normalizeTranslations(data.translations);
+    }
+
     if (data.city !== undefined)
       payload.city = String(
         data.city
@@ -435,10 +444,24 @@ export class PropertiesService {
     if (data.icalUrl !== undefined)
       payload.icalUrl = data.icalUrl || null;
 
-    if (data.pricePerNight !== undefined)
-      payload.pricePerNight = Number(
-        data.pricePerNight
+    if (
+      data.pricePerNight !== undefined ||
+      data.priceCop !== undefined
+    ) {
+      const priceCop = Number(
+        data.priceCop ?? data.pricePerNight
       );
+
+      if (!Number.isFinite(priceCop) || priceCop <= 0) {
+        throw new BadRequestException(
+          "Invalid nightly price"
+        );
+      }
+
+      payload.pricePerNight = priceCop;
+      payload.priceCop = priceCop;
+      payload.baseCurrency = "COP";
+    }
 
     if (data.cleaningFee !== undefined)
       payload.cleaningFee = Number(

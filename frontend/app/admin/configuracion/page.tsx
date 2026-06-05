@@ -27,6 +27,14 @@ type SystemSettings = {
   primaryColor: string;
   secondaryColor: string;
   defaultCurrency: string;
+  baseCurrency: string;
+  enabledDisplayCurrencies: string[];
+  defaultDisplayCurrency: string;
+  exchangeRateMode: string;
+  exchangeRateSource: string;
+  exchangeRateDate?: string | null;
+  currencyConversionEnabled: boolean;
+  exchangeRatesFromCOP: Record<string, number>;
   taxRate: number;
   serviceFeeRate: number;
   footerText?: string | null;
@@ -37,6 +45,16 @@ type SystemSettings = {
   realPaymentsEnabled: boolean;
   realAvailabilityEnabled: boolean;
   whatsappNotificationsEnabled: boolean;
+  factusEnabled: boolean;
+  factusMode: string;
+  factusNumberingRangeId?: string | null;
+  factusDefaultDocumentCode: string;
+  factusDefaultPaymentForm?: string | null;
+  factusDefaultPaymentMethodCode?: string | null;
+  factusDefaultUnitMeasureId?: string | null;
+  factusDefaultStandardCodeId?: string | null;
+  factusDefaultTributeId?: string | null;
+  factusDefaultMunicipalityId?: string | null;
 };
 
 const initialSettings: SystemSettings = {
@@ -58,6 +76,19 @@ const initialSettings: SystemSettings = {
   primaryColor: "#0D2B52",
   secondaryColor: "#B48A5A",
   defaultCurrency: "COP",
+  baseCurrency: "COP",
+  enabledDisplayCurrencies: ["COP", "USD", "EUR", "BRL"],
+  defaultDisplayCurrency: "COP",
+  exchangeRateMode: "MANUAL",
+  exchangeRateSource: "MANUAL",
+  exchangeRateDate: new Date().toISOString(),
+  currencyConversionEnabled: true,
+  exchangeRatesFromCOP: {
+    COP: 1,
+    USD: 0.00025,
+    EUR: 0.00023,
+    BRL: 0.0014,
+  },
   taxRate: 0,
   serviceFeeRate: 0,
   footerText: "",
@@ -68,6 +99,16 @@ const initialSettings: SystemSettings = {
   realPaymentsEnabled: false,
   realAvailabilityEnabled: false,
   whatsappNotificationsEnabled: false,
+  factusEnabled: false,
+  factusMode: "mock",
+  factusNumberingRangeId: "",
+  factusDefaultDocumentCode: "01",
+  factusDefaultPaymentForm: "",
+  factusDefaultPaymentMethodCode: "",
+  factusDefaultUnitMeasureId: "",
+  factusDefaultStandardCodeId: "",
+  factusDefaultTributeId: "",
+  factusDefaultMunicipalityId: "",
 };
 
 function readRole() {
@@ -159,12 +200,35 @@ export default function ConfiguracionPage() {
     fetchSettings();
   }, []);
 
-  function update(key: keyof SystemSettings, value: string | number | boolean) {
+  function update(
+    key: keyof SystemSettings,
+    value: string | number | boolean | string[] | Record<string, number>
+  ) {
     setSettings((current) => ({
       ...current,
       [key]: value,
     }));
   }
+
+  function updateEnabledCurrencies(value: string) {
+    const currencies = value
+      .split(",")
+      .map((currency) => currency.trim().toUpperCase())
+      .filter(Boolean);
+
+    update("enabledDisplayCurrencies", Array.from(new Set(["COP", ...currencies])));
+  }
+
+  function updateExchangeRate(currency: string, value: string) {
+    update("exchangeRatesFromCOP", {
+      ...settings.exchangeRatesFromCOP,
+      COP: 1,
+      [currency]: Number(value || 0),
+    });
+  }
+
+  const enabledCurrenciesText = (settings.enabledDisplayCurrencies || ["COP"])
+    .join(", ");
 
   if (!loading && role !== "SUPERADMIN") {
     return (
@@ -294,8 +358,95 @@ export default function ConfiguracionPage() {
             title="Operacion"
             description="Parametros generales. En demo se mantienen pagos y disponibilidad real desactivados."
           >
-            <Field label="Moneda">
-              <Input value={settings.defaultCurrency || "COP"} onChange={(e) => update("defaultCurrency", e.target.value)} />
+            <Field label="Moneda base fiscal">
+              <Input value="COP" disabled className="bg-slate-50 text-slate-500" />
+            </Field>
+            <Field label="Moneda contable">
+              <Input value="COP" disabled className="bg-slate-50 text-slate-500" />
+            </Field>
+            <Field label="Moneda visual por defecto">
+              <select
+                value={settings.defaultDisplayCurrency || "COP"}
+                onChange={(e) => update("defaultDisplayCurrency", e.target.value)}
+                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-[#0D2B52]"
+              >
+                {["COP", "USD", "EUR", "BRL"].map((currency) => (
+                  <option key={currency} value={currency}>
+                    {currency}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Monedas visibles permitidas">
+              <Input
+                value={enabledCurrenciesText}
+                onChange={(e) => updateEnabledCurrencies(e.target.value)}
+                placeholder="COP, USD, EUR, BRL"
+              />
+            </Field>
+            <Field label="Modo tasa">
+              <select
+                value={settings.exchangeRateMode || "MANUAL"}
+                onChange={(e) => update("exchangeRateMode", e.target.value)}
+                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-[#0D2B52]"
+              >
+                <option value="MANUAL">MANUAL</option>
+                <option value="AUTO">AUTO</option>
+                <option value="DISABLED">DISABLED</option>
+              </select>
+            </Field>
+            <Field label="Fuente tasa">
+              <select
+                value={settings.exchangeRateSource || "MANUAL"}
+                onChange={(e) => update("exchangeRateSource", e.target.value)}
+                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-[#0D2B52]"
+              >
+                <option value="MANUAL">MANUAL</option>
+                <option value="TRM">TRM</option>
+                <option value="API">API</option>
+              </select>
+            </Field>
+            <Field label="Fecha tasa">
+              <Input
+                type="date"
+                value={(settings.exchangeRateDate || "").slice(0, 10)}
+                onChange={(e) => update("exchangeRateDate", e.target.value)}
+              />
+            </Field>
+            <Toggle label="Conversion visual activa" checked={settings.currencyConversionEnabled} onChange={(value) => update("currencyConversionEnabled", value)} />
+            <Field label="Tasa COP → USD">
+              <Input
+                type="number"
+                step="0.00001"
+                min="0"
+                value={settings.exchangeRatesFromCOP?.USD ?? 0}
+                onChange={(e) => updateExchangeRate("USD", e.target.value)}
+              />
+            </Field>
+            <Field label="Tasa COP → EUR">
+              <Input
+                type="number"
+                step="0.00001"
+                min="0"
+                value={settings.exchangeRatesFromCOP?.EUR ?? 0}
+                onChange={(e) => updateExchangeRate("EUR", e.target.value)}
+              />
+            </Field>
+            <Field label="Tasa COP → BRL">
+              <Input
+                type="number"
+                step="0.00001"
+                min="0"
+                value={settings.exchangeRatesFromCOP?.BRL ?? 0}
+                onChange={(e) => updateExchangeRate("BRL", e.target.value)}
+              />
+            </Field>
+            <Field label="Regla fiscal">
+              <Input
+                value="Pagos, facturas internas y Factus futuro siempre en COP"
+                disabled
+                className="bg-slate-50 text-slate-500"
+              />
             </Field>
             <Field label="Impuesto %">
               <Input type="number" min="0" value={settings.taxRate ?? 0} onChange={(e) => update("taxRate", Number(e.target.value || 0))} />
@@ -307,6 +458,41 @@ export default function ConfiguracionPage() {
             <Toggle label="Pagos reales" checked={settings.realPaymentsEnabled} onChange={(value) => update("realPaymentsEnabled", value)} />
             <Toggle label="Disponibilidad real" checked={settings.realAvailabilityEnabled} onChange={(value) => update("realAvailabilityEnabled", value)} />
             <Toggle label="Notificaciones WhatsApp" checked={settings.whatsappNotificationsEnabled} onChange={(value) => update("whatsappNotificationsEnabled", value)} />
+          </Section>
+
+          <Section
+            icon={FileText}
+            title="Factus / DIAN futuro"
+            description="Preparacion para facturacion electronica. No guardar secretos ni credenciales aqui."
+          >
+            <Toggle label="Factus habilitado" checked={settings.factusEnabled} onChange={(value) => update("factusEnabled", value)} />
+            <Field label="Modo Factus">
+              <Input value={settings.factusMode || "mock"} onChange={(e) => update("factusMode", e.target.value)} placeholder="mock | sandbox | production" />
+            </Field>
+            <Field label="Numbering range ID">
+              <Input value={settings.factusNumberingRangeId || ""} onChange={(e) => update("factusNumberingRangeId", e.target.value)} />
+            </Field>
+            <Field label="Documento por defecto">
+              <Input value={settings.factusDefaultDocumentCode || "01"} onChange={(e) => update("factusDefaultDocumentCode", e.target.value)} />
+            </Field>
+            <Field label="Forma de pago">
+              <Input value={settings.factusDefaultPaymentForm || ""} onChange={(e) => update("factusDefaultPaymentForm", e.target.value)} />
+            </Field>
+            <Field label="Metodo de pago">
+              <Input value={settings.factusDefaultPaymentMethodCode || ""} onChange={(e) => update("factusDefaultPaymentMethodCode", e.target.value)} />
+            </Field>
+            <Field label="Unidad de medida">
+              <Input value={settings.factusDefaultUnitMeasureId || ""} onChange={(e) => update("factusDefaultUnitMeasureId", e.target.value)} />
+            </Field>
+            <Field label="Codigo estandar">
+              <Input value={settings.factusDefaultStandardCodeId || ""} onChange={(e) => update("factusDefaultStandardCodeId", e.target.value)} />
+            </Field>
+            <Field label="Tributo por defecto">
+              <Input value={settings.factusDefaultTributeId || ""} onChange={(e) => update("factusDefaultTributeId", e.target.value)} />
+            </Field>
+            <Field label="Municipio por defecto">
+              <Input value={settings.factusDefaultMunicipalityId || ""} onChange={(e) => update("factusDefaultMunicipalityId", e.target.value)} />
+            </Field>
           </Section>
 
           <Section

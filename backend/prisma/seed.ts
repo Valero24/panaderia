@@ -24,6 +24,7 @@ function slugify(value: string) {
 async function upsertProductFeature(data: {
   name: string;
   description?: string;
+  translations?: Record<string, Record<string, string>>;
   icon?: string;
   category: ProductFeatureCategory;
   appliesTo: ProductFeatureAppliesTo;
@@ -35,6 +36,7 @@ async function upsertProductFeature(data: {
     update: {
       name: data.name,
       description: data.description || null,
+      translations: data.translations || undefined,
       icon: data.icon || null,
       category: data.category,
       appliesTo: data.appliesTo,
@@ -44,6 +46,7 @@ async function upsertProductFeature(data: {
       name: data.name,
       slug,
       description: data.description || null,
+      translations: data.translations || undefined,
       icon: data.icon || null,
       category: data.category,
       appliesTo: data.appliesTo,
@@ -94,6 +97,7 @@ async function assignFeature(data: {
 async function upsertExtra(data: {
   name: string;
   description: string;
+  translations?: Record<string, Record<string, string>>;
   price: number;
   propertyId?: number;
   experienceId?: number;
@@ -113,7 +117,10 @@ async function upsertExtra(data: {
       where: { id: existing.id },
       data: {
         description: data.description,
+        translations: data.translations || undefined,
         price: data.price,
+        priceCop: data.price,
+        baseCurrency: "COP",
         active: true,
       },
     });
@@ -122,6 +129,8 @@ async function upsertExtra(data: {
   return prisma.extraService.create({
     data: {
       ...data,
+      priceCop: data.price,
+      baseCurrency: "COP",
       active: true,
     },
   });
@@ -178,10 +187,26 @@ async function main() {
       city: "Cartagena",
       country: "Colombia",
       defaultCurrency: "COP",
+      baseCurrency: "COP",
+      enabledDisplayCurrencies: ["COP", "USD", "EUR", "BRL"],
+      defaultDisplayCurrency: "COP",
+      exchangeRateMode: "MANUAL",
+      exchangeRateSource: "MANUAL",
+      exchangeRateDate: new Date(),
+      currencyConversionEnabled: true,
+      exchangeRatesFromCOP: {
+        COP: 1,
+        USD: 0.00025,
+        EUR: 0.00023,
+        BRL: 0.0014,
+      },
       demoModeEnabled: true,
       realPaymentsEnabled: false,
       realAvailabilityEnabled: false,
       whatsappNotificationsEnabled: false,
+      factusEnabled: false,
+      factusMode: "mock",
+      factusDefaultDocumentCode: "01",
       footerText:
         "Cartagena Tailored Travel - Viajes premium con atencion personalizada.",
       invoiceNotes:
@@ -194,10 +219,26 @@ async function main() {
       city: "Cartagena",
       country: "Colombia",
       defaultCurrency: "COP",
+      baseCurrency: "COP",
+      enabledDisplayCurrencies: ["COP", "USD", "EUR", "BRL"],
+      defaultDisplayCurrency: "COP",
+      exchangeRateMode: "MANUAL",
+      exchangeRateSource: "MANUAL",
+      exchangeRateDate: new Date(),
+      currencyConversionEnabled: true,
+      exchangeRatesFromCOP: {
+        COP: 1,
+        USD: 0.00025,
+        EUR: 0.00023,
+        BRL: 0.0014,
+      },
       demoModeEnabled: true,
       realPaymentsEnabled: false,
       realAvailabilityEnabled: false,
       whatsappNotificationsEnabled: false,
+      factusEnabled: false,
+      factusMode: "mock",
+      factusDefaultDocumentCode: "01",
       footerText:
         "Cartagena Tailored Travel - Viajes premium con atencion personalizada.",
       invoiceNotes:
@@ -207,16 +248,58 @@ async function main() {
 
   console.log("Configuracion demo creada o actualizada.");
 
+  const demoExchangeRates = [
+    { id: "demo_usd_cop_20260604", fromCurrency: "USD", rate: 4000 },
+    { id: "demo_eur_cop_20260604", fromCurrency: "EUR", rate: 4300 },
+    { id: "demo_brl_cop_20260604", fromCurrency: "BRL", rate: 780 },
+  ];
+
+  for (const exchangeRate of demoExchangeRates) {
+    await prisma.exchangeRate.upsert({
+      where: { id: exchangeRate.id },
+      update: {
+        toCurrency: "COP",
+        rate: exchangeRate.rate,
+        source: "MANUAL",
+        rateDate: new Date(),
+        isActive: true,
+      },
+      create: {
+        id: exchangeRate.id,
+        fromCurrency: exchangeRate.fromCurrency,
+        toCurrency: "COP",
+        rate: exchangeRate.rate,
+        source: "MANUAL",
+        rateDate: new Date(),
+        isActive: true,
+      },
+    });
+  }
+
+  console.log("Tasas demo creadas o actualizadas.");
+
   const demoProperties = [
     {
       title: "Villa demo en Centro Historico",
       slug: "villa-demo-centro-historico",
       description:
         "Alojamiento demo para validar el flujo asistido sin datos reales.",
+      translations: {
+        en: {
+          title: "Demo villa in the Historic Center",
+          description:
+            "Demo accommodation for validating the assisted booking flow without real inventory.",
+          area: "Historic Center",
+          cancellationPolicy:
+            "Reservation subject to manual advisor validation during the demo.",
+        },
+      },
       city: "Cartagena",
       area: "Centro Historico",
       address: "Direccion demo",
       pricePerNight: 980000,
+      priceCop: 980000,
+      baseCurrency: "COP",
       cleaningFee: 120000,
       serviceFee: 90000,
       taxes: 0,
@@ -251,10 +334,24 @@ async function main() {
         "Dia privado en aguas turquesa con ruta curada por concierge.",
       description:
         "Experiencia privada hacia Islas del Rosario con coordinacion personalizada, paradas sugeridas y asistencia del equipo concierge.",
+      translations: {
+        en: {
+          title: "Private Rosario Islands tour",
+          shortDescription:
+            "A private day in turquoise waters with a curated route.",
+          description:
+            "Private experience to the Rosario Islands with personalized coordination, suggested stops and team assistance.",
+          location: "Rosario Islands, Cartagena",
+          duration: "Full day",
+          category: "Sea and yachts",
+        },
+      },
       location: "Islas del Rosario, Cartagena",
       duration: "Dia completo",
       maxGuests: 10,
       basePrice: 1800000,
+      priceCop: 1800000,
+      baseCurrency: "COP",
       category: "Mar y yates",
       mainImage:
         "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=1600",
@@ -274,6 +371,8 @@ async function main() {
       duration: "3 a 4 horas",
       maxGuests: 2,
       basePrice: 950000,
+      priceCop: 950000,
+      baseCurrency: "COP",
       category: "Dining",
       mainImage:
         "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600",
@@ -293,6 +392,8 @@ async function main() {
       duration: "4 horas",
       maxGuests: 8,
       basePrice: 650000,
+      priceCop: 650000,
+      baseCurrency: "COP",
       category: "Cultura",
       mainImage:
         "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?q=80&w=1600",
@@ -327,10 +428,28 @@ async function main() {
         "Plan curado para pareja con estancia, cena y detalles especiales.",
       description:
         "Paquete romantico concierge para celebrar en Cartagena con coordinacion integral del equipo asesor.",
+      translations: {
+        en: {
+          title: "Romantic Cartagena escape",
+          shortDescription:
+            "A curated plan for couples with stay, dinner and special details.",
+          description:
+            "Romantic assisted package to celebrate in Cartagena with full advisor coordination.",
+          duration: "3 days / 2 nights",
+          location: "Cartagena, Colombia",
+          category: "Romance",
+          includes:
+            "Personalized coordination\nSpecial decoration\nSuggested private dinner\nAssistance during the stay",
+          notIncludes:
+            "Air tickets\nUnspecified expenses\nVoluntary tips",
+        },
+      },
       duration: "3 dias / 2 noches",
       location: "Cartagena, Colombia",
       maxGuests: 2,
       basePrice: 3800000,
+      priceCop: 3800000,
+      baseCurrency: "COP",
       mainImage:
         "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=1600",
       category: "Romance",
@@ -356,6 +475,8 @@ async function main() {
       location: "Cartagena historica e islas",
       maxGuests: 6,
       basePrice: 5200000,
+      priceCop: 5200000,
+      baseCurrency: "COP",
       mainImage:
         "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600",
       category: "Premium",
@@ -381,6 +502,8 @@ async function main() {
       location: "Islas del Rosario y Centro historico",
       maxGuests: 8,
       basePrice: 4500000,
+      priceCop: 4500000,
+      baseCurrency: "COP",
       mainImage:
         "https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=1600",
       category: "Islas y cultura",
@@ -428,6 +551,13 @@ async function main() {
       name: "Transporte privado aeropuerto",
       description:
         "Traslado privado coordinado por el equipo de atencion para llegada o salida.",
+      translations: {
+        en: {
+          name: "Private airport transfer",
+          description:
+            "Private transfer coordinated by the assistance team for arrival or departure.",
+        },
+      },
       price: 180000,
       propertyId: demoProperty.id,
     });
@@ -459,6 +589,12 @@ async function main() {
     {
       name: "Piscina",
       description: "Alojamientos con piscina privada o compartida.",
+      translations: {
+        en: {
+          name: "Pool",
+          description: "Accommodations with a private or shared pool.",
+        },
+      },
       icon: "pool",
       category: ProductFeatureCategory.AMENITY,
       appliesTo: ProductFeatureAppliesTo.PROPERTY,

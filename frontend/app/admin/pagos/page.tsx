@@ -18,8 +18,18 @@ import { apiUrl } from "@/lib/api";
 type Payment = {
   id: number;
   amount: number;
+  amountCop?: number | null;
   currency: string;
+  displayCurrency?: string | null;
+  displayAmount?: number | null;
+  exchangeRate?: number | null;
+  exchangeRateSource?: string | null;
   provider: string;
+  paymentProvider?: string | null;
+  paymentMethod?: string | null;
+  providerReference?: string | null;
+  providerStatus?: string | null;
+  paidAt?: string | null;
   status: string;
   wompiReference?: string | null;
   stripePaymentIntentId?: string | null;
@@ -36,6 +46,10 @@ type Payment = {
 
 function money(value: number, currency: string) {
   return `${currency} ${Number(value || 0).toLocaleString("es-CO")}`;
+}
+
+function paymentAmount(payment: Payment) {
+  return money(payment.amountCop ?? payment.amount, "COP");
 }
 
 export default function PagosPage() {
@@ -171,13 +185,25 @@ export default function PagosPage() {
                     <TableCell>
                       {payment.preReservation?.assignedTo?.name || "Sin asesor"}
                     </TableCell>
-                    <TableCell>{money(payment.amount, payment.currency)}</TableCell>
                     <TableCell>
-                      {payment.provider} /{" "}
-                      {payment.preReservation?.paymentMethodPreferred || "N/A"}
+                      <p className="font-medium text-[#0D2B52]">
+                        {paymentAmount(payment)}
+                      </p>
+                      {payment.displayCurrency && payment.displayCurrency !== "COP" ? (
+                        <p className="text-xs text-slate-500">
+                          Aprox. {money(payment.displayAmount || 0, payment.displayCurrency)}
+                        </p>
+                      ) : null}
                     </TableCell>
                     <TableCell>
-                      {payment.wompiReference || payment.stripePaymentIntentId || `#${payment.id}`}
+                      {payment.paymentProvider || payment.provider} /{" "}
+                      {payment.paymentMethod || payment.preReservation?.paymentMethodPreferred || "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {payment.providerReference ||
+                        payment.wompiReference ||
+                        payment.stripePaymentIntentId ||
+                        `#${payment.id}`}
                     </TableCell>
                     <TableCell>
                       <Badge variant={payment.status === "FAILED" ? "destructive" : "outline"}>

@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Gem } from "lucide-react";
+import { CheckCircle2, Gem, MapPin } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout } from "@/lib/analytics";
+import { formatMoneyByLanguage } from "@/lib/currency";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 
 type ExtraService = {
   id: number;
@@ -15,28 +17,42 @@ type ExtraService = {
   description?: string | null;
   price: number;
   active?: boolean;
+  translations?: DynamicTranslations | null;
+};
+
+type PackageComponent = {
+  id: number;
+  title: string;
+  shortDescription?: string | null;
+  duration?: string | null;
+  location?: string | null;
+  sortOrder?: number | null;
+  active?: boolean | null;
+  translations?: DynamicTranslations | null;
 };
 
 type PackageBookingCardProps = {
   packageId: number;
   basePrice: number;
   extras: ExtraService[];
+  components?: PackageComponent[];
 };
-
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
 
 export default function PackageBookingCard({
   packageId,
   basePrice,
   extras,
+  components = [],
 }: PackageBookingCardProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
+  const money = (value?: number | null) => formatMoneyByLanguage(value, language);
   const [selectedExtraIds, setSelectedExtraIds] = useState<number[]>([]);
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
   const activeExtras = extras.filter((extra) => extra.active !== false);
+  const activeComponents = components
+    .filter((component) => component.active !== false && getDynamicText(component, "title", language))
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   const selectedExtras = useMemo(
     () => activeExtras.filter((extra) => selectedExtraIds.includes(extra.id)),
     [activeExtras, selectedExtraIds]
@@ -81,6 +97,41 @@ export default function PackageBookingCard({
 
   return (
     <div className="space-y-6">
+      {activeComponents.length > 0 && (
+        <div className="rounded-2xl border border-[#D4AF37]/20 bg-white p-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-[#B48A5A]" />
+            <h3 className="font-semibold">{t("packageDetail.includedTitle")}</h3>
+          </div>
+          <div className="mt-4 space-y-3">
+            {activeComponents.slice(0, 4).map((component, index) => (
+              <div key={component.id} className="rounded-xl bg-[#F8F6F1] p-3 text-sm">
+                <p className="font-semibold text-[#0D2B52]">
+                  {String(index + 1).padStart(2, "0")}.{" "}
+                  {getDynamicText(component, "title", language)}
+                </p>
+                {getDynamicText(component, "shortDescription", language) && (
+                  <p className="mt-1 line-clamp-2 leading-5 text-slate-500">
+                    {getDynamicText(component, "shortDescription", language)}
+                  </p>
+                )}
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                  {getDynamicText(component, "duration", language) && (
+                    <span>{getDynamicText(component, "duration", language)}</span>
+                  )}
+                  {getDynamicText(component, "location", language) && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {getDynamicText(component, "location", language)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {activeExtras.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -109,10 +160,12 @@ export default function PackageBookingCard({
                       className="mt-1 shrink-0"
                     />
                     <span className="min-w-0">
-                      <span className="block font-semibold">{extra.name}</span>
-                      {extra.description && (
+                      <span className="block font-semibold">
+                        {getDynamicText(extra, "name", language)}
+                      </span>
+                      {getDynamicText(extra, "description", language) && (
                         <span className="mt-2 block whitespace-pre-line leading-6 text-slate-500">
-                          {extra.description}
+                          {getDynamicText(extra, "description", language)}
                         </span>
                       )}
                     </span>
@@ -155,6 +208,9 @@ export default function PackageBookingCard({
           <span>{t("checkout.totalEstimate")}</span>
           <span>{money(basePrice + extrasTotal)}</span>
         </div>
+        <p className="pt-1 text-xs leading-5 text-slate-500">
+          {t("checkout.currencyApproxNote")}
+        </p>
       </div>
 
       <Link href={checkoutUrl}>

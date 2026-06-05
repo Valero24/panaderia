@@ -11,6 +11,7 @@ import {
 } from "@prisma/client";
 
 import { AuditService } from "../common/audit.service";
+import { normalizeTranslations } from "../common/translations";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   ProductFeatureActor,
@@ -179,6 +180,7 @@ export class ProductFeaturesService {
         name,
         slug,
         description: this.cleanText(data.description) || null,
+        translations: normalizeTranslations(data.translations),
         icon: this.cleanText(data.icon) || null,
         category,
         appliesTo,
@@ -221,6 +223,10 @@ export class ProductFeaturesService {
 
     if (data.description !== undefined) {
       nextData.description = this.cleanText(data.description) || null;
+    }
+
+    if (data.translations !== undefined) {
+      nextData.translations = normalizeTranslations(data.translations);
     }
 
     if (data.icon !== undefined) {

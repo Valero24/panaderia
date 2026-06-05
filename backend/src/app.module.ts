@@ -27,6 +27,9 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { SystemSettingsModule } from "./system-settings/system-settings.module";
 import { HealthModule } from "./health/health.module";
 import { ProductFeaturesModule } from "./product-features/product-features.module";
+import { InvoicesModule } from "./invoices/invoices.module";
+import { ExchangeRatesModule } from "./exchange-rates/exchange-rates.module";
+import { CurrencyModule } from "./currency/currency.module";
 
 @Module({
   imports: [
@@ -64,6 +67,9 @@ import { ProductFeaturesModule } from "./product-features/product-features.modul
     SystemSettingsModule,
     HealthModule,
     ProductFeaturesModule,
+    InvoicesModule,
+    ExchangeRatesModule,
+    CurrencyModule,
   ],
 
   controllers: [AppController],

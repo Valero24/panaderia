@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Min,
@@ -52,6 +53,10 @@ export class CreatePackageComponentDto {
   description?: string;
 
   @IsOptional()
+  @IsObject()
+  translations?: Record<string, Record<string, string>>;
+
+  @IsOptional()
   @IsString()
   includes?: string;
 
@@ -69,7 +74,20 @@ export class CreatePackageComponentDto {
 
   @IsOptional()
   @IsString()
+  location?: string;
+
+  @IsOptional()
+  @IsString()
   recommendations?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  priceCop?: number;
+
+  @IsOptional()
+  @IsString()
+  baseCurrency?: string;
 
   @IsOptional()
   @IsInt()
@@ -98,6 +116,10 @@ export class CreatePackageDto {
   @IsString()
   description!: string;
 
+  @IsOptional()
+  @IsObject()
+  translations?: Record<string, Record<string, string>>;
+
   @IsString()
   duration!: string;
 
@@ -111,6 +133,15 @@ export class CreatePackageDto {
   @IsNumber()
   @Min(0)
   basePrice!: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  priceCop?: number;
+
+  @IsOptional()
+  @IsString()
+  baseCurrency?: string;
 
   @IsOptional()
   @IsString()

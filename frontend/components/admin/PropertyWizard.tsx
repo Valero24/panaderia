@@ -36,6 +36,10 @@ const PropertyFeaturesStep = dynamic(
   () => import("@/components/admin/property-steps/PropertyFeaturesStep"),
   { ssr: false, loading: sectionLoading }
 );
+const PropertyTranslationsStep = dynamic(
+  () => import("@/components/admin/property-steps/PropertyTranslationsStep"),
+  { ssr: false, loading: sectionLoading }
+);
 const PropertyPremiumServicesStep = dynamic(
   () => import("@/components/admin/property-steps/PropertyPremiumServicesStep"),
   { ssr: false, loading: sectionLoading }
@@ -365,6 +369,8 @@ export default function PropertyForm({
           form.internalNotes ||
           null,
 
+        translations: form.translations,
+
         images: form.images
           .filter((item) => item.url?.trim())
           .map((item, index) => ({
@@ -669,6 +675,14 @@ export default function PropertyForm({
                 form={form}
                 updateField={updateField}
                 loading={loading}
+              />
+            )}
+
+            {activeTab === "translations" && (
+              <PropertyTranslationsStep
+                form={form}
+                updateForm={updateField}
+                canManage={canManage}
               />
             )}
 

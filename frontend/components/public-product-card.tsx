@@ -14,7 +14,7 @@ type PublicProductCardProps = {
   title: string;
   description?: ReactNode;
   location: string;
-  price: string;
+  price: ReactNode;
   meta: ReactNode;
   metaIcon?: "clock" | "calendar" | "users";
   secondaryMeta?: ReactNode;

@@ -32,7 +32,10 @@ export class ExtrasController {
     body: {
       name: string;
       description?: string;
+      translations?: Record<string, Record<string, string>>;
       price: number;
+      priceCop?: number;
+      baseCurrency?: string;
       propertyId?: number;
       experienceId?: number;
       packageId?: number;
@@ -123,7 +126,10 @@ export class ExtrasController {
     body: {
       name: string;
       description?: string;
+      translations?: Record<string, Record<string, string>>;
       price: number;
+      priceCop?: number;
+      baseCurrency?: string;
       propertyId?: number;
       experienceId?: number;
       packageId?: number;

@@ -9,7 +9,8 @@ import PublicJourneyHeader from "@/components/public/PublicJourneyHeader";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
 import { apiUrl } from "@/lib/api";
-import { cleanPublicCopy } from "@/lib/public-copy";
+import { formatMoneyByLanguage } from "@/lib/currency";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 import {
   buildFeaturedCollections,
   type PublicFeature,
@@ -31,14 +32,11 @@ type PackageItem = {
     isPrimary?: boolean;
     active?: boolean | null;
   }[];
+  translations?: DynamicTranslations | null;
 };
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=900";
-
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
 
 function readFeaturesFromUrl() {
   if (typeof window === "undefined") return [];
@@ -91,7 +89,7 @@ function imageFor(item: PackageItem) {
 }
 
 export default function PaquetesPage() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [selectedSlugs, setSelectedSlugs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +149,8 @@ export default function PaquetesPage() {
 
   const collections = buildFeaturedCollections(
     availableFeatures,
-    t("filters.resultsFound")
+    t("filters.resultsFound"),
+    language
   );
 
   function applyCollection(slug: string) {
@@ -280,12 +279,12 @@ export default function PaquetesPage() {
                 reserveHref={`/checkout/${item.id}?type=PACKAGE`}
                 image={imageFor(item)}
                 fallbackImage={fallbackImage}
-                badge={cleanPublicCopy(item.category)}
-                title={cleanPublicCopy(item.title)}
-                description={cleanPublicCopy(item.shortDescription)}
-                location={cleanPublicCopy(item.location)}
-                price={money(item.basePrice)}
-                meta={cleanPublicCopy(item.duration)}
+                badge={getDynamicText(item, "category", language)}
+                title={getDynamicText(item, "title", language)}
+                description={getDynamicText(item, "shortDescription", language)}
+                location={getDynamicText(item, "location", language)}
+                price={formatMoneyByLanguage(item.basePrice, language)}
+                meta={getDynamicText(item, "duration", language)}
                 metaIcon="calendar"
                 secondaryMeta={
                   <>

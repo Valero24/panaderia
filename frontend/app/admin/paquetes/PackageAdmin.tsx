@@ -328,6 +328,7 @@ export default function AdminPaquetesPage() {
         itinerary: form.itinerary || undefined,
         policies: form.policies || undefined,
         recommendations: form.recommendations || undefined,
+        translations: form.translations,
         images: form.images
           .filter((item) => item.url?.trim())
           .map((item, index) => ({
@@ -349,9 +350,11 @@ export default function AdminPaquetesPage() {
             excludes: component.excludes || undefined,
             conditions: component.conditions || undefined,
             duration: component.duration || undefined,
+            location: component.location || undefined,
             recommendations: component.recommendations || undefined,
             sortOrder: component.sortOrder ?? index,
             active: component.active !== false,
+            translations: component.translations || {},
           })),
         active: form.active,
       };
@@ -431,6 +434,7 @@ export default function AdminPaquetesPage() {
           price: Number(extraForm.price || 0),
           packageId: editingId,
           active: true,
+          translations: extraForm.translations,
         }),
       });
       const data = await res.json();

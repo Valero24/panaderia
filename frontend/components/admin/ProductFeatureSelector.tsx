@@ -16,6 +16,7 @@ export type ProductFeature = {
   name: string;
   slug: string;
   description?: string | null;
+  translations?: unknown;
   icon?: string | null;
   category: string;
   appliesTo: ProductType | "ALL";

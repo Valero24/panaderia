@@ -268,6 +268,7 @@ export default function AdminExperienciasPage() {
         mainImage: form.mainImage || undefined,
         policies: form.policies || undefined,
         recommendations: form.recommendations || undefined,
+        translations: form.translations,
         images: form.images
           .filter((item) => item.url?.trim())
           .map((item, index) => ({
@@ -357,6 +358,7 @@ export default function AdminExperienciasPage() {
           price: Number(extraForm.price || 0),
           experienceId: editingId,
           active: true,
+          translations: extraForm.translations,
         }),
       });
 

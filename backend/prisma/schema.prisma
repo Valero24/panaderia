@@ -77,6 +77,21 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum InvoiceStatus {
+  GENERATED
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
+  FAILED
+}
+
+enum InvoicePaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+}
+
 enum PreReservationStatus {
   PENDING_ADVISOR
   ASSIGNED
@@ -129,9 +144,10 @@ model Property {
   // COMMERCIAL
   //////////////////////////////////////////////////////
 
-  title       String
-  slug        String @unique
-  description String
+  title        String
+  slug         String @unique
+  description  String
+  translations Json?
 
   city    String
   area    String
@@ -143,6 +159,8 @@ model Property {
   //////////////////////////////////////////////////////
 
   pricePerNight Float
+  priceCop      Float  @default(0)
+  baseCurrency  String @default("COP")
 
   cleaningFee Float @default(0)
   serviceFee  Float @default(0)
@@ -246,13 +264,14 @@ model PropertyFeature {
 model ProductFeature {
   id Int @id @default(autoincrement())
 
-  name        String
-  slug        String                 @unique
-  description String?
-  icon        String?
-  category    ProductFeatureCategory @default(OTHER)
-  appliesTo   ProductFeatureAppliesTo
-  active      Boolean                @default(true)
+  name         String
+  slug         String                  @unique
+  description  String?
+  translations Json?
+  icon         String?
+  category     ProductFeatureCategory  @default(OTHER)
+  appliesTo    ProductFeatureAppliesTo
+  active       Boolean                 @default(true)
 
   assignments ProductFeatureAssignment[]
 
@@ -312,11 +331,14 @@ model Experience {
   slug             String? @unique
   shortDescription String
   description      String
+  translations     Json?
 
   location  String
   duration  String
   maxGuests Int
   basePrice Float
+  priceCop  Float  @default(0)
+  baseCurrency String @default("COP")
   category  String
   mainImage String?
   active    Boolean @default(true)
@@ -359,11 +381,14 @@ model Package {
   slug             String? @unique
   shortDescription String
   description      String
+  translations     Json?
 
   duration  String
   location  String
   maxGuests Int
   basePrice Float
+  priceCop  Float  @default(0)
+  baseCurrency String @default("COP")
   mainImage String?
   category  String
 
@@ -374,8 +399,8 @@ model Package {
   recommendations String?
   active          Boolean @default(true)
 
-  images PackageImage[]
-  extras ExtraService[]
+  images     PackageImage[]
+  extras     ExtraService[]
   components PackageComponent[]
 
   createdAt DateTime @default(now())
@@ -388,11 +413,15 @@ model PackageComponent {
   title            String
   shortDescription String?
   description      String?
+  translations     Json?
   includes         String?
   excludes         String?
   conditions       String?
   duration         String?
-  recommendations String?
+  location         String?
+  recommendations  String?
+  priceCop         Float?
+  baseCurrency     String  @default("COP")
   sortOrder        Int     @default(0)
   active           Boolean @default(true)
 
@@ -431,10 +460,13 @@ model PackageImage {
 model ExtraService {
   id Int @id @default(autoincrement())
 
-  name        String
-  description String?
-  price       Float
-  active      Boolean @default(true)
+  name         String
+  description  String?
+  translations Json?
+  price        Float
+  priceCop     Float  @default(0)
+  baseCurrency String @default("COP")
+  active       Boolean @default(true)
 
   propertyId Int?
   property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -483,6 +515,21 @@ model Booking {
   customerName               String?
   customerEmail              String?
   customerPhone              String?
+  billingLegalOrganizationType       String?
+  billingIdentificationDocumentType  String?
+  billingIdentificationNumber        String?
+  billingVerificationDigit           String?
+  billingCustomerName                String?
+  billingEmail                       String?
+  billingPhone                       String?
+  billingDepartment                  String?
+  billingMunicipalityId              String?
+  billingMunicipalityName            String?
+  billingAddress                     String?
+  billingTaxResponsibility           String?
+  billingTributeId                   String?
+  billingDataAccepted                Boolean @default(false)
+  billingIsComplete                  Boolean @default(false)
   advisorId                  Int?
   advisorName                String?
   paymentMethod              String?
@@ -500,6 +547,7 @@ model Booking {
   user   User @relation(fields: [userId], references: [id])
 
   payments Payment[]
+  invoices Invoice[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -550,12 +598,39 @@ model PreReservation {
   paymentMethodPreferred String?
   specialRequests        String?
   selectedExtras         Json?
+  billingLegalOrganizationType       String?
+  billingIdentificationDocumentType  String?
+  billingIdentificationNumber        String?
+  billingVerificationDigit           String?
+  billingCustomerName                String?
+  billingEmail                       String?
+  billingPhone                       String?
+  billingDepartment                  String?
+  billingMunicipalityId              String?
+  billingMunicipalityName            String?
+  billingAddress                     String?
+  billingTaxResponsibility           String?
+  billingTributeId                   String?
+  billingDataAccepted                Boolean @default(false)
+  billingIsComplete                  Boolean @default(false)
 
   totalPrice     Float  @default(0)
   totalEstimate  Float?
   discountAmount Float?
   taxesAmount    Float?
   finalTotal     Float?
+  baseCurrency      String    @default("COP")
+  displayCurrency   String    @default("COP")
+  subtotalCop       Float?
+  taxCop            Float?
+  discountCop       Float?
+  totalCop          Float?
+  displaySubtotal   Float?
+  displayTotal      Float?
+  exchangeRate      Float     @default(1)
+  exchangeRateSource String   @default("SYSTEM")
+  exchangeRateDate  DateTime?
+  currencyNote      String?
 
   checkIn  DateTime?
   checkOut DateTime?
@@ -580,9 +655,10 @@ model PreReservation {
   archivedAt             DateTime?
   archivedById           Int?
 
-  items    PreReservationItem[]
-  payments Payment[]
-  booking  Booking?
+  items                    PreReservationItem[]
+  payments                 Payment[]
+  booking                  Booking?
+  invoices                 Invoice[]
   operationalNotifications OperationalNotification[]
 
   createdAt DateTime @default(now())
@@ -627,8 +703,21 @@ model Payment {
   id Int @id @default(autoincrement())
 
   amount   Float
-  currency String @default("USD")
-  provider String @default("STRIPE")
+  amountCop Float @default(0)
+  currency String @default("COP")
+  displayCurrency String @default("COP")
+  displayAmount Float?
+  exchangeRate Float @default(1)
+  exchangeRateSource String @default("SYSTEM")
+  exchangeRateDate DateTime?
+  paymentMethod String @default("MANUAL")
+  provider String @default("MANUAL")
+  paymentProvider String @default("MANUAL")
+  providerTransactionId String?
+  providerReference String?
+  providerStatus String?
+  paidAt DateTime?
+  rawProviderResponse Json?
 
   status PaymentStatus @default(PENDING)
 
@@ -648,6 +737,60 @@ model Payment {
   updatedAt DateTime @default(now()) @updatedAt
 
   @@index([preReservationId])
+}
+
+model Invoice {
+  id            Int     @id @default(autoincrement())
+  invoiceNumber String  @unique
+
+  bookingId Int
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  preReservationId String?
+  preReservation   PreReservation? @relation(fields: [preReservationId], references: [id])
+
+  customerName           String
+  customerEmail          String
+  customerPhone          String?
+  customerIdentification String?
+
+  issueDate          DateTime @default(now())
+  dueDate            DateTime?
+  paidAt             DateTime?
+  cancelledAt        DateTime?
+  lastStatusChangeAt DateTime @default(now())
+
+  subtotal  Float
+  taxes     Float @default(0)
+  discounts Float @default(0)
+  total     Float
+  currency  String @default("COP")
+  subtotalCop Float?
+  taxCop Float?
+  discountCop Float?
+  totalCop Float?
+  displayCurrency String @default("COP")
+  displayTotal Float?
+  exchangeRate Float @default(1)
+  exchangeRateSource String @default("SYSTEM")
+  exchangeRateDate DateTime?
+
+  status        InvoiceStatus        @default(GENERATED)
+  paymentStatus InvoicePaymentStatus @default(UNPAID)
+
+  provider String @default("INTERNAL")
+  mode     String @default("demo")
+  pdfUrl   String?
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([bookingId])
+  @@index([preReservationId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([issueDate])
 }
 
 model CompanySettings {
@@ -678,6 +821,14 @@ model CompanySettings {
   primaryColor                 String  @default("#0D2B52")
   secondaryColor               String  @default("#B48A5A")
   defaultCurrency              String  @default("COP")
+  baseCurrency                 String  @default("COP")
+  enabledDisplayCurrencies     String[] @default(["COP", "USD", "EUR", "BRL"])
+  defaultDisplayCurrency       String  @default("COP")
+  exchangeRateMode             String  @default("MANUAL")
+  exchangeRateSource           String  @default("MANUAL")
+  exchangeRateDate             DateTime?
+  currencyConversionEnabled    Boolean @default(true)
+  exchangeRatesFromCOP         Json    @default("{\"COP\":1,\"USD\":0.00025,\"EUR\":0.00023,\"BRL\":0.0014}")
   taxRate                      Float   @default(0)
   serviceFeeRate               Float   @default(0)
   footerText                   String?
@@ -688,9 +839,35 @@ model CompanySettings {
   realPaymentsEnabled          Boolean @default(false)
   realAvailabilityEnabled      Boolean @default(false)
   whatsappNotificationsEnabled Boolean @default(false)
+  factusEnabled                 Boolean @default(false)
+  factusMode                    String  @default("mock")
+  factusNumberingRangeId        String?
+  factusDefaultDocumentCode     String  @default("01")
+  factusDefaultPaymentForm      String?
+  factusDefaultPaymentMethodCode String?
+  factusDefaultUnitMeasureId    String?
+  factusDefaultStandardCodeId   String?
+  factusDefaultTributeId        String?
+  factusDefaultMunicipalityId   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ExchangeRate {
+  id           String   @id @default(cuid())
+  fromCurrency String
+  toCurrency   String
+  rate         Decimal  @db.Decimal(18, 6)
+  source       String
+  rateDate     DateTime
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([fromCurrency, toCurrency, isActive])
+  @@index([rateDate])
+  @@index([createdAt])
 }
 
 model ContactRequest {
@@ -721,12 +898,12 @@ model OperationalNotification {
   message   String
   status    OperationalNotificationStatus @default(PENDING)
 
-  provider      String?
-  error         String?
+  provider         String?
+  error            String?
   preReservationId String?
   preReservation   PreReservation? @relation(fields: [preReservationId], references: [id])
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   sentAt    DateTime?
 
   @@index([status])

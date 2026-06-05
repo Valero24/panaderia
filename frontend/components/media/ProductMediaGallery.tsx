@@ -7,6 +7,7 @@ import { ImageIcon, Play } from "lucide-react";
 import PublicImage from "@/components/PublicImage";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
+import { getDynamicText, type TranslatableEntity } from "@/lib/dynamic-translations";
 
 const ProductMediaLightbox = dynamic(
   () => import("./ProductMediaLightbox"),
@@ -33,6 +34,8 @@ export type ProductMediaItem = {
 
 type ProductMediaGalleryProps = {
   title: string;
+  titleEntity?: TranslatableEntity | null;
+  titleField?: string;
   media?: ProductMediaItem[];
   fallbackImage?: string;
   layout?: "default" | "experience";
@@ -90,11 +93,13 @@ function MediaPreview({
 
 export default function ProductMediaGallery({
   title,
+  titleEntity,
+  titleField = "title",
   media,
   fallbackImage,
   layout = "default",
 }: ProductMediaGalleryProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -141,6 +146,9 @@ export default function ProductMediaGallery({
   const visible = items.slice(0, 5);
   const count = items.length;
   const useExperienceLayout = layout === "experience";
+  const displayTitle = titleEntity
+    ? getDynamicText(titleEntity, titleField, language, title)
+    : title;
 
   if (useExperienceLayout) {
     const secondary = visible.slice(1, 5);
@@ -165,7 +173,7 @@ export default function ProductMediaGallery({
               className="premium-hover-lift group block aspect-[16/9] w-full overflow-hidden rounded-2xl bg-white shadow-sm"
               data-experience-media-tile
             >
-              <MediaPreview item={items[0]} title={title} />
+              <MediaPreview item={items[0]} title={displayTitle} />
             </button>
           )}
 
@@ -179,7 +187,7 @@ export default function ProductMediaGallery({
                   className="premium-hover-lift group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
                   data-experience-media-tile
                 >
-                  <MediaPreview item={item} title={title} />
+                  <MediaPreview item={item} title={displayTitle} />
                 </button>
               ))}
             </div>
@@ -193,7 +201,7 @@ export default function ProductMediaGallery({
                 className="premium-hover-lift group aspect-[16/10] overflow-hidden rounded-2xl bg-white shadow-sm lg:aspect-auto lg:h-full"
                 data-experience-media-tile
               >
-                <MediaPreview item={items[0]} title={title} />
+                <MediaPreview item={items[0]} title={displayTitle} />
               </button>
 
               <div className={secondaryGridClass}>
@@ -205,7 +213,7 @@ export default function ProductMediaGallery({
                     className={`premium-hover-lift ${secondaryTileClass}`}
                     data-experience-media-tile
                   >
-                    <MediaPreview item={item} title={title} />
+                    <MediaPreview item={item} title={displayTitle} />
                   </button>
                 ))}
               </div>
@@ -225,7 +233,7 @@ export default function ProductMediaGallery({
 
         {open && (
           <ProductMediaLightbox
-            title={title}
+            title={displayTitle}
             items={items}
             initialIndex={activeIndex}
             onClose={() => setOpen(false)}
@@ -244,7 +252,7 @@ export default function ProductMediaGallery({
             onClick={() => openAt(0)}
             className="premium-hover-lift group block aspect-[16/8] w-full overflow-hidden rounded-2xl bg-white shadow-sm"
           >
-            <MediaPreview item={items[0]} title={title} />
+            <MediaPreview item={items[0]} title={displayTitle} />
           </button>
         )}
 
@@ -257,7 +265,7 @@ export default function ProductMediaGallery({
                 onClick={() => openAt(index)}
                 className="premium-hover-lift group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
               >
-                <MediaPreview item={item} title={title} />
+                <MediaPreview item={item} title={displayTitle} />
               </button>
             ))}
           </div>
@@ -270,7 +278,7 @@ export default function ProductMediaGallery({
               onClick={() => openAt(0)}
               className="premium-hover-lift group aspect-[16/10] overflow-hidden rounded-2xl bg-white shadow-sm lg:aspect-auto lg:min-h-[460px]"
             >
-              <MediaPreview item={items[0]} title={title} />
+              <MediaPreview item={items[0]} title={displayTitle} />
             </button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -281,7 +289,7 @@ export default function ProductMediaGallery({
                   onClick={() => openAt(index + 1)}
                   className="premium-hover-lift group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
                 >
-                  <MediaPreview item={item} title={title} />
+                  <MediaPreview item={item} title={displayTitle} />
                 </button>
               ))}
             </div>
@@ -301,7 +309,7 @@ export default function ProductMediaGallery({
 
       {open && (
         <ProductMediaLightbox
-          title={title}
+          title={displayTitle}
           items={items}
           initialIndex={activeIndex}
           onClose={() => setOpen(false)}

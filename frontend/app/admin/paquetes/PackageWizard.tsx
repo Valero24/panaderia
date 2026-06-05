@@ -31,6 +31,10 @@ const PackageFeaturesStep = dynamic(
   () => import("./package-steps/PackageFeaturesStep"),
   { ssr: false, loading: sectionLoading }
 );
+const PackageTranslationsStep = dynamic(
+  () => import("./package-steps/PackageTranslationsStep"),
+  { ssr: false, loading: sectionLoading }
+);
 const PackagePremiumServicesStep = dynamic(
   () => import("./package-steps/PackagePremiumServicesStep"),
   { ssr: false, loading: sectionLoading }
@@ -131,6 +135,7 @@ export default function PackageWizard({
 
         {activeStep === "basic" && <PackageBasicInfoStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "media" && <PackageMediaStep form={form} updateForm={updateForm} canManage={canManage} />}
+        {activeStep === "translations" && <PackageTranslationsStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "features" && <PackageFeaturesStep editingId={editingId} featureIds={featureIds} setFeatureIds={setFeatureIds} canManage={canManage} />}
         {activeStep === "pricing" && <PackagePricingStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "components" && (

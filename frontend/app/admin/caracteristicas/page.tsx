@@ -10,7 +10,12 @@ import FeatureBadge, {
   featureCategoryLabel,
   productTypeLabel,
 } from "@/components/admin/FeatureBadge";
+import TranslationEditor from "@/components/admin/TranslationEditor";
 import type { ProductFeature } from "@/components/admin/ProductFeatureSelector";
+import {
+  normalizeTranslations,
+  type TranslationMap,
+} from "@/components/admin/translations-model";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +30,7 @@ type FeatureForm = {
   category: string;
   appliesTo: string;
   active: boolean;
+  translations: TranslationMap;
 };
 
 const emptyForm: FeatureForm = {
@@ -34,6 +40,7 @@ const emptyForm: FeatureForm = {
   category: "",
   appliesTo: "",
   active: true,
+  translations: {},
 };
 
 const appliesToOptions = [
@@ -68,6 +75,7 @@ function toForm(feature: ProductFeature): FeatureForm {
     category: feature.category || "",
     appliesTo: feature.appliesTo || "",
     active: feature.active,
+    translations: normalizeTranslations(feature.translations),
   };
 }
 
@@ -159,7 +167,7 @@ function FeatureAdminContent() {
     });
   }, [categoryFilter, features, search, statusFilter, typeFilter]);
 
-  function updateForm(key: keyof FeatureForm, value: string | boolean) {
+  function updateForm(key: keyof FeatureForm, value: string | boolean | TranslationMap) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
@@ -214,6 +222,7 @@ function FeatureAdminContent() {
             category: form.category,
             appliesTo: form.appliesTo,
             active: form.active,
+            translations: form.translations,
           }),
         }
       );
@@ -495,6 +504,19 @@ function FeatureAdminContent() {
                   value={form.icon}
                   onChange={(event) => updateForm("icon", event.target.value)}
                   placeholder="Icono opcional"
+                />
+                <TranslationEditor
+                  fields={[
+                    { key: "name", label: "Nombre", baseValue: form.name },
+                    {
+                      key: "description",
+                      label: "Descripcion",
+                      type: "textarea",
+                      baseValue: form.description,
+                    },
+                  ]}
+                  value={form.translations}
+                  onChange={(value) => updateForm("translations", value)}
                 />
                 <select
                   value={form.appliesTo}

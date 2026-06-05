@@ -7,6 +7,7 @@ import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiUrl } from "@/lib/api";
 import { useTranslation } from "@/context/LanguageContext";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 
 const PublicFilterModal = dynamic(() => import("./PublicFilterModal"), {
   ssr: false,
@@ -24,6 +25,7 @@ export type PublicFilter = {
   name: string;
   slug: string;
   description?: string | null;
+  translations?: DynamicTranslations | null;
   icon?: string | null;
   category: string;
   appliesTo: PublicProductType | "ALL";
@@ -37,17 +39,13 @@ type PublicFilterPanelProps = {
   resultLabel?: string;
 };
 
-function normalizeSlugs(slugs: string[]) {
-  return [...new Set(slugs.map((slug) => slug.trim()).filter(Boolean))];
-}
-
 export default function PublicFilterPanel({
   productType,
   selectedSlugs,
   onApply,
   resultLabel,
 }: PublicFilterPanelProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [filters, setFilters] = useState<PublicFilter[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,27 +97,19 @@ export default function PublicFilterPanel({
 
   const activeFilters = useMemo(
     () =>
-      selectedSlugs.map((slug) => ({
-        slug,
-        name: filtersBySlug.get(slug)?.name || slug,
-      })),
-    [filtersBySlug, selectedSlugs]
-  );
+      selectedSlugs.map((slug) => {
+        const filter = filtersBySlug.get(slug);
 
-  const quickFilters = useMemo(() => {
-    return filters
-      .filter((filter) => !selectedSlugs.includes(filter.slug))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-      .slice(0, 6);
-  }, [filters, selectedSlugs]);
+        return {
+          slug,
+          name: filter ? getDynamicText(filter, "name", language) : slug,
+        };
+      }),
+    [filtersBySlug, language, selectedSlugs]
+  );
 
   function removeActiveSlug(slug: string) {
     const next = selectedSlugs.filter((item) => item !== slug);
-    onApply(next);
-  }
-
-  function applyQuickSlug(slug: string) {
-    const next = normalizeSlugs([...selectedSlugs, slug]);
     onApply(next);
   }
 
@@ -183,27 +173,6 @@ export default function PublicFilterPanel({
                   <span className="rounded-full bg-[#D4AF37]/10 p-1 text-[#8A6A24]">
                     <X className="h-3.5 w-3.5 shrink-0" />
                   </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {quickFilters.length > 0 && (
-          <div className="border-t border-[#D4AF37]/15 pt-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#B48A5A]">
-              {t("filters.quickFilters")}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {quickFilters.map((filter) => (
-                <button
-                  key={filter.id}
-                  type="button"
-                  onClick={() => applyQuickSlug(filter.slug)}
-                  className="rounded-full border border-[#D4AF37]/25 bg-white px-3 py-1.5 text-sm font-medium text-[#0D2B52] transition hover:border-[#D4AF37]/60 hover:bg-[#FFFDF8]"
-                >
-                  {filter.name}
-                  <span className="ml-2 text-xs text-slate-400">{filter.count}</span>
                 </button>
               ))}
             </div>

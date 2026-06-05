@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CheckCircle2,
   CreditCard,
+  FileText,
   Gem,
   Mail,
   MapPin,
@@ -23,7 +24,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiUrl } from "@/lib/api";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout, trackLead } from "@/lib/analytics";
-import { cleanPublicCopy } from "@/lib/public-copy";
+import {
+  formatCopMoney,
+  formatMoneyByLanguage,
+  getCurrencyByLanguage,
+  isApproximateCurrency,
+} from "@/lib/currency";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 
 type PageProps = {
   params: Promise<{
@@ -57,6 +64,7 @@ type Property = {
   checkInTime?: string | null;
   checkOutTime?: string | null;
   images?: PropertyImage[];
+  translations?: DynamicTranslations | null;
 };
 
 type Experience = {
@@ -71,6 +79,7 @@ type Experience = {
   category?: string;
   mainImage?: string | null;
   images?: PropertyImage[];
+  translations?: DynamicTranslations | null;
 };
 
 type PackageItem = {
@@ -85,6 +94,19 @@ type PackageItem = {
   mainImage?: string | null;
   category?: string;
   images?: PropertyImage[];
+  components?: PackageComponent[];
+  translations?: DynamicTranslations | null;
+};
+
+type PackageComponent = {
+  id: number;
+  title: string;
+  shortDescription?: string | null;
+  duration?: string | null;
+  location?: string | null;
+  sortOrder?: number | null;
+  active?: boolean | null;
+  translations?: DynamicTranslations | null;
 };
 
 type ExtraService = {
@@ -94,6 +116,7 @@ type ExtraService = {
   price: number;
   propertyId?: number | null;
   experienceId?: number | null;
+  translations?: DynamicTranslations | null;
 };
 
 const fallbackImage =
@@ -105,10 +128,6 @@ const paymentMethods = [
   "Tarjeta credito",
   "PayPal",
 ];
-
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
 
 function firstImage(
   images?: PropertyImage[],
@@ -141,7 +160,9 @@ function isEmail(value: string) {
 }
 
 export default function CheckoutPage({ params }: PageProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
+  const money = (value?: number | null) => formatMoneyByLanguage(value, language);
+  const usesApproximateCurrency = isApproximateCurrency(language);
   const { id } = use(params);
   const searchParams = useSearchParams();
   const productId = Number(id);
@@ -183,6 +204,30 @@ export default function CheckoutPage({ params }: PageProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [useContactForBilling, setUseContactForBilling] = useState(true);
+  const [billingLegalOrganizationType, setBillingLegalOrganizationType] =
+    useState("PERSONA_NATURAL");
+  const [billingIdentificationDocumentType, setBillingIdentificationDocumentType] =
+    useState("CC");
+  const [billingIdentificationNumber, setBillingIdentificationNumber] = useState("");
+  const [billingVerificationDigit, setBillingVerificationDigit] = useState("");
+  const [billingCustomerName, setBillingCustomerName] = useState("");
+  const [billingEmail, setBillingEmail] = useState("");
+  const [billingPhone, setBillingPhone] = useState("");
+  const [billingDepartment, setBillingDepartment] = useState("");
+  const [billingMunicipalityName, setBillingMunicipalityName] = useState("");
+  const [billingAddress, setBillingAddress] = useState("");
+  const [billingTaxResponsibility, setBillingTaxResponsibility] =
+    useState("No responsable de IVA");
+  const [billingDataAccepted, setBillingDataAccepted] = useState(false);
+
+  useEffect(() => {
+    if (!useContactForBilling) return;
+
+    setBillingCustomerName(customerName);
+    setBillingEmail(email);
+    setBillingPhone(phone);
+  }, [customerName, email, phone, useContactForBilling]);
 
   useEffect(() => {
     async function fetchData() {
@@ -335,6 +380,16 @@ export default function CheckoutPage({ params }: PageProps) {
     : property
     ? Math.min(property.maxGuests || 1, property.maxCapacity || property.maxGuests || 1)
     : 1;
+
+  const activePackageComponents = useMemo(() => {
+    return (packageItem?.components || [])
+      .filter(
+        (component) =>
+          component.active !== false &&
+          Boolean(getDynamicText(component, "title", language))
+      )
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }, [packageItem?.components, language]);
 
   const pricing = useMemo(() => {
     if (productType === "PACKAGE") {
@@ -497,6 +552,32 @@ export default function CheckoutPage({ params }: PageProps) {
     setRequestId(null);
 
     try {
+      const hasBillingData =
+        billingDataAccepted ||
+        [
+          billingIdentificationNumber,
+          billingVerificationDigit,
+          billingDepartment,
+          billingMunicipalityName,
+          billingAddress,
+        ].some((value) => value.trim());
+      const billingPayload = hasBillingData
+        ? {
+            billingLegalOrganizationType,
+            billingIdentificationDocumentType,
+            billingIdentificationNumber,
+            billingVerificationDigit,
+            billingCustomerName,
+            billingEmail,
+            billingPhone,
+            billingDepartment,
+            billingMunicipalityName,
+            billingAddress,
+            billingTaxResponsibility,
+            billingDataAccepted,
+          }
+        : {};
+
       const response = await fetch(apiUrl("/pre-reservations"), {
         method: "POST",
         headers: {
@@ -514,10 +595,12 @@ export default function CheckoutPage({ params }: PageProps) {
           checkIn,
           checkOut,
           guests: Number(guests),
+          displayCurrency: getCurrencyByLanguage(language),
           selectedExtras: selectedExtras.map((item) => ({
             id: item.id,
             quantity: extraQuantities[item.id] || 1,
           })),
+          ...billingPayload,
         }),
       });
 
@@ -589,7 +672,7 @@ export default function CheckoutPage({ params }: PageProps) {
                   <div className="h-48 w-full shrink-0 overflow-hidden rounded-lg bg-slate-200 sm:h-32 sm:w-44">
                     <img
                       src={heroImage}
-                      alt={cleanPublicCopy(product?.title) || t("shared.premiumStay")}
+                      alt={getDynamicText(product, "title", language) || t("shared.premiumStay")}
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -609,7 +692,7 @@ export default function CheckoutPage({ params }: PageProps) {
                     </div>
 
                     <h2 className="mt-3 text-2xl font-semibold">
-                      {cleanPublicCopy(product?.title) ||
+                      {getDynamicText(product, "title", language) ||
                         (productType === "EXPERIENCE"
                           ? t("checkout.loadingExperience")
                           : productType === "PACKAGE"
@@ -619,11 +702,11 @@ export default function CheckoutPage({ params }: PageProps) {
                     <p className="mt-2 flex items-center gap-2 text-sm text-slate-600">
                       <MapPin className="h-4 w-4 text-[#B68D40]" />
                       {packageItem
-                        ? cleanPublicCopy(packageItem.location) || "Cartagena"
+                        ? getDynamicText(packageItem, "location", language) || "Cartagena"
                         : experience
-                        ? cleanPublicCopy(experience.location) || "Cartagena"
-                        : `${property?.area || "Cartagena"}, ${
-                            property?.city || "Colombia"
+                        ? getDynamicText(experience, "location", language) || "Cartagena"
+                        : `${getDynamicText(property, "area", language, property?.area) || "Cartagena"}, ${
+                            getDynamicText(property, "city", language, property?.city) || "Colombia"
                           }`}
                     </p>
 
@@ -634,8 +717,8 @@ export default function CheckoutPage({ params }: PageProps) {
                       </span>
                       {productType === "EXPERIENCE" || productType === "PACKAGE" ? (
                         <span>
-                          {experience?.duration ||
-                            packageItem?.duration ||
+                          {getDynamicText(experience, "duration", language, experience?.duration) ||
+                            getDynamicText(packageItem, "duration", language, packageItem?.duration) ||
                             t("shared.durationToCoordinate")}
                         </span>
                       ) : (
@@ -653,6 +736,49 @@ export default function CheckoutPage({ params }: PageProps) {
                 </div>
               </CardContent>
             </Card>
+
+            {productType === "PACKAGE" && activePackageComponents.length > 0 && (
+              <Card className="premium-scroll-reveal rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
+                <CardContent className="space-y-4 p-6">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-[#B68D40]" />
+                    <h2 className="text-xl font-semibold">
+                      {t("packageDetail.includedTitle")}
+                    </h2>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {activePackageComponents.slice(0, 6).map((component, index) => (
+                      <div
+                        key={component.id}
+                        className="rounded-xl border border-[#D4AF37]/15 bg-[#F8F6F1] p-4"
+                      >
+                        <p className="font-semibold text-[#0D2B52]">
+                          {String(index + 1).padStart(2, "0")}.{" "}
+                          {getDynamicText(component, "title", language)}
+                        </p>
+                        {getDynamicText(component, "shortDescription", language) && (
+                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
+                            {getDynamicText(component, "shortDescription", language)}
+                          </p>
+                        )}
+                        <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                          {getDynamicText(component, "duration", language) && (
+                            <span>{getDynamicText(component, "duration", language)}</span>
+                          )}
+                          {getDynamicText(component, "location", language) && (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {getDynamicText(component, "location", language)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="premium-form premium-reveal rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="p-6 space-y-6">
@@ -684,6 +810,135 @@ export default function CheckoutPage({ params }: PageProps) {
                     onChange={(event) => setCountry(event.target.value)}
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="premium-form premium-scroll-reveal rounded-lg border border-[#D4AF37]/20 bg-white shadow-sm">
+              <CardContent className="space-y-5 p-6">
+                <div className="flex items-start gap-3">
+                  <FileText className="mt-1 h-5 w-5 text-[#B68D40]" />
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      Datos para facturación electrónica
+                    </h2>
+                    <p className="mt-1 text-sm leading-6 text-slate-500">
+                      Estos datos serán usados únicamente si se confirma la
+                      reserva y se requiere emitir factura electrónica ante DIAN.
+                    </p>
+                  </div>
+                </div>
+
+                <label className="flex items-start gap-3 rounded-xl border border-[#D4AF37]/20 bg-[#F8F6F1] p-4 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={useContactForBilling}
+                    onChange={(event) => setUseContactForBilling(event.target.checked)}
+                    className="mt-1 h-4 w-4 shrink-0 accent-[#0D2B52]"
+                  />
+                  Usar los mismos datos de contacto para facturación.
+                </label>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="space-y-2 text-sm">
+                    <span className="font-medium text-slate-600">
+                      Tipo de persona / organización
+                    </span>
+                    <select
+                      value={billingLegalOrganizationType}
+                      onChange={(event) => setBillingLegalOrganizationType(event.target.value)}
+                      className="h-11 w-full rounded-md border border-[#D4AF37]/20 bg-white px-3 text-sm outline-none focus:border-[#B68D40]"
+                    >
+                      <option value="PERSONA_NATURAL">Persona natural</option>
+                      <option value="PERSONA_JURIDICA">Persona jurídica</option>
+                    </select>
+                  </label>
+
+                  <label className="space-y-2 text-sm">
+                    <span className="font-medium text-slate-600">
+                      Tipo de documento
+                    </span>
+                    <select
+                      value={billingIdentificationDocumentType}
+                      onChange={(event) => setBillingIdentificationDocumentType(event.target.value)}
+                      className="h-11 w-full rounded-md border border-[#D4AF37]/20 bg-white px-3 text-sm outline-none focus:border-[#B68D40]"
+                    >
+                      <option value="CC">Cédula de ciudadanía</option>
+                      <option value="CE">Cédula de extranjería</option>
+                      <option value="NIT">NIT</option>
+                      <option value="PASSPORT">Pasaporte</option>
+                      <option value="FOREIGN_DOCUMENT">Documento extranjero</option>
+                      <option value="OTHER">Otro</option>
+                    </select>
+                  </label>
+
+                  <Input
+                    placeholder="Número de identificación"
+                    value={billingIdentificationNumber}
+                    onChange={(event) => setBillingIdentificationNumber(event.target.value)}
+                  />
+                  <Input
+                    placeholder="Dígito de verificación si aplica"
+                    value={billingVerificationDigit}
+                    onChange={(event) => setBillingVerificationDigit(event.target.value)}
+                  />
+                  <Input
+                    placeholder="Nombre completo o razón social"
+                    value={billingCustomerName}
+                    onChange={(event) => setBillingCustomerName(event.target.value)}
+                  />
+                  <Input
+                    type="email"
+                    placeholder="Correo de facturación"
+                    value={billingEmail}
+                    onChange={(event) => setBillingEmail(event.target.value)}
+                  />
+                  <Input
+                    placeholder="Teléfono de facturación"
+                    value={billingPhone}
+                    onChange={(event) => setBillingPhone(event.target.value)}
+                  />
+                  <Input
+                    placeholder="Departamento"
+                    value={billingDepartment}
+                    onChange={(event) => setBillingDepartment(event.target.value)}
+                  />
+                  <Input
+                    placeholder="Municipio / ciudad"
+                    value={billingMunicipalityName}
+                    onChange={(event) => setBillingMunicipalityName(event.target.value)}
+                  />
+                  <Input
+                    placeholder="Dirección fiscal"
+                    value={billingAddress}
+                    onChange={(event) => setBillingAddress(event.target.value)}
+                  />
+                  <label className="space-y-2 text-sm md:col-span-2">
+                    <span className="font-medium text-slate-600">
+                      Responsabilidad tributaria
+                    </span>
+                    <select
+                      value={billingTaxResponsibility}
+                      onChange={(event) => setBillingTaxResponsibility(event.target.value)}
+                      className="h-11 w-full rounded-md border border-[#D4AF37]/20 bg-white px-3 text-sm outline-none focus:border-[#B68D40]"
+                    >
+                      <option>No responsable de IVA</option>
+                      <option>Responsable de IVA</option>
+                      <option>Régimen simple</option>
+                      <option>Otro</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label className="flex items-start gap-3 rounded-xl border border-[#D4AF37]/20 bg-white p-4 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={billingDataAccepted}
+                    onChange={(event) => setBillingDataAccepted(event.target.checked)}
+                    className="mt-1 h-4 w-4 shrink-0 accent-[#0D2B52]"
+                  />
+                  Autorizo el uso de estos datos para la emisión de factura
+                  electrónica si la reserva es confirmada.
+                </label>
               </CardContent>
             </Card>
 
@@ -779,11 +1034,11 @@ export default function CheckoutPage({ params }: PageProps) {
                               />
                               <span className="min-w-0">
                                 <span className="block font-semibold">
-                                  {item.name}
+                                  {getDynamicText(item, "name", language)}
                                 </span>
-                                {item.description && (
+                                {getDynamicText(item, "description", language) && (
                                   <span className="mt-2 block whitespace-pre-line text-sm leading-6 text-slate-500">
-                                    {item.description}
+                                    {getDynamicText(item, "description", language)}
                                   </span>
                                 )}
                               </span>
@@ -883,8 +1138,17 @@ export default function CheckoutPage({ params }: PageProps) {
                       {money(pricing.estimate)}
                     </span>
                   </div>
+                  {usesApproximateCurrency ? (
+                    <div className="mt-2 flex justify-between text-xs font-semibold text-[#0D2B52]">
+                      <span>{t("checkout.finalCopAmount")}</span>
+                      <span>{formatCopMoney(pricing.estimate)}</span>
+                    </div>
+                  ) : null}
                   <p className="mt-2 text-xs leading-5 text-slate-500">
                     {t("property.finalAfterDates")}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {t("checkout.currencyApproxNote")}
                   </p>
                 </div>
 

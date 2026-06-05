@@ -8,6 +8,8 @@ import PublicProductCard from "@/components/public-product-card";
 import PublicFilterPanel from "@/components/public/PublicFilterPanel";
 import PublicJourneyHeader from "@/components/public/PublicJourneyHeader";
 import { apiUrl } from "@/lib/api";
+import { formatMoneyByLanguage } from "@/lib/currency";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 import {
   buildFeaturedCollections,
   type PublicFeature,
@@ -35,14 +37,11 @@ type Property = {
   bathrooms?: number | null;
   status?: "DRAFT" | "ACTIVE" | "FEATURED" | "MAINTENANCE" | "ARCHIVED";
   images?: PropertyImage[];
+  translations?: DynamicTranslations | null;
 };
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=900";
-
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
 
 function primaryImage(property: Property) {
   const images = (property.images || []).filter(
@@ -58,7 +57,7 @@ function locationLabel(property: Property) {
 }
 
 export default function PublicPropertiesPage() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -161,7 +160,8 @@ export default function PublicPropertiesPage() {
 
   const collections = buildFeaturedCollections(
     availableFeatures,
-    t("filters.resultsFound")
+    t("filters.resultsFound"),
+    language
   );
 
   function applyCollection(slug: string) {
@@ -310,10 +310,20 @@ export default function PublicPropertiesPage() {
                   image={primaryImage(property)}
                   fallbackImage={fallbackImage}
                   badge={t("properties.curated")}
-                  title={property.title}
-                  description={property.address || t("shared.validationAssisted")}
-                  location={locationLabel(property)}
-                  price={money(property.pricePerNight)}
+                  title={getDynamicText(property, "title", language)}
+                  description={
+                    getDynamicText(property, "address", language, property.address) ||
+                    t("shared.validationAssisted")
+                  }
+                  location={
+                    [
+                      getDynamicText(property, "area", language, property.area),
+                      getDynamicText(property, "city", language, property.city),
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || "Cartagena"
+                  }
+                  price={formatMoneyByLanguage(property.pricePerNight, language)}
                   meta={`${property.bedrooms || 1} ${t("properties.bedrooms")} · ${
                     property.bathrooms || 1
                   } ${t("properties.bathrooms")}`}

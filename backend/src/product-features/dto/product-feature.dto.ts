@@ -15,6 +15,7 @@ export type ProductFeatureInput = {
   name?: string;
   slug?: string;
   description?: string;
+  translations?: Record<string, Record<string, string>>;
   icon?: string;
   category?: ProductFeatureCategory;
   appliesTo?: ProductFeatureAppliesTo;

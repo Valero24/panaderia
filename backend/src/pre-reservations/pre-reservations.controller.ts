@@ -201,6 +201,16 @@ export class PreReservationsController {
     );
   }
 
+  @Roles("ADVISOR", "SUPERADMIN")
+  @Patch(":id/billing")
+  updateBillingData(
+    @Param("id") id: string,
+    @Body() body: any,
+    @Request() req
+  ) {
+    return this.service.updateBillingData(id, body, req.user);
+  }
+
   // ===============================
   // ITEMS
   // ===============================

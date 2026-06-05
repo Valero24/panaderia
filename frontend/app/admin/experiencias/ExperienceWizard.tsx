@@ -30,6 +30,10 @@ const ExperienceFeaturesStep = dynamic(
   () => import("./experience-steps/ExperienceFeaturesStep"),
   { ssr: false, loading: sectionLoading }
 );
+const ExperienceTranslationsStep = dynamic(
+  () => import("./experience-steps/ExperienceTranslationsStep"),
+  { ssr: false, loading: sectionLoading }
+);
 const ExperiencePremiumServicesStep = dynamic(
   () => import("./experience-steps/ExperiencePremiumServicesStep"),
   { ssr: false, loading: sectionLoading }
@@ -118,6 +122,7 @@ export default function ExperienceWizard({
 
         {activeStep === "basic" && <ExperienceBasicInfoStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "media" && <ExperienceMediaStep form={form} updateForm={updateForm} canManage={canManage} />}
+        {activeStep === "translations" && <ExperienceTranslationsStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "features" && <ExperienceFeaturesStep editingId={editingId} featureIds={featureIds} setFeatureIds={setFeatureIds} canManage={canManage} />}
         {activeStep === "pricing" && <ExperiencePricingStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "premium" && (

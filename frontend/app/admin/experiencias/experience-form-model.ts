@@ -1,5 +1,9 @@
 import type { AdminMediaItem } from "@/components/admin/MediaGalleryEditor";
 import type { ProductWizardStep } from "@/components/admin/ProductWizardProgress";
+import {
+  normalizeTranslations,
+  type TranslationMap,
+} from "@/components/admin/translations-model";
 
 export type Experience = {
   id: number;
@@ -17,6 +21,7 @@ export type Experience = {
   policies?: string | null;
   recommendations?: string | null;
   images?: AdminMediaItem[];
+  translations?: unknown;
 };
 
 export type ExtraService = {
@@ -26,6 +31,7 @@ export type ExtraService = {
   price: number;
   active: boolean;
   experienceId?: number | null;
+  translations?: unknown;
 };
 
 export type ExperienceForm = {
@@ -43,22 +49,25 @@ export type ExperienceForm = {
   recommendations: string;
   images: AdminMediaItem[];
   active: boolean;
+  translations: TranslationMap;
 };
 
 export type ExperienceFormUpdate = (
   key: keyof ExperienceForm,
-  value: string | boolean | AdminMediaItem[]
+  value: string | boolean | AdminMediaItem[] | TranslationMap
 ) => void;
 
 export type ExtraForm = {
   name: string;
   description: string;
   price: string;
+  translations: TranslationMap;
 };
 
 export type ExperienceWizardStep =
   | "basic"
   | "media"
+  | "translations"
   | "features"
   | "pricing"
   | "premium"
@@ -74,6 +83,11 @@ export const experienceWizardSteps: ProductWizardStep<ExperienceWizardStep>[] = 
     key: "media",
     label: "Multimedia",
     description: "Imagen principal y galeria.",
+  },
+  {
+    key: "translations",
+    label: "Traducciones",
+    description: "Versiones EN, FR, PT e IT con fallback a espanol.",
   },
   {
     key: "features",
@@ -112,12 +126,14 @@ export const emptyForm: ExperienceForm = {
   recommendations: "",
   images: [],
   active: true,
+  translations: {},
 };
 
 export const emptyExtraForm: ExtraForm = {
   name: "",
   description: "",
   price: "0",
+  translations: {},
 };
 
 export function money(value?: number | null) {
@@ -153,5 +169,6 @@ export function toForm(experience: Experience): ExperienceForm {
     recommendations: experience.recommendations || "",
     images: experience.images || [],
     active: Boolean(experience.active),
+    translations: normalizeTranslations(experience.translations),
   };
 }

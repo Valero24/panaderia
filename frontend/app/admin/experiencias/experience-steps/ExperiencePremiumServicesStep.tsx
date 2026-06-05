@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import TranslationEditor from "@/components/admin/TranslationEditor";
 import type { ExtraForm, ExtraService } from "../experience-form-model";
 import { money } from "../experience-form-model";
 
@@ -50,6 +51,20 @@ export default function ExperiencePremiumServicesStep({
               <Input placeholder="Nombre del servicio" value={extraForm.name} onChange={(event) => setExtraForm((current) => ({ ...current, name: event.target.value }))} />
               <Textarea placeholder="Descripcion" value={extraForm.description} onChange={(event) => setExtraForm((current) => ({ ...current, description: event.target.value }))} />
               <Input type="number" min={0} placeholder="Precio" value={extraForm.price} onChange={(event) => setExtraForm((current) => ({ ...current, price: event.target.value }))} />
+              <TranslationEditor
+                title="Traducciones del servicio"
+                fields={[
+                  { key: "name", label: "Nombre", baseValue: extraForm.name },
+                  {
+                    key: "description",
+                    label: "Descripcion",
+                    type: "textarea",
+                    baseValue: extraForm.description,
+                  },
+                ]}
+                value={extraForm.translations}
+                onChange={(value) => setExtraForm((current) => ({ ...current, translations: value }))}
+              />
               <Button type="button" onClick={saveExtra} disabled={extraSaving} className="w-full rounded-xl bg-[#0D2B52] hover:bg-[#12396d]">
                 {extraSaving ? "Guardando..." : "Agregar servicio"}
               </Button>

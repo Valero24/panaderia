@@ -44,6 +44,21 @@ export type PreReservation = {
   checkOut?: string | null;
   internalNotes?: string | null;
   advisorNotes?: string | null;
+  billingLegalOrganizationType?: string | null;
+  billingIdentificationDocumentType?: string | null;
+  billingIdentificationNumber?: string | null;
+  billingVerificationDigit?: string | null;
+  billingCustomerName?: string | null;
+  billingEmail?: string | null;
+  billingPhone?: string | null;
+  billingDepartment?: string | null;
+  billingMunicipalityId?: string | null;
+  billingMunicipalityName?: string | null;
+  billingAddress?: string | null;
+  billingTaxResponsibility?: string | null;
+  billingTributeId?: string | null;
+  billingDataAccepted?: boolean;
+  billingIsComplete?: boolean;
   status: string;
   assignedToId?: number | null;
   assignedTo?: {
@@ -63,11 +78,27 @@ export type PreReservation = {
     totalPrice?: number | null;
     status?: string | null;
     advisorName?: string | null;
+    billingLegalOrganizationType?: string | null;
+    billingIdentificationDocumentType?: string | null;
+    billingIdentificationNumber?: string | null;
+    billingVerificationDigit?: string | null;
+    billingCustomerName?: string | null;
+    billingEmail?: string | null;
+    billingPhone?: string | null;
+    billingDepartment?: string | null;
+    billingMunicipalityId?: string | null;
+    billingMunicipalityName?: string | null;
+    billingAddress?: string | null;
+    billingTaxResponsibility?: string | null;
+    billingTributeId?: string | null;
+    billingDataAccepted?: boolean;
+    billingIsComplete?: boolean;
     confirmationEmailSentAt?: string | null;
     confirmationWhatsappSentAt?: string | null;
     cancelledAt?: string | null;
     cancellationReason?: string | null;
     cancelledById?: number | null;
+    invoices?: InvoiceRecord[];
   } | null;
   cancellationReason?: string | null;
   cancelledAt?: string | null;
@@ -89,6 +120,17 @@ export type PaymentRecord = {
   wompiReference?: string | null;
   wompiPaymentLinkId?: string | null;
   createdAt: string;
+};
+
+export type InvoiceRecord = {
+  id: number;
+  invoiceNumber: string;
+  status: string;
+  paymentStatus: string;
+  total?: number | null;
+  currency?: string | null;
+  pdfUrl?: string | null;
+  createdAt?: string;
 };
 
 export type ExtraOption = {

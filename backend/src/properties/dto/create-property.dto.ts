@@ -6,6 +6,7 @@ import {
   IsBoolean,
   IsEnum,
   IsArray,
+  IsObject,
 } from "class-validator";
 import { MediaType } from "@prisma/client";
 
@@ -60,6 +61,10 @@ export class CreatePropertyDto {
   @IsString()
   description!: string;
 
+  @IsOptional()
+  @IsObject()
+  translations?: Record<string, Record<string, string>>;
+
   @IsString()
   city!: string;
 
@@ -83,6 +88,14 @@ export class CreatePropertyDto {
 
   @IsNumber()
   pricePerNight!: number;
+
+  @IsOptional()
+  @IsNumber()
+  priceCop?: number;
+
+  @IsOptional()
+  @IsString()
+  baseCurrency?: string;
 
   @IsNumber()
   basePrice!: number;

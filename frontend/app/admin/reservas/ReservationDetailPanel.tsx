@@ -15,8 +15,43 @@ import StatusBadge, {
 import { apiUrl } from "@/lib/api";
 import { InfoTile } from "./components";
 import { allowedStatusTransitions, getOperationalStatusLabel, realAvailabilityEnabled, realPaymentsEnabled, statusActions } from "./constants";
-import type { AdvisorOption, OperationalLog, PreReservation, PropertyOption, QuoteForm, User } from "./types";
+import type { AdvisorOption, InvoiceRecord, OperationalLog, PreReservation, PropertyOption, QuoteForm, User } from "./types";
 import { date, dateInput, guestsLabel, money, primaryItem, productLabel } from "./utils";
+
+type BillingForm = {
+  billingLegalOrganizationType: string;
+  billingIdentificationDocumentType: string;
+  billingIdentificationNumber: string;
+  billingVerificationDigit: string;
+  billingCustomerName: string;
+  billingEmail: string;
+  billingPhone: string;
+  billingDepartment: string;
+  billingMunicipalityName: string;
+  billingAddress: string;
+  billingTaxResponsibility: string;
+  billingDataAccepted: boolean;
+};
+
+function billingFormFromRequest(request: PreReservation): BillingForm {
+  return {
+    billingLegalOrganizationType:
+      request.billingLegalOrganizationType || "PERSONA_NATURAL",
+    billingIdentificationDocumentType:
+      request.billingIdentificationDocumentType || "CC",
+    billingIdentificationNumber: request.billingIdentificationNumber || "",
+    billingVerificationDigit: request.billingVerificationDigit || "",
+    billingCustomerName: request.billingCustomerName || request.customerName || "",
+    billingEmail: request.billingEmail || request.email || "",
+    billingPhone: request.billingPhone || request.customerPhone || "",
+    billingDepartment: request.billingDepartment || "",
+    billingMunicipalityName: request.billingMunicipalityName || "",
+    billingAddress: request.billingAddress || "",
+    billingTaxResponsibility:
+      request.billingTaxResponsibility || "No responsable de IVA",
+    billingDataAccepted: Boolean(request.billingDataAccepted),
+  };
+}
 
 export function RequestDetail({
   request,
@@ -83,6 +118,16 @@ export function RequestDetail({
   const [cancelReason, setCancelReason] = useState("");
   const [invoiceLoading, setInvoiceLoading] = useState<"" | "view" | "download">("");
   const [invoiceMessage, setInvoiceMessage] = useState("");
+  const [internalInvoice, setInternalInvoice] = useState<InvoiceRecord | null>(
+    request.booking?.invoices?.[0] || null
+  );
+  const [internalInvoiceLoading, setInternalInvoiceLoading] = useState(false);
+  const [internalInvoiceMessage, setInternalInvoiceMessage] = useState("");
+  const [billingForm, setBillingForm] = useState<BillingForm>(
+    billingFormFromRequest(request)
+  );
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [billingMessage, setBillingMessage] = useState("");
   const selectedProperty = properties.find(
     (property) => property.id === Number(form.referenceId)
   );
@@ -116,6 +161,10 @@ export function RequestDetail({
     manualBookingForRequest?.reservationCode ||
     request.booking?.reservationCode;
   const invoiceAvailable = Boolean(confirmedBooking?.invoicePath);
+  const canManageInternalInvoice =
+    currentUser?.role === "SUPERADMIN" &&
+    Boolean(confirmedBooking?.id) &&
+    (confirmedBooking?.status === "CONFIRMED" || request.status === "CONFIRMED");
   const isEmailSending =
     actionLoading === `${request.id}:notify-email`;
   const isWhatsappSending =
@@ -148,6 +197,10 @@ export function RequestDetail({
     });
     setReassignAdvisorId(String(request.assignedToId || ""));
     setInvoiceMessage("");
+    setInternalInvoice(request.booking?.invoices?.[0] || null);
+    setInternalInvoiceMessage("");
+    setBillingForm(billingFormFromRequest(request));
+    setBillingMessage("");
   }, [request]);
 
   function updateForm(key: keyof QuoteForm, value: string) {
@@ -184,6 +237,13 @@ export function RequestDetail({
             }
           : extra
       ),
+    }));
+  }
+
+  function updateBillingForm(key: keyof BillingForm, value: string | boolean) {
+    setBillingForm((current) => ({
+      ...current,
+      [key]: value,
     }));
   }
 
@@ -272,6 +332,99 @@ export function RequestDetail({
       setInvoiceLoading("");
     }
   }
+
+  async function generateInternalInvoice() {
+    if (!confirmedBooking?.id) return;
+
+    try {
+      setInternalInvoiceLoading(true);
+      setInternalInvoiceMessage("");
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        apiUrl(`/invoices/from-booking/${confirmedBooking.id}`),
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || "No se pudo generar la factura interna.");
+      }
+
+      setInternalInvoice(data);
+      setInternalInvoiceMessage(
+        `Factura interna ${data.invoiceNumber} generada correctamente.`
+      );
+    } catch (error) {
+      console.error(error);
+      setInternalInvoiceMessage(
+        error instanceof Error
+          ? error.message
+          : "Error de conexion generando factura interna."
+      );
+    } finally {
+      setInternalInvoiceLoading(false);
+    }
+  }
+
+  async function saveBillingData() {
+    try {
+      setBillingLoading(true);
+      setBillingMessage("");
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(apiUrl(`/pre-reservations/${request.id}/billing`), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(billingForm),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setBillingMessage(data?.message || "No se pudieron guardar los datos fiscales.");
+        return;
+      }
+
+      setBillingForm(billingFormFromRequest(data));
+      setBillingMessage(
+        data.billingIsComplete
+          ? "Datos de facturacion completos y guardados."
+          : "Datos de facturacion guardados como incompletos."
+      );
+    } catch (error) {
+      console.error(error);
+      setBillingMessage("Error de conexion guardando datos fiscales.");
+    } finally {
+      setBillingLoading(false);
+    }
+  }
+
+  const billingIsComplete =
+    Boolean(billingForm.billingDataAccepted) &&
+    [
+      billingForm.billingLegalOrganizationType,
+      billingForm.billingIdentificationDocumentType,
+      billingForm.billingIdentificationNumber,
+      billingForm.billingIdentificationDocumentType === "NIT"
+        ? billingForm.billingVerificationDigit
+        : "no-aplica",
+      billingForm.billingCustomerName,
+      billingForm.billingEmail,
+      billingForm.billingPhone,
+      billingForm.billingDepartment,
+      billingForm.billingMunicipalityName,
+      billingForm.billingAddress,
+      billingForm.billingTaxResponsibility,
+    ].every((value) => String(value || "").trim());
 
   return (
     <Card className="premium-enter rounded-2xl border border-[#D4AF37]/30 bg-white shadow-sm">
@@ -609,6 +762,193 @@ export function RequestDetail({
                 {request.specialRequests || "Sin comentarios adicionales."}
               </p>
             </section>
+
+            <section className="rounded-2xl border border-[#D4AF37]/20 p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="flex items-center gap-2 font-semibold text-[#0D2B52]">
+                    <FileText className="h-4 w-4 text-[#B48A5A]" />
+                    Datos de facturacion
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Informacion preparada para una futura factura electronica
+                    DIAN. Factus permanece desactivado.
+                  </p>
+                </div>
+                <Badge
+                  variant="outline"
+                  className={
+                    billingIsComplete
+                      ? "w-fit rounded-md border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "w-fit rounded-md border-amber-200 bg-amber-50 text-amber-700"
+                  }
+                >
+                  {billingIsComplete ? "Completa" : "Incompleta"}
+                </Badge>
+              </div>
+
+              {!billingIsComplete && (
+                <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Faltan datos para emitir factura electronica cuando se active
+                  la integracion DIAN.
+                </p>
+              )}
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm">
+                  <span className="text-slate-500">Tipo de persona</span>
+                  <select
+                    value={billingForm.billingLegalOrganizationType}
+                    onChange={(event) =>
+                      updateBillingForm(
+                        "billingLegalOrganizationType",
+                        event.target.value
+                      )
+                    }
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-[#0D2B52]"
+                  >
+                    <option value="PERSONA_NATURAL">Persona natural</option>
+                    <option value="PERSONA_JURIDICA">Persona juridica</option>
+                  </select>
+                </label>
+
+                <label className="space-y-2 text-sm">
+                  <span className="text-slate-500">Tipo de documento</span>
+                  <select
+                    value={billingForm.billingIdentificationDocumentType}
+                    onChange={(event) =>
+                      updateBillingForm(
+                        "billingIdentificationDocumentType",
+                        event.target.value
+                      )
+                    }
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-[#0D2B52]"
+                  >
+                    <option value="CC">Cedula de ciudadania</option>
+                    <option value="CE">Cedula de extranjeria</option>
+                    <option value="NIT">NIT</option>
+                    <option value="PASSPORT">Pasaporte</option>
+                    <option value="FOREIGN_ID">Documento extranjero</option>
+                    <option value="OTHER">Otro</option>
+                  </select>
+                </label>
+
+                <Input
+                  placeholder="Numero de identificacion"
+                  value={billingForm.billingIdentificationNumber}
+                  onChange={(event) =>
+                    updateBillingForm(
+                      "billingIdentificationNumber",
+                      event.target.value
+                    )
+                  }
+                />
+                <Input
+                  placeholder="Digito de verificacion si aplica"
+                  value={billingForm.billingVerificationDigit}
+                  onChange={(event) =>
+                    updateBillingForm(
+                      "billingVerificationDigit",
+                      event.target.value
+                    )
+                  }
+                />
+                <Input
+                  placeholder="Nombre completo o razon social"
+                  value={billingForm.billingCustomerName}
+                  onChange={(event) =>
+                    updateBillingForm("billingCustomerName", event.target.value)
+                  }
+                />
+                <Input
+                  type="email"
+                  placeholder="Correo de facturacion"
+                  value={billingForm.billingEmail}
+                  onChange={(event) =>
+                    updateBillingForm("billingEmail", event.target.value)
+                  }
+                />
+                <Input
+                  placeholder="Telefono de facturacion"
+                  value={billingForm.billingPhone}
+                  onChange={(event) =>
+                    updateBillingForm("billingPhone", event.target.value)
+                  }
+                />
+                <Input
+                  placeholder="Departamento"
+                  value={billingForm.billingDepartment}
+                  onChange={(event) =>
+                    updateBillingForm("billingDepartment", event.target.value)
+                  }
+                />
+                <Input
+                  placeholder="Municipio / ciudad"
+                  value={billingForm.billingMunicipalityName}
+                  onChange={(event) =>
+                    updateBillingForm(
+                      "billingMunicipalityName",
+                      event.target.value
+                    )
+                  }
+                />
+                <Input
+                  placeholder="Direccion fiscal"
+                  value={billingForm.billingAddress}
+                  onChange={(event) =>
+                    updateBillingForm("billingAddress", event.target.value)
+                  }
+                />
+                <label className="space-y-2 text-sm md:col-span-2">
+                  <span className="text-slate-500">
+                    Responsabilidad tributaria
+                  </span>
+                  <select
+                    value={billingForm.billingTaxResponsibility}
+                    onChange={(event) =>
+                      updateBillingForm(
+                        "billingTaxResponsibility",
+                        event.target.value
+                      )
+                    }
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-[#0D2B52]"
+                  >
+                    <option>No responsable de IVA</option>
+                    <option>Responsable de IVA</option>
+                    <option>Regimen simple</option>
+                    <option>Otro</option>
+                  </select>
+                </label>
+              </div>
+
+              <label className="mt-4 flex items-start gap-3 rounded-xl bg-[#F8F6F2] p-4 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={billingForm.billingDataAccepted}
+                  onChange={(event) =>
+                    updateBillingForm("billingDataAccepted", event.target.checked)
+                  }
+                  className="mt-1 h-4 w-4 shrink-0 accent-[#0D2B52]"
+                />
+                Autorizo el uso de estos datos para la emision de factura
+                electronica si la reserva es confirmada.
+              </label>
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                {billingMessage && (
+                  <p className="text-sm text-slate-600">{billingMessage}</p>
+                )}
+                <Button
+                  type="button"
+                  onClick={saveBillingData}
+                  disabled={billingLoading}
+                  className="rounded-xl bg-[#0D2B52] hover:bg-[#12396d] sm:ml-auto"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  {billingLoading ? "Guardando..." : "Guardar datos fiscales"}
+                </Button>
+              </div>
+            </section>
           </div>
 
           <aside className="space-y-5">
@@ -872,6 +1212,87 @@ export function RequestDetail({
                     <span className="text-slate-500">Estado</span>
                     <span>{confirmedBooking.status || "CONFIRMED"}</span>
                   </div>
+
+                  {canManageInternalInvoice && (
+                    <div className="space-y-3 rounded-xl border border-[#D4AF37]/20 bg-[#F8F6F2] p-3">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#B48A5A]">
+                            Factura interna
+                          </p>
+                          {internalInvoice ? (
+                            <p className="mt-1 text-sm font-semibold text-[#0D2B52]">
+                              {internalInvoice.invoiceNumber}
+                            </p>
+                          ) : (
+                            <p className="mt-1 text-sm text-slate-600">
+                              Aun no se ha generado factura interna para esta
+                              reserva.
+                            </p>
+                          )}
+                        </div>
+                        {internalInvoice && (
+                          <Badge
+                            variant="outline"
+                            className="w-fit border-emerald-200 bg-emerald-50 text-emerald-700"
+                          >
+                            {internalInvoice.status}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {!billingIsComplete && (
+                        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                          Datos fiscales incompletos para factura electronica
+                          futura.
+                        </p>
+                      )}
+
+                      {internalInvoice ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => openInvoice("view")}
+                          disabled={!invoiceAvailable || Boolean(invoiceLoading)}
+                          className="w-full rounded-xl bg-white"
+                          title={
+                            invoiceAvailable
+                              ? "Abrir comprobante PDF asociado"
+                              : "La reserva no tiene PDF interno disponible"
+                          }
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          {invoiceLoading === "view"
+                            ? "Abriendo..."
+                            : "Ver factura"}
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={generateInternalInvoice}
+                          disabled={internalInvoiceLoading}
+                          className="w-full rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          {internalInvoiceLoading
+                            ? "Generando..."
+                            : "Generar factura interna"}
+                        </Button>
+                      )}
+
+                      {internalInvoiceMessage && (
+                        <p
+                          className={`rounded-lg px-3 py-2 text-xs ${
+                            internalInvoice
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-red-50 text-red-700"
+                          }`}
+                        >
+                          {internalInvoiceMessage}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {invoiceAvailable && (
                     <div className="space-y-3 pt-2">

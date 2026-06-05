@@ -9,7 +9,8 @@ import PublicJourneyHeader from "@/components/public/PublicJourneyHeader";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/context/LanguageContext";
 import { apiUrl } from "@/lib/api";
-import { cleanPublicCopy } from "@/lib/public-copy";
+import { formatMoneyByLanguage } from "@/lib/currency";
+import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 import {
   buildFeaturedCollections,
   type PublicFeature,
@@ -31,14 +32,11 @@ type Experience = {
     isPrimary?: boolean;
     active?: boolean | null;
   }[];
+  translations?: DynamicTranslations | null;
 };
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=900";
-
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
 
 function readFeaturesFromUrl() {
   if (typeof window === "undefined") return [];
@@ -91,7 +89,7 @@ function imageFor(experience: Experience) {
 }
 
 export default function ExperienciasPage() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [selectedSlugs, setSelectedSlugs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +149,8 @@ export default function ExperienciasPage() {
 
   const collections = buildFeaturedCollections(
     availableFeatures,
-    t("filters.resultsFound")
+    t("filters.resultsFound"),
+    language
   );
 
   function applyCollection(slug: string) {
@@ -281,12 +280,12 @@ export default function ExperienciasPage() {
                 reserveHref={`/checkout/${item.id}?type=EXPERIENCE`}
                 image={imageFor(item)}
                 fallbackImage={fallbackImage}
-                badge={cleanPublicCopy(item.category)}
-                title={cleanPublicCopy(item.title)}
-                description={cleanPublicCopy(item.shortDescription)}
-                location={cleanPublicCopy(item.location)}
-                price={money(item.basePrice)}
-                meta={cleanPublicCopy(item.duration)}
+                badge={getDynamicText(item, "category", language)}
+                title={getDynamicText(item, "title", language)}
+                description={getDynamicText(item, "shortDescription", language)}
+                location={getDynamicText(item, "location", language)}
+                price={formatMoneyByLanguage(item.basePrice, language)}
+                meta={getDynamicText(item, "duration", language)}
                 secondaryMeta={
                   <>
                     {t("shared.upTo")} {item.maxGuests}

@@ -20,6 +20,21 @@ type BookingInvoiceData = {
   customerEmail: string;
   customerPhone?: string | null;
   customerCountry?: string | null;
+  billingLegalOrganizationType?: string | null;
+  billingIdentificationDocumentType?: string | null;
+  billingIdentificationNumber?: string | null;
+  billingVerificationDigit?: string | null;
+  billingCustomerName?: string | null;
+  billingEmail?: string | null;
+  billingPhone?: string | null;
+  billingDepartment?: string | null;
+  billingMunicipalityId?: string | null;
+  billingMunicipalityName?: string | null;
+  billingAddress?: string | null;
+  billingTaxResponsibility?: string | null;
+  billingTributeId?: string | null;
+  billingDataAccepted?: boolean | null;
+  billingIsComplete?: boolean | null;
   productName: string;
   checkIn?: Date | null;
   checkOut?: Date | null;
@@ -157,6 +172,14 @@ export class InvoiceService {
       value === undefined || value === null || value === ""
         ? "No registrado"
         : String(value);
+    const hasBillingData = Boolean(
+      data.billingIdentificationNumber ||
+        data.billingCustomerName ||
+        data.billingEmail ||
+        data.billingPhone ||
+        data.billingAddress ||
+        data.billingMunicipalityName
+    );
 
     const shortDate = (value?: Date | null) =>
       value
@@ -355,6 +378,55 @@ export class InvoiceService {
     field("Metodo", data.paymentMethod || "Pago coordinado por asesor", left + 330, productY + 38, width - 342, 8.5);
     doc.y = productY + productH + 12;
 
+    if (hasBillingData) {
+      ensureSpace(104);
+      sectionTitle("Datos de facturacion registrados");
+      const billingY = doc.y;
+      const billingH = 86;
+      card(left, billingY, width, billingH);
+      field("Nombre / razon social", data.billingCustomerName, left + 12, billingY + 10, 190, 8.1);
+      field(
+        "Documento",
+        [
+          data.billingIdentificationDocumentType,
+          data.billingIdentificationNumber,
+          data.billingVerificationDigit
+            ? `DV ${data.billingVerificationDigit}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" - "),
+        left + 216,
+        billingY + 10,
+        150,
+        8.1
+      );
+      field("Correo", data.billingEmail, left + 382, billingY + 10, width - 394, 8.1);
+      field("Telefono", data.billingPhone, left + 12, billingY + 36, 130, 8.1);
+      field(
+        "Ubicacion",
+        [data.billingDepartment, data.billingMunicipalityName]
+          .filter(Boolean)
+          .join(" - "),
+        left + 156,
+        billingY + 36,
+        160,
+        8.1
+      );
+      field("Responsabilidad", data.billingTaxResponsibility, left + 330, billingY + 36, width - 342, 8.1);
+      doc
+        .font("Helvetica")
+        .fontSize(7.2)
+        .fillColor(colors.muted)
+        .text(
+          "Este documento es un comprobante interno. No reemplaza factura electronica DIAN. Los valores fiscales se expresan en pesos colombianos COP.",
+          left + 12,
+          billingY + 64,
+          { width: width - 24, lineGap: 1, ellipsis: true }
+        );
+      doc.y = billingY + billingH + 12;
+    }
+
     sectionTitle("Servicios premium");
     const tableHeaderHeight = 20;
     const rowH = 20;
@@ -482,7 +554,7 @@ export class InvoiceService {
     sectionTitle("Informacion importante");
     const policyText =
       data.companyPolicies ||
-      "Reserva confirmada por el equipo de atencion despues de validar disponibilidad y condiciones comerciales. Cambios, cancelaciones o servicios adicionales quedan sujetos a las politicas informadas por el asesor.";
+      "Reserva confirmada por el equipo de atencion despues de validar disponibilidad y condiciones comerciales. Este documento es un comprobante interno y no reemplaza factura electronica DIAN. Los valores fiscales se expresan en pesos colombianos COP.";
     const policyY = doc.y;
     card(left, policyY, width, 58);
     doc

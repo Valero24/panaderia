@@ -20,11 +20,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import PackageBookingCard from "@/components/packages/package-booking-card";
+import MoneyText from "@/components/MoneyText";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
 import { cleanPublicCopy } from "@/lib/public-copy";
+import type { DynamicTranslations, TranslatableEntity } from "@/lib/dynamic-translations";
 
 type PageProps = {
   params: Promise<{
@@ -59,6 +62,7 @@ type PackageItem = {
     sortOrder?: number | null;
   }[];
   components?: PackageComponent[];
+  translations?: DynamicTranslations | null;
 };
 
 type PackageComponent = {
@@ -70,9 +74,11 @@ type PackageComponent = {
   excludes?: string | null;
   conditions?: string | null;
   duration?: string | null;
+  location?: string | null;
   recommendations?: string | null;
   sortOrder?: number | null;
   active?: boolean | null;
+  translations?: DynamicTranslations | null;
 };
 
 type ExtraService = {
@@ -81,14 +87,11 @@ type ExtraService = {
   description?: string | null;
   price: number;
   active?: boolean;
+  translations?: DynamicTranslations | null;
 };
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=1200";
-
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
 
 function hasText(value?: string | null) {
   return Boolean(value && cleanPublicCopy(value).trim());
@@ -126,10 +129,14 @@ async function getPackageExtras(id: string): Promise<ExtraService[]> {
 function TextBlock({
   title,
   body,
+  entity,
+  field,
   icon,
 }: {
   title: ReactNode;
   body?: string | null;
+  entity?: TranslatableEntity | null;
+  field?: string;
   icon: ReactNode;
 }) {
   if (!hasText(body)) return null;
@@ -142,7 +149,11 @@ function TextBlock({
           <h2 className="text-xl font-semibold">{title}</h2>
         </div>
         <p className="mt-4 whitespace-pre-line leading-7 text-slate-600">
-          {cleanPublicCopy(body)}
+          {entity && field ? (
+            <TranslatedDynamicText entity={entity} field={field} fallback={body} />
+          ) : (
+            cleanPublicCopy(body)
+          )}
         </p>
       </CardContent>
     </Card>
@@ -153,11 +164,15 @@ function DetailLine({
   title,
   titleKey,
   body,
+  entity,
+  field,
   icon,
 }: {
   title?: ReactNode;
   titleKey?: any;
   body?: string | null;
+  entity?: TranslatableEntity | null;
+  field?: string;
   icon: ReactNode;
 }) {
   if (!hasText(body)) return null;
@@ -171,7 +186,11 @@ function DetailLine({
         </p>
       </div>
       <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">
-        {cleanPublicCopy(body)}
+        {entity && field ? (
+          <TranslatedDynamicText entity={entity} field={field} fallback={body} />
+        ) : (
+          cleanPublicCopy(body)
+        )}
       </p>
     </div>
   );
@@ -231,12 +250,13 @@ export default async function PackageDetailPage({ params }: PageProps) {
               <div className="relative">
                 <ProductMediaGallery
                   title={cleanPublicCopy(item.title)}
+                  titleEntity={item}
                   media={item.images}
                   fallbackImage={item.mainImage || fallbackImage}
                 />
                 <div className="absolute left-5 top-5 z-10">
                   <Badge className="rounded-md bg-white text-[#0D2B52] hover:bg-white">
-                    {cleanPublicCopy(item.category)}
+                    <TranslatedDynamicText entity={item} field="category" />
                   </Badge>
                 </div>
               </div>
@@ -246,17 +266,17 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   <TranslatedText k="package.eyebrow" />
                 </p>
                 <h1 className="mt-3 text-3xl font-semibold sm:text-5xl">
-                  {cleanPublicCopy(item.title)}
+                  <TranslatedDynamicText entity={item} field="title" />
                 </h1>
                 <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-                  {cleanPublicCopy(item.shortDescription)}
+                  <TranslatedDynamicText entity={item} field="shortDescription" />
                 </p>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl border border-[#D4AF37]/20 bg-[#F8F6F1] p-4">
                     <Clock className="h-5 w-5 text-[#B48A5A]" />
                     <p className="mt-2 text-sm font-semibold text-[#0D2B52]">
-                      {cleanPublicCopy(item.duration)}
+                      <TranslatedDynamicText entity={item} field="duration" />
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
                       <TranslatedText k="packageDetail.durationEstimated" />
@@ -291,7 +311,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   <TranslatedText k="packageDetail.about" />
                 </h2>
                 <p className="whitespace-pre-line leading-8 text-slate-600">
-                  {cleanPublicCopy(item.description)}
+                  <TranslatedDynamicText entity={item} field="description" />
                 </p>
               </CardContent>
             </Card>
@@ -303,10 +323,10 @@ export default async function PackageDetailPage({ params }: PageProps) {
                     <TranslatedText k="packageDetail.stagesEyebrow" />
                   </p>
                   <h2 className="mt-2 text-3xl font-semibold">
-                    <TranslatedText k="packageDetail.stagesTitle" />
+                    <TranslatedText k="packageDetail.includedTitle" />
                   </h2>
                   <p className="mt-3 leading-7 text-slate-600">
-                    <TranslatedText k="packageDetail.stagesText" />
+                    <TranslatedText k="packageDetail.includedText" />
                   </p>
                 </div>
 
@@ -318,6 +338,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                       component.excludes,
                       component.conditions,
                       component.recommendations,
+                      component.location,
                     ].some(hasText);
 
                     return (
@@ -333,7 +354,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               <h3 className="text-xl font-semibold text-[#0D2B52]">
-                                {cleanPublicCopy(component.title)}
+                                <TranslatedDynamicText entity={component} field="title" />
                               </h3>
                               {component.duration && (
                                 <Badge
@@ -341,14 +362,23 @@ export default async function PackageDetailPage({ params }: PageProps) {
                                   className="rounded-full border-[#D4AF37]/40 bg-white"
                                 >
                                   <Clock className="mr-1.5 h-3.5 w-3.5 text-[#B48A5A]" />
-                                  {cleanPublicCopy(component.duration)}
+                                  <TranslatedDynamicText entity={component} field="duration" />
+                                </Badge>
+                              )}
+                              {component.location && (
+                                <Badge
+                                  variant="outline"
+                                  className="rounded-full border-[#D4AF37]/40 bg-white"
+                                >
+                                  <MapPin className="mr-1.5 h-3.5 w-3.5 text-[#B48A5A]" />
+                                  <TranslatedDynamicText entity={component} field="location" />
                                 </Badge>
                               )}
                             </div>
 
                             {component.shortDescription && (
                               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-                                {cleanPublicCopy(component.shortDescription)}
+                                <TranslatedDynamicText entity={component} field="shortDescription" />
                               </p>
                             )}
                           </div>
@@ -364,11 +394,22 @@ export default async function PackageDetailPage({ params }: PageProps) {
                             <DetailLine
                               titleKey="packageDetail.fullDescription"
                               body={component.description}
+                              entity={component}
+                              field="description"
                               icon={<Info className="h-4 w-4 text-[#B48A5A]" />}
+                            />
+                            <DetailLine
+                              titleKey="packageDetail.componentLocation"
+                              body={component.location}
+                              entity={component}
+                              field="location"
+                              icon={<MapPin className="h-4 w-4 text-[#B48A5A]" />}
                             />
                             <DetailLine
                               titleKey="packageDetail.includes"
                               body={component.includes}
+                              entity={component}
+                              field="includes"
                               icon={
                                 <CheckCircle2 className="h-4 w-4 text-[#B48A5A]" />
                               }
@@ -376,11 +417,15 @@ export default async function PackageDetailPage({ params }: PageProps) {
                             <DetailLine
                               titleKey="packageDetail.notIncludes"
                               body={component.excludes}
+                              entity={component}
+                              field="excludes"
                               icon={<XCircle className="h-4 w-4 text-[#B48A5A]" />}
                             />
                             <DetailLine
                               titleKey="packageDetail.conditions"
                               body={component.conditions}
+                              entity={component}
+                              field="conditions"
                               icon={
                                 <ShieldCheck className="h-4 w-4 text-[#B48A5A]" />
                               }
@@ -388,6 +433,8 @@ export default async function PackageDetailPage({ params }: PageProps) {
                             <DetailLine
                               titleKey="packageDetail.recommendations"
                               body={component.recommendations}
+                              entity={component}
+                              field="recommendations"
                               icon={<Sparkles className="h-4 w-4 text-[#B48A5A]" />}
                             />
                           </div>
@@ -403,16 +450,22 @@ export default async function PackageDetailPage({ params }: PageProps) {
               <TextBlock
                 title={<TranslatedText k="packageDetail.includes" />}
                 body={item.includes}
+                entity={item}
+                field="includes"
                 icon={<CheckCircle2 className="h-5 w-5 text-[#B48A5A]" />}
               />
               <TextBlock
                 title={<TranslatedText k="packageDetail.notIncludes" />}
                 body={item.notIncludes}
+                entity={item}
+                field="notIncludes"
                 icon={<XCircle className="h-5 w-5 text-[#B48A5A]" />}
               />
               <TextBlock
                 title={<TranslatedText k="package.itinerary" />}
                 body={item.itinerary}
+                entity={item}
+                field="itinerary"
                 icon={<CalendarDays className="h-5 w-5 text-[#B48A5A]" />}
               />
             </div>
@@ -430,6 +483,8 @@ export default async function PackageDetailPage({ params }: PageProps) {
                         <DetailLine
                           titleKey="packageDetail.generalConditions"
                           body={item.policies}
+                          entity={item}
+                          field="policies"
                           icon={
                             <ShieldCheck className="h-4 w-4 text-[#B48A5A]" />
                           }
@@ -437,6 +492,8 @@ export default async function PackageDetailPage({ params }: PageProps) {
                         <DetailLine
                           titleKey="packageDetail.recommendations"
                           body={item.recommendations}
+                          entity={item}
+                          field="recommendations"
                           icon={<Sparkles className="h-4 w-4 text-[#B48A5A]" />}
                         />
                       </div>
@@ -459,7 +516,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                     <TranslatedText k="properties.from" />
                   </span>
                   <p className="mt-1 text-3xl font-semibold text-[#B48A5A]">
-                    {money(item.basePrice)}
+                    <MoneyText value={item.basePrice} />
                   </p>
                   <p className="mt-2 text-sm text-slate-500">
                     <TranslatedText k="package.baseNote" />
@@ -469,11 +526,11 @@ export default async function PackageDetailPage({ params }: PageProps) {
                 <div className="space-y-3 rounded-2xl bg-[#F8F6F1] p-4 text-sm text-slate-700">
                   <div className="flex items-center gap-3">
                     <MapPin className="h-4 w-4 text-[#B48A5A]" />
-                    {cleanPublicCopy(item.location)}
+                    <TranslatedDynamicText entity={item} field="location" />
                   </div>
                   <div className="flex items-center gap-3">
                     <Clock className="h-4 w-4 text-[#B48A5A]" />
-                    {cleanPublicCopy(item.duration)}
+                    <TranslatedDynamicText entity={item} field="duration" />
                   </div>
                   <div className="flex items-center gap-3">
                     <Users className="h-4 w-4 text-[#B48A5A]" />
@@ -486,6 +543,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   packageId={item.id}
                   basePrice={item.basePrice}
                   extras={extras}
+                  components={activeComponents}
                 />
 
                 <p className="text-xs leading-5 text-slate-500">

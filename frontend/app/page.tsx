@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 import Image from "next/image";
 import {
   ArrowRight,
@@ -10,11 +10,12 @@ import {
 } from "lucide-react";
 
 import ProductCarousel from "@/components/home/ProductCarousel";
-import PublicProductCard from "@/components/public-product-card";
+import MoneyText from "@/components/MoneyText";
+import TranslatedHomeProductCard from "@/components/home/TranslatedHomeProductCard";
 import TranslatedText from "@/components/TranslatedText";
 import TrackedLink from "@/components/TrackedLink";
 import { apiUrl } from "@/lib/api";
-import { cleanPublicCopy } from "@/lib/public-copy";
+import type { DynamicTranslations } from "@/lib/dynamic-translations";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,7 @@ type Property = {
     isPrimary?: boolean;
     active?: boolean | null;
   }[];
+  translations?: DynamicTranslations | null;
 };
 
 type Experience = {
@@ -77,6 +79,7 @@ type Experience = {
     isPrimary?: boolean;
     active?: boolean | null;
   }[];
+  translations?: DynamicTranslations | null;
 };
 
 type PackageItem = {
@@ -94,6 +97,7 @@ type PackageItem = {
     isPrimary?: boolean;
     active?: boolean | null;
   }[];
+  translations?: DynamicTranslations | null;
 };
 
 const stayFallback =
@@ -102,10 +106,6 @@ const experienceFallback =
   "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=900";
 const packageFallback =
   "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=900";
-
-function money(value?: number | null) {
-  return `$${Number(value || 0).toLocaleString("es-CO")} COP`;
-}
 
 function primaryImage(
   item: {
@@ -244,16 +244,16 @@ export default async function HomePage() {
         trackingLabel="ver_todos_alojamientos"
       >
         {featuredProperties.map((property) => (
-          <ProductCard
+          <TranslatedHomeProductCard
             key={property.id}
+            item={property}
             href={`/alojamientos/${property.id}`}
             reserveHref={`/checkout/${property.id}?type=PROPERTY`}
             image={primaryImage(property, stayFallback)}
             fallbackImage={stayFallback}
             badge={<TranslatedText k="properties.curated" />}
-            title={cleanPublicCopy(property.title)}
-            location={[property.area, property.city].filter(Boolean).join(", ") || "Cartagena"}
-            price={money(property.pricePerNight)}
+            locationFallback={[property.area, property.city].filter(Boolean).join(", ") || "Cartagena"}
+            price={<MoneyText value={property.pricePerNight} />}
             meta={
               <>
                 {property.maxCapacity || property.maxGuests || 1}{" "}
@@ -277,17 +277,17 @@ export default async function HomePage() {
         trackingLabel="ver_todas_experiencias"
       >
         {featuredExperiences.map((experience) => (
-          <ProductCard
+          <TranslatedHomeProductCard
             key={experience.id}
+            item={experience}
             href={`/experiencias/${experience.id}`}
             reserveHref={`/checkout/${experience.id}?type=EXPERIENCE`}
             image={primaryImage(experience, experienceFallback)}
             fallbackImage={experienceFallback}
             badge={<TranslatedText k="shared.premiumExperience" />}
-            title={cleanPublicCopy(experience.title)}
-            description={cleanPublicCopy(experience.shortDescription || "")}
-            location={experience.location || "Cartagena"}
-            price={money(experience.basePrice)}
+            descriptionField="shortDescription"
+            locationField="location"
+            price={<MoneyText value={experience.basePrice} />}
             meta={
               experience.duration || (
                 <TranslatedText k="shared.durationToCoordinate" />
@@ -309,17 +309,17 @@ export default async function HomePage() {
         trackingLabel="ver_todos_paquetes"
       >
         {featuredPackages.map((item) => (
-          <ProductCard
+          <TranslatedHomeProductCard
             key={item.id}
+            item={item}
             href={`/paquetes/${item.id}`}
             reserveHref={`/checkout/${item.id}?type=PACKAGE`}
             image={primaryImage(item, packageFallback)}
             fallbackImage={packageFallback}
             badge={<TranslatedText k="shared.premiumPackage" />}
-            title={cleanPublicCopy(item.title)}
-            description={cleanPublicCopy(item.shortDescription || "")}
-            location={item.location || "Cartagena"}
-            price={money(item.basePrice)}
+            descriptionField="shortDescription"
+            locationField="location"
+            price={<MoneyText value={item.basePrice} />}
             meta={
               item.duration || (
                 <TranslatedText k="shared.durationToCoordinate" />
@@ -462,8 +462,3 @@ function ProductSection({
   );
 }
 
-function ProductCard(
-  props: Omit<ComponentProps<typeof PublicProductCard>, "trackingLocation">
-) {
-  return <PublicProductCard {...props} trackingLocation="home_product_card" />;
-}
