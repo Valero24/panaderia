@@ -185,6 +185,7 @@ export const en: Partial<TranslationDictionary> = {
   "checkout.summary": "Estimated summary",
   "checkout.estimatedTaxes": "Estimated taxes",
   "checkout.totalEstimate": "Estimated total",
+  "checkout.minimumStayEstimateNote": "Estimated with the minimum stay. Select dates to calculate the real number of nights.",
   "checkout.paymentMethod": "Preferred payment method",
   "checkout.paymentManualNote": "Payment will be coordinated by an advisor after your request is reviewed. No charge is made at this step.",
   "checkout.currencyApproxNote": "Foreign-currency values are approximate. Charges and invoicing are completed in Colombian pesos COP.",

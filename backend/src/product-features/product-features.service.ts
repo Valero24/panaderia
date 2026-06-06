@@ -512,6 +512,7 @@ export class ProductFeaturesService {
           name: feature.name,
           slug: feature.slug,
           description: feature.description,
+          translations: feature.translations,
           icon: feature.icon,
           category: feature.category,
           appliesTo: feature.appliesTo,
@@ -566,6 +567,64 @@ export class ProductFeaturesService {
     return [...byProduct.entries()]
       .filter(([, featureSlugs]) => slugs.every((slug) => featureSlugs.has(slug)))
       .map(([productId]) => productId);
+  }
+
+  async getAssignedPublicFeatures(
+    productType: BookingType,
+    productIds: number[]
+  ) {
+    const ids = [...new Set(productIds)]
+      .map(Number)
+      .filter((id) => Number.isInteger(id) && id > 0);
+
+    if (ids.length === 0) {
+      return new Map<number, any[]>();
+    }
+
+    const assignments = await this.prisma.productFeatureAssignment.findMany({
+      where: {
+        productType,
+        productId: { in: ids },
+        feature: {
+          active: true,
+          OR: [
+            { appliesTo: productType as unknown as ProductFeatureAppliesTo },
+            { appliesTo: ProductFeatureAppliesTo.ALL },
+          ],
+        },
+      },
+      include: { feature: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const byProductId = new Map<number, any[]>();
+
+    for (const assignment of assignments) {
+      if (!byProductId.has(assignment.productId)) {
+        byProductId.set(assignment.productId, []);
+      }
+
+      byProductId.get(assignment.productId)!.push({
+        id: assignment.feature.id,
+        name: assignment.feature.name,
+        slug: assignment.feature.slug,
+        description: assignment.feature.description,
+        translations: assignment.feature.translations,
+        icon: assignment.feature.icon,
+        category: assignment.feature.category,
+        appliesTo: assignment.feature.appliesTo,
+      });
+    }
+
+    for (const features of byProductId.values()) {
+      features.sort((a, b) =>
+        a.category === b.category
+          ? a.name.localeCompare(b.name)
+          : a.category.localeCompare(b.category)
+      );
+    }
+
+    return byProductId;
   }
 
   private parseFeatureSlugs(featuresParam?: string | string[]) {

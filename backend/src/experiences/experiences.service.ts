@@ -77,6 +77,21 @@ export class ExperiencesService {
     };
   }
 
+  private async attachPublicFeatures<T extends { id: number }>(
+    experiences: T[]
+  ) {
+    const featuresByExperience =
+      await this.productFeatures.getAssignedPublicFeatures(
+        BookingType.EXPERIENCE,
+        experiences.map((experience) => experience.id)
+      );
+
+    return experiences.map((experience) => ({
+      ...experience,
+      features: featuresByExperience.get(experience.id) || [],
+    }));
+  }
+
   async findAllPublic(features?: string) {
     const featureProductIds =
       await this.productFeatures.productIdsMatchingFeatures(
@@ -84,7 +99,7 @@ export class ExperiencesService {
         features
       );
 
-    return this.prisma.experience.findMany({
+    const experiences = await this.prisma.experience.findMany({
       where: {
         active: true,
         ...(featureProductIds ? { id: { in: featureProductIds } } : {}),
@@ -97,6 +112,8 @@ export class ExperiencesService {
       },
       orderBy: { createdAt: "desc" },
     });
+
+    return this.attachPublicFeatures(experiences);
   }
 
   async findAllAdmin() {
@@ -128,7 +145,9 @@ export class ExperiencesService {
       throw new NotFoundException("Experiencia no encontrada");
     }
 
-    return experience;
+    const [withFeatures] = await this.attachPublicFeatures([experience]);
+
+    return withFeatures;
   }
 
   async findOneAdmin(id: number) {

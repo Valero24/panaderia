@@ -1110,8 +1110,7 @@ export default function CheckoutPage({ params }: PageProps) {
                   </div>
                   {productType === "PROPERTY" && nights === 0 && (
                     <p className="-mt-1 text-xs text-slate-500">
-                      Estimado con estadía mínima. Selecciona fechas para
-                      calcular las noches reales.
+                      {t("checkout.minimumStayEstimateNote")}
                     </p>
                   )}
                   {pricing.cleaning > 0 && (

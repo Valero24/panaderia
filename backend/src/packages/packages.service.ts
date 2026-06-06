@@ -111,6 +111,19 @@ export class PackagesService {
     };
   }
 
+  private async attachPublicFeatures<T extends { id: number }>(packages: T[]) {
+    const featuresByPackage =
+      await this.productFeatures.getAssignedPublicFeatures(
+        BookingType.PACKAGE,
+        packages.map((item) => item.id)
+      );
+
+    return packages.map((item) => ({
+      ...item,
+      features: featuresByPackage.get(item.id) || [],
+    }));
+  }
+
   async findAllPublic(features?: string) {
     const featureProductIds =
       await this.productFeatures.productIdsMatchingFeatures(
@@ -118,7 +131,7 @@ export class PackagesService {
         features
       );
 
-    return this.prisma.package.findMany({
+    const packages = await this.prisma.package.findMany({
       where: {
         active: true,
         ...(featureProductIds ? { id: { in: featureProductIds } } : {}),
@@ -135,6 +148,8 @@ export class PackagesService {
       },
       orderBy: { createdAt: "desc" },
     });
+
+    return this.attachPublicFeatures(packages);
   }
 
   async findAllAdmin() {
@@ -173,7 +188,9 @@ export class PackagesService {
       throw new NotFoundException("Paquete no encontrado");
     }
 
-    return item;
+    const [withFeatures] = await this.attachPublicFeatures([item]);
+
+    return withFeatures;
   }
 
   async findOneAdmin(id: number) {

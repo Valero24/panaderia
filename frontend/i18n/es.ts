@@ -185,6 +185,7 @@
   "checkout.summary": "Resumen estimado",
   "checkout.estimatedTaxes": "Impuestos estimados",
   "checkout.totalEstimate": "Total estimado",
+  "checkout.minimumStayEstimateNote": "Estimado con estadía mínima. Selecciona fechas para calcular las noches reales.",
   "checkout.paymentMethod": "Método de pago preferido",
   "checkout.paymentManualNote": "El pago será coordinado por un asesor después de validar tu solicitud. No se realiza ningún cobro en este paso.",
   "checkout.currencyApproxNote": "Los valores en moneda extranjera son aproximados. El cobro y la facturación se realizan en pesos colombianos COP.",

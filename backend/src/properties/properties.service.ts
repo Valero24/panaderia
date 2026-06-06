@@ -86,6 +86,39 @@ export class PropertiesService {
     };
   }
 
+  private mergeFeatureLists(legacyFeatures: any[] = [], dynamicFeatures: any[] = []) {
+    const seen = new Set<string>();
+
+    return [...dynamicFeatures, ...legacyFeatures].filter((feature) => {
+      const key = feature.slug ? `slug:${feature.slug}` : `id:${feature.id}`;
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  }
+
+  private async attachPublicFeatures<T extends { id: number; features?: any[] }>(
+    properties: T[]
+  ) {
+    const featuresByProperty =
+      await this.productFeatures.getAssignedPublicFeatures(
+        BookingType.PROPERTY,
+        properties.map((property) => property.id)
+      );
+
+    return properties.map((property) => ({
+      ...property,
+      features: this.mergeFeatureLists(
+        property.features,
+        featuresByProperty.get(property.id) || []
+      ),
+    }));
+  }
+
   // =====================================================
   // FIND ALL
   // =====================================================
@@ -97,7 +130,7 @@ export class PropertiesService {
         features
       );
 
-    return this.prisma.property.findMany({
+    const properties = await this.prisma.property.findMany({
       where: featureProductIds
         ? {
             id: { in: featureProductIds },
@@ -116,6 +149,8 @@ export class PropertiesService {
         features: true,
       },
     });
+
+    return this.attachPublicFeatures(properties);
   }
 
   // =====================================================
@@ -144,7 +179,9 @@ export class PropertiesService {
       );
     }
 
-    return property;
+    const [withFeatures] = await this.attachPublicFeatures([property]);
+
+    return withFeatures;
   }
 
   // =====================================================

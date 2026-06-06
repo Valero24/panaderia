@@ -465,7 +465,12 @@ export default function PropertyDetailPage({ params }: PageProps) {
                     <p className="font-semibold">{t("property.cancellation")}</p>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-slate-600">
-                    {property.cancellationPolicy || t("property.askAdvisor")}
+                    {getDynamicText(
+                      property,
+                      "cancellationPolicy",
+                      language,
+                      property.cancellationPolicy
+                    ) || t("property.askAdvisor")}
                   </p>
                 </div>
               </div>

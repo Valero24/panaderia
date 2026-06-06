@@ -10,6 +10,27 @@ export type TranslatableEntity = {
   [key: string]: unknown;
 };
 
+function toSafeText(value: unknown) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    return cleanPublicCopy(String(value));
+  }
+
+  if (Array.isArray(value)) {
+    return cleanPublicCopy(
+      value
+        .filter((item) => typeof item === "string" || typeof item === "number")
+        .map((item) => String(item))
+        .join("\n")
+    );
+  }
+
+  return "";
+}
+
 export function getDynamicText(
   entity: TranslatableEntity | null | undefined,
   field: string,
@@ -21,18 +42,14 @@ export function getDynamicText(
   if (language !== "es") {
     const translated = entity?.translations?.[language]?.[field];
     if (translated !== null && translated !== undefined) {
-      const translatedText = cleanPublicCopy(String(translated));
+      const translatedText = toSafeText(translated);
       if (translatedText.trim()) {
         return translatedText;
       }
     }
   }
 
-  if (baseValue === null || baseValue === undefined) {
-    return "";
-  }
-
-  return cleanPublicCopy(String(baseValue));
+  return toSafeText(baseValue);
 }
 
 export function getTranslatedField(
