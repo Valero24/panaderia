@@ -14,6 +14,7 @@ import { AuditService } from "../common/audit.service";
 import { InvoiceService } from "../invoice/invoice.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { CurrencyService } from "../currency/currency.service";
+import { MailService } from "../mail/mail.service";
 
 import {
   BookingType,
@@ -80,6 +81,8 @@ type CurrencySnapshotInput = {
   totalCop: number;
 };
 
+type PublicLocale = "es" | "en" | "fr" | "pt" | "it";
+
 @Injectable()
 export class PreReservationsService {
   private readonly logger = new Logger(PreReservationsService.name);
@@ -91,7 +94,8 @@ export class PreReservationsService {
     private audit: AuditService,
     private invoiceService: InvoiceService,
     private notificationsService: NotificationsService,
-    private currencyService: CurrencyService
+    private currencyService: CurrencyService,
+    private mailService: MailService
   ) { }
 
   private isSuperAdmin(actor: ReservationActor) {
@@ -248,6 +252,447 @@ export class PreReservationsService {
 
   private isEmail(value?: string | null) {
     return Boolean(value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value));
+  }
+
+  private normalizeLocale(value?: string | null): PublicLocale {
+    const locale = String(value || "es").toLowerCase();
+    return ["es", "en", "fr", "pt", "it"].includes(locale)
+      ? (locale as PublicLocale)
+      : "es";
+  }
+
+  private escapeHtml(value: unknown) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  private getTranslatedField(
+    entity: { translations?: unknown; [key: string]: unknown } | null | undefined,
+    field: string,
+    locale: PublicLocale,
+    fallback?: unknown
+  ) {
+    const baseValue = fallback ?? entity?.[field];
+    const translations = entity?.translations;
+
+    if (locale !== "es" && translations && typeof translations === "object") {
+      const localeValues = (translations as Record<string, unknown>)[locale];
+      if (localeValues && typeof localeValues === "object") {
+        const translated = (localeValues as Record<string, unknown>)[field];
+        if (translated !== null && translated !== undefined && String(translated).trim()) {
+          return String(translated).trim();
+        }
+      }
+    }
+
+    return baseValue === null || baseValue === undefined
+      ? ""
+      : String(baseValue).trim();
+  }
+
+  private requestEmailTemplate(locale: PublicLocale) {
+    const templates = {
+      es: {
+        subject:
+          "Hemos recibido tu solicitud de viaje en Cartagena Tailored Travel",
+        greeting: "Hola",
+        intro:
+          "Gracias por confiar en Cartagena Tailored Travel. Hemos recibido tu solicitud de viaje y nuestro equipo ya la tiene en revision.",
+        office:
+          "Durante nuestro horario de atencion, uno de nuestros asesores se pondra en contacto contigo para validar disponibilidad, revisar los detalles de tu experiencia y acompanarte con los siguientes pasos.",
+        summaryTitle: "Resumen de tu solicitud",
+        product: "Producto",
+        dates: "Fechas",
+        guests: "Personas",
+        total: "Total estimado",
+        code: "Codigo de solicitud",
+        noteTitle: "Recuerda",
+        note:
+          "Este documento es un comprobante interno de solicitud. No confirma disponibilidad, no representa pago realizado y no reemplaza factura electrónica DIAN.",
+        closing: "Muy pronto estaremos en contacto contigo.",
+        signature:
+          "Cartagena Tailored Travel\nViajes premium con atencion personalizada",
+        attachmentName: "Comprobante de solicitud",
+      },
+      en: {
+        subject:
+          "We received your travel request at Cartagena Tailored Travel",
+        greeting: "Hi",
+        intro:
+          "Thank you for trusting Cartagena Tailored Travel. We have received your travel request and our team is already reviewing it.",
+        office:
+          "During our office hours, one of our travel advisors will contact you to validate availability, review your experience details, and guide you through the next steps.",
+        summaryTitle: "Request summary",
+        product: "Product",
+        dates: "Dates",
+        guests: "Guests",
+        total: "Estimated total",
+        code: "Request code",
+        noteTitle: "Please note",
+        note:
+          "This document is an internal request summary. It does not confirm availability, does not represent a completed payment, and does not replace an official electronic invoice.",
+        closing: "We will contact you soon.",
+        signature:
+          "Cartagena Tailored Travel\nPremium travel with personalized support",
+        attachmentName: "Pre-reservation summary",
+      },
+      fr: {
+        subject:
+          "Nous avons reçu votre demande de voyage chez Cartagena Tailored Travel",
+        greeting: "Bonjour",
+        intro:
+          "Merci de faire confiance à Cartagena Tailored Travel. Nous avons reçu votre demande de voyage et notre équipe l'examine déjà.",
+        office:
+          "Pendant nos horaires d'attention, un conseiller vous contactera pour valider la disponibilité, revoir les détails de votre expérience et vous guider dans les prochaines étapes.",
+        summaryTitle: "Résumé de votre demande",
+        product: "Produit",
+        dates: "Dates",
+        guests: "Personnes",
+        total: "Total estime",
+        code: "Code de demande",
+        noteTitle: "A retenir",
+        note:
+          "Ce document est un résumé interne de demande. Il ne confirme pas la disponibilité, ne représente pas un paiement effectué et ne remplace pas une facture électronique officielle.",
+        closing: "Nous vous contacterons très bientôt.",
+        signature:
+          "Cartagena Tailored Travel\nVoyages premium avec accompagnement personnalisé",
+        attachmentName: "Résumé de demande",
+      },
+      pt: {
+        subject:
+          "Recebemos sua solicitação de viagem na Cartagena Tailored Travel",
+        greeting: "Olá",
+        intro:
+          "Obrigado por confiar na Cartagena Tailored Travel. Recebemos sua solicitação de viagem e nossa equipe já está revisando.",
+        office:
+          "Durante nosso horário de atendimento, um assessor entrará em contato para validar disponibilidade, revisar os detalhes da experiência e orientar os próximos passos.",
+        summaryTitle: "Resumo da sua solicitação",
+        product: "Produto",
+        dates: "Datas",
+        guests: "Pessoas",
+        total: "Total estimado",
+        code: "Código da solicitação",
+        noteTitle: "Lembre-se",
+        note:
+          "Este documento é um comprovante interno de solicitação. Não confirma disponibilidade, não representa pagamento realizado e não substitui uma fatura eletrônica oficial.",
+        closing: "Entraremos em contato em breve.",
+        signature:
+          "Cartagena Tailored Travel\nViagens premium com atendimento personalizado",
+        attachmentName: "Comprovante de solicitação",
+      },
+      it: {
+        subject:
+          "Abbiamo ricevuto la tua richiesta di viaggio presso Cartagena Tailored Travel",
+        greeting: "Ciao",
+        intro:
+          "Grazie per aver scelto Cartagena Tailored Travel. Abbiamo ricevuto la tua richiesta di viaggio e il nostro team la sta già esaminando.",
+        office:
+          "Durante il nostro orario di assistenza, un consulente ti contatterà per validare la disponibilità, rivedere i dettagli dell'esperienza e guidarti nei prossimi passi.",
+        summaryTitle: "Riepilogo della richiesta",
+        product: "Prodotto",
+        dates: "Date",
+        guests: "Persone",
+        total: "Totale stimato",
+        code: "Codice richiesta",
+        noteTitle: "Nota",
+        note:
+          "Questo documento è un riepilogo interno della richiesta. Non conferma disponibilità, non rappresenta un pagamento effettuato e non sostituisce una fattura elettronica ufficiale.",
+        closing: "Ti contatteremo presto.",
+        signature:
+          "Cartagena Tailored Travel\nViaggi premium con assistenza personalizzata",
+        attachmentName: "Riepilogo richiesta",
+      },
+    };
+
+    return templates[locale] || templates.es;
+  }
+
+  private formatRequestDate(value?: Date | null, locale: PublicLocale = "es") {
+    const locales = {
+      es: "es-CO",
+      en: "en-US",
+      fr: "fr-FR",
+      pt: "pt-BR",
+      it: "it-IT",
+    };
+
+    return value
+      ? value.toLocaleDateString(locales[locale], {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        })
+      : "-";
+  }
+
+  private formatRequestMoney(pre: {
+    displayCurrency?: string | null;
+    displayTotal?: number | null;
+    totalCop?: number | null;
+    totalEstimate?: number | null;
+  }) {
+    const currency = String(pre.displayCurrency || "COP").toUpperCase();
+    const amount =
+      pre.displayTotal ?? pre.totalCop ?? pre.totalEstimate ?? 0;
+
+    return `${currency} ${Number(amount || 0).toLocaleString("es-CO", {
+      minimumFractionDigits: currency === "COP" ? 0 : 2,
+      maximumFractionDigits: currency === "COP" ? 0 : 2,
+    })}`;
+  }
+
+  private async resolveLocalizedProductName(
+    item:
+      | {
+          type: BookingType;
+          referenceId: number;
+          name?: string | null;
+        }
+      | null
+      | undefined,
+    locale: PublicLocale
+  ) {
+    if (!item) {
+      return "";
+    }
+
+    if (item.type === BookingType.PROPERTY) {
+      const property = await this.prisma.property.findUnique({
+        where: { id: item.referenceId },
+        select: { title: true, translations: true },
+      });
+
+      return this.getTranslatedField(property, "title", locale, item.name);
+    }
+
+    if (item.type === BookingType.EXPERIENCE) {
+      const experience = await this.prisma.experience.findUnique({
+        where: { id: item.referenceId },
+        select: { title: true, translations: true },
+      });
+
+      return this.getTranslatedField(experience, "title", locale, item.name);
+    }
+
+    if (item.type === BookingType.PACKAGE) {
+      const packageItem = await this.prisma.package.findUnique({
+        where: { id: item.referenceId },
+        select: { title: true, translations: true },
+      });
+
+      return this.getTranslatedField(packageItem, "title", locale, item.name);
+    }
+
+    return item.name || "";
+  }
+
+  private buildRequestEmailHtml(data: {
+    template: ReturnType<PreReservationsService["requestEmailTemplate"]>;
+    customerName: string;
+    productName: string;
+    dates: string;
+    guests: number;
+    displayTotal: string;
+    requestCode: string;
+    officeHoursText?: string | null;
+  }) {
+    const t = data.template;
+    const rows = [
+      [t.product, data.productName],
+      [t.dates, data.dates],
+      [t.guests, data.guests],
+      [t.total, data.displayTotal],
+      [t.code, data.requestCode],
+    ]
+      .map(
+        ([label, value]) => `
+          <tr>
+            <td style="padding:8px 12px;color:#64748B;font-size:13px">${this.escapeHtml(label)}</td>
+            <td style="padding:8px 12px;color:#0D2B52;font-weight:600;font-size:13px">${this.escapeHtml(value)}</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    return `
+      <div style="font-family:Arial,sans-serif;color:#0D2B52;line-height:1.65;background:#F8F6F1;padding:24px">
+        <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #E5E0D6;border-radius:18px;overflow:hidden">
+          <div style="background:#0D2B52;color:#ffffff;padding:24px">
+            <h1 style="margin:0;font-size:22px">Cartagena Tailored Travel</h1>
+            <p style="margin:8px 0 0;color:#D4AF37;font-weight:600">${this.escapeHtml(t.subject)}</p>
+          </div>
+          <div style="padding:24px">
+            <p>${this.escapeHtml(t.greeting)} ${this.escapeHtml(data.customerName)},</p>
+            <p>${this.escapeHtml(t.intro)}</p>
+            <p>${this.escapeHtml(data.officeHoursText || t.office)}</p>
+            <h2 style="font-size:17px;margin-top:24px">${this.escapeHtml(t.summaryTitle)}</h2>
+            <table style="border-collapse:collapse;width:100%;border:1px solid #E5E0D6;border-radius:12px;overflow:hidden">
+              ${rows}
+            </table>
+            <h3 style="font-size:15px;margin-top:24px">${this.escapeHtml(t.noteTitle)}</h3>
+            <p style="color:#334155">${this.escapeHtml(t.note)}</p>
+            <p>${this.escapeHtml(t.closing)}</p>
+            <p style="white-space:pre-line;font-weight:600">${this.escapeHtml(t.signature)}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private buildRequestEmailText(data: {
+    template: ReturnType<PreReservationsService["requestEmailTemplate"]>;
+    customerName: string;
+    productName: string;
+    dates: string;
+    guests: number;
+    displayTotal: string;
+    requestCode: string;
+    officeHoursText?: string | null;
+  }) {
+    const t = data.template;
+
+    return [
+      `${t.greeting} ${data.customerName},`,
+      "",
+      t.intro,
+      "",
+      data.officeHoursText || t.office,
+      "",
+      `${t.summaryTitle}:`,
+      `${t.product}: ${data.productName}`,
+      `${t.dates}: ${data.dates}`,
+      `${t.guests}: ${data.guests}`,
+      `${t.total}: ${data.displayTotal}`,
+      `${t.code}: ${data.requestCode}`,
+      "",
+      `${t.noteTitle}:`,
+      t.note,
+      "",
+      t.closing,
+      "",
+      t.signature,
+    ].join("\n");
+  }
+
+  async sendPreReservationCreatedEmail(preReservationId: string) {
+    const pre = await this.prisma.preReservation.findUnique({
+      where: { id: preReservationId },
+      include: { items: true },
+    });
+
+    if (!pre) {
+      throw new NotFoundException("PreReservation no encontrada");
+    }
+
+    const locale = this.normalizeLocale(pre.locale);
+    const template = this.requestEmailTemplate(locale);
+    const primaryItem = pre.items[0];
+    const productName =
+      (await this.resolveLocalizedProductName(primaryItem, locale)) ||
+      primaryItem?.name ||
+      "Cartagena Tailored Travel";
+    const requestCode = `PRE-${pre.id.slice(0, 8).toUpperCase()}`;
+    const dates = `${this.formatRequestDate(pre.checkIn, locale)} - ${this.formatRequestDate(pre.checkOut, locale)}`;
+    const guests = Number(primaryItem?.guests || pre.adults || 1);
+    const displayTotal = this.formatRequestMoney(pre);
+    const officeHoursText = process.env.OFFICE_HOURS_TEXT || null;
+
+    try {
+      const pdfPath = await this.invoiceService.generatePreReservationSummary({
+        preReservationId: pre.id,
+        locale,
+        title: template.attachmentName,
+        customerName: pre.customerName,
+        customerEmail: pre.email,
+        customerPhone: pre.customerPhone,
+        productName,
+        checkIn: pre.checkIn,
+        checkOut: pre.checkOut,
+        guests,
+        displayTotal,
+        requestCode,
+        importantNote: template.note,
+        officeHoursText,
+      });
+      const filename = `${template.attachmentName}-${requestCode}.pdf`;
+      const mailResult = await this.mailService.sendPreReservationRequestSummary({
+        to: pre.email,
+        subject: template.subject,
+        html: this.buildRequestEmailHtml({
+          template,
+          customerName: pre.customerName,
+          productName,
+          dates,
+          guests,
+          displayTotal,
+          requestCode,
+          officeHoursText,
+        }),
+        text: this.buildRequestEmailText({
+          template,
+          customerName: pre.customerName,
+          productName,
+          dates,
+          guests,
+          displayTotal,
+          requestCode,
+          officeHoursText,
+        }),
+        pdfPath,
+        filename,
+      });
+
+      if ((mailResult as any)?.skipped) {
+        await this.audit.record({
+          action: "PRE_RESERVATION_EMAIL_FAILED",
+          entityType: "PreReservation",
+          entityId: pre.id,
+          message: "Correo de solicitud no enviado por configuracion",
+          metadata: {
+            locale,
+            reason: (mailResult as any).reason,
+            to: pre.email,
+          },
+        });
+        return mailResult;
+      }
+
+      await this.audit.record({
+        action: "PRE_RESERVATION_EMAIL_SENT",
+        entityType: "PreReservation",
+        entityId: pre.id,
+        message: "Correo de solicitud recibido enviado al cliente",
+        metadata: {
+          locale,
+          to: pre.email,
+          requestCode,
+          attachment: filename,
+        },
+      });
+
+      return mailResult;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error enviando correo";
+
+      await this.audit.record({
+        action: "PRE_RESERVATION_EMAIL_FAILED",
+        entityType: "PreReservation",
+        entityId: pre.id,
+        message: "Fallo el correo de solicitud recibida",
+        metadata: {
+          locale,
+          to: pre.email,
+          error: message,
+        },
+      });
+
+      throw error;
+    }
   }
 
   private normalizeBilling(data?: BillingInput) {
@@ -1029,12 +1474,14 @@ export class PreReservationsService {
     }[];
     extraIds?: number[];
     displayCurrency?: string;
+    locale?: string;
   } & BillingInput) {
     const type = data.type ?? BookingType.PROPERTY;
     const referenceId = Number(data.referenceId ?? data.propertyId);
     const guests = Number(data.guests ?? 1);
     const checkIn = data.checkIn ? new Date(data.checkIn) : undefined;
     const checkOut = data.checkOut ? new Date(data.checkOut) : undefined;
+    const locale = this.normalizeLocale(data.locale);
     const billing = this.normalizeBilling(data);
 
     if (!referenceId || Number.isNaN(referenceId)) {
@@ -1228,6 +1675,7 @@ export class PreReservationsService {
           email: data.email,
           customerPhone: data.customerPhone || null,
           customerCountry: data.customerCountry || null,
+          locale,
           paymentMethodPreferred: data.paymentMethodPreferred || null,
           specialRequests: data.specialRequests || null,
           selectedExtras: selectedExtrasSnapshot,
@@ -1300,11 +1748,13 @@ export class PreReservationsService {
           exchangeRate: currencySnapshot.exchangeRate,
           exchangeRateSource: currencySnapshot.exchangeRateSource,
           billingIsComplete: billing.billingIsComplete,
+          locale,
         },
         metadata: {
           source: "public-checkout",
           extrasCount: selectedExtrasSnapshot.length,
           billingProvided: billing.billingIsComplete || billing.billingDataAccepted,
+          locale,
         },
       });
 
@@ -1346,7 +1796,16 @@ export class PreReservationsService {
           source: "public-checkout",
           billingDataAccepted: billing.billingDataAccepted,
           billingIsComplete: billing.billingIsComplete,
+          locale,
         },
+      });
+
+      void this.sendPreReservationCreatedEmail(updated.id).catch((error) => {
+        this.logger.warn(
+          `No se pudo enviar correo de solicitud ${updated.id}: ${
+            error instanceof Error ? error.message : "Email error"
+          }`
+        );
       });
 
       void this.notificationsService

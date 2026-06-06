@@ -203,6 +203,7 @@ export default async function HomePage() {
 
             <h1 className="text-4xl font-bold leading-[1.04] text-white sm:text-5xl md:text-7xl md:leading-[0.98]">
               <TranslatedText k="home.titleLine1" />
+              {" "}
               <br />
               <TranslatedText k="home.titleLine2" />
             </h1>

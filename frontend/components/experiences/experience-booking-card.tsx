@@ -6,9 +6,9 @@ import { Gem } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import BookingMoney from "@/components/BookingMoney";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout } from "@/lib/analytics";
-import { formatMoneyByLanguage } from "@/lib/currency";
 import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
 
 type ExtraService = {
@@ -32,7 +32,6 @@ export default function ExperienceBookingCard({
   extras,
 }: ExperienceBookingCardProps) {
   const { language, t } = useTranslation();
-  const money = (value?: number | null) => formatMoneyByLanguage(value, language);
   const [selectedExtraIds, setSelectedExtraIds] = useState<number[]>([]);
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
@@ -121,8 +120,9 @@ export default function ExperienceBookingCard({
                       )}
                     </span>
                   </label>
-                  <span className="shrink-0 font-semibold text-[#B48A5A] sm:text-right">
-                    + {money(extra.price)}
+                  <span className="inline-flex shrink-0 items-baseline gap-1 font-semibold text-[#B48A5A] sm:justify-end sm:text-right">
+                    <span>+</span>
+                    <BookingMoney value={extra.price} language={language} />
                   </span>
                 </div>
 
@@ -146,18 +146,18 @@ export default function ExperienceBookingCard({
         </div>
       )}
 
-      <div className="space-y-2 rounded-xl bg-[#F8F6F1] p-4 text-sm">
-        <div className="flex justify-between gap-4">
-          <span className="text-slate-600">{t("experience.basePerson")}</span>
-          <span>{money(basePrice)}</span>
+      <div className="space-y-3.5 rounded-xl bg-[#F8F6F1] p-4 text-sm">
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <span className="min-w-0 text-slate-600">{t("experience.basePerson")}</span>
+          <BookingMoney value={basePrice} language={language} className="font-medium sm:justify-end sm:text-right" />
         </div>
-        <div className="flex justify-between gap-4">
-          <span className="text-slate-600">{t("checkout.premiumServices")}</span>
-          <span>{money(extrasTotal)}</span>
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <span className="min-w-0 text-slate-600">{t("checkout.premiumServices")}</span>
+          <BookingMoney value={extrasTotal} language={language} className="font-medium sm:justify-end sm:text-right" />
         </div>
-        <div className="flex justify-between gap-4 border-t border-[#D4AF37]/20 pt-3 font-semibold">
+        <div className="flex flex-col gap-2 border-t border-[#D4AF37]/20 pt-3 font-semibold sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <span>{t("checkout.totalEstimate")}</span>
-          <span>{money(basePrice + extrasTotal)}</span>
+          <BookingMoney value={basePrice + extrasTotal} language={language} className="text-lg text-[#0D2B52] sm:justify-end sm:text-right" />
         </div>
         <p className="pt-1 text-xs leading-5 text-slate-500">
           {t("checkout.currencyApproxNote")}

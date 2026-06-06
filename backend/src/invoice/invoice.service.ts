@@ -56,6 +56,23 @@ type BookingInvoiceData = {
   paymentStatus: string;
 };
 
+type PreReservationSummaryData = {
+  preReservationId: string;
+  locale: "es" | "en" | "fr" | "pt" | "it";
+  title: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string | null;
+  productName: string;
+  checkIn?: Date | null;
+  checkOut?: Date | null;
+  guests?: number | null;
+  displayTotal: string;
+  requestCode: string;
+  importantNote: string;
+  officeHoursText?: string | null;
+};
+
 @Injectable()
 export class InvoiceService {
   private ensureInvoicesDir() {
@@ -126,6 +143,214 @@ export class InvoiceService {
     doc.text(`Total Paid: $${data.totalPrice}`);
     doc.moveDown();
     doc.text("Thank you for choosing Cartagena Tailored Travel.");
+
+    doc.end();
+    await this.waitForPdfWrite(stream);
+
+    return filePath;
+  }
+
+  async generatePreReservationSummary(data: PreReservationSummaryData) {
+    const doc = new PDFDocument({
+      margin: 42,
+      size: "A4",
+    });
+    const invoicesDir = this.ensureInvoicesDir();
+    const filePath = path.join(
+      invoicesDir,
+      `pre-reservation-${data.preReservationId}.pdf`
+    );
+    const stream = fs.createWriteStream(filePath);
+    doc.pipe(stream);
+
+    const allLabels = {
+      es: {
+        received: "Solicitud recibida",
+        customer: "Cliente",
+        contact: "Contacto",
+        product: "Producto",
+        dates: "Fechas",
+        guests: "Personas",
+        total: "Total estimado",
+        code: "Codigo de solicitud",
+        generated: "Generado",
+        pending: "Pendiente por coordinar",
+        footer:
+          "Cartagena Tailored Travel - Viajes premium con atencion personalizada",
+      },
+      en: {
+        received: "Request received",
+        customer: "Customer",
+        contact: "Contact",
+        product: "Product",
+        dates: "Dates",
+        guests: "Guests",
+        total: "Estimated total",
+        code: "Request code",
+        generated: "Generated",
+        pending: "To be coordinated",
+        footer:
+          "Cartagena Tailored Travel - Premium travel with personalized support",
+      },
+      fr: {
+        received: "Demande recue",
+        customer: "Client",
+        contact: "Contact",
+        product: "Produit",
+        dates: "Dates",
+        guests: "Personnes",
+        total: "Total estime",
+        code: "Code de demande",
+        generated: "Genere",
+        pending: "A coordonner",
+        footer:
+          "Cartagena Tailored Travel - Voyages premium avec accompagnement personnalise",
+      },
+      pt: {
+        received: "Solicitacao recebida",
+        customer: "Cliente",
+        contact: "Contato",
+        product: "Produto",
+        dates: "Datas",
+        guests: "Pessoas",
+        total: "Total estimado",
+        code: "Codigo da solicitacao",
+        generated: "Gerado",
+        pending: "A coordenar",
+        footer:
+          "Cartagena Tailored Travel - Viagens premium com atendimento personalizado",
+      },
+      it: {
+        received: "Richiesta ricevuta",
+        customer: "Cliente",
+        contact: "Contatto",
+        product: "Prodotto",
+        dates: "Date",
+        guests: "Persone",
+        total: "Totale stimato",
+        code: "Codice richiesta",
+        generated: "Generato",
+        pending: "Da coordinare",
+        footer:
+          "Cartagena Tailored Travel - Viaggi premium con assistenza personalizzata",
+      },
+    };
+    const labels = allLabels[data.locale] || allLabels.es;
+
+    const colors = {
+      navy: "#0D2B52",
+      gold: "#B48A5A",
+      beige: "#F8F6F2",
+      ink: "#111827",
+      muted: "#64748B",
+      border: "#E5E0D6",
+    };
+    const left = doc.page.margins.left;
+    const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const generatedAt = new Date().toLocaleString("es-CO", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const dateLabel = (value?: Date | null) =>
+      value
+        ? value.toLocaleDateString("es-CO", {
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+          })
+        : labels.pending;
+    const row = (label: string, value: string | number | null | undefined) => {
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(8)
+        .fillColor(colors.gold)
+        .text(label.toUpperCase(), left, doc.y, { width: 160 });
+      doc
+        .font("Helvetica")
+        .fontSize(10)
+        .fillColor(colors.ink)
+        .text(value === null || value === undefined || value === "" ? "-" : String(value), left + 170, doc.y - 10, {
+          width: width - 170,
+          lineGap: 2,
+        });
+      doc.moveDown(0.8);
+    };
+
+    doc.roundedRect(left, 42, width, 92, 12).fill(colors.navy);
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(19)
+      .fillColor("#FFFFFF")
+      .text("Cartagena Tailored Travel", left + 22, 62, { width: width - 44 });
+    doc
+      .font("Helvetica")
+      .fontSize(9)
+      .fillColor("#E7EEF8")
+      .text(labels.footer, left + 22, 89, { width: width - 44 });
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(11)
+      .fillColor(colors.gold)
+      .text(labels.received, left + 22, 112, { width: width - 44 });
+
+    doc.y = 158;
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(18)
+      .fillColor(colors.navy)
+      .text(data.title, left, doc.y, { width });
+    doc.moveDown(0.4);
+    doc
+      .font("Helvetica")
+      .fontSize(9)
+      .fillColor(colors.muted)
+      .text(`${labels.generated}: ${generatedAt}`, { width });
+
+    doc.moveDown(1.2);
+    doc.roundedRect(left, doc.y, width, 180, 10).fillAndStroke("#FFFFFF", colors.border);
+    doc.y += 18;
+    row(labels.customer, data.customerName);
+    row(labels.contact, [data.customerEmail, data.customerPhone].filter(Boolean).join(" | "));
+    row(labels.product, data.productName);
+    row(labels.dates, `${dateLabel(data.checkIn)} - ${dateLabel(data.checkOut)}`);
+    row(labels.guests, data.guests || 1);
+    row(labels.total, data.displayTotal);
+    row(labels.code, data.requestCode);
+
+    doc.y += 18;
+    doc.roundedRect(left, doc.y, width, 95, 10).fillAndStroke(colors.beige, colors.border);
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(9)
+      .fillColor(colors.gold)
+      .text("IMPORTANTE", left + 16, doc.y + 15, { width: width - 32 });
+    doc
+      .font("Helvetica")
+      .fontSize(9.2)
+      .fillColor(colors.ink)
+      .text(data.importantNote, left + 16, doc.y + 32, {
+        width: width - 32,
+        lineGap: 3,
+      });
+    doc.y += 112;
+
+    if (data.officeHoursText) {
+      doc
+        .font("Helvetica")
+        .fontSize(8.5)
+        .fillColor(colors.muted)
+        .text(data.officeHoursText, left, doc.y, { width, align: "center" });
+      doc.moveDown(0.8);
+    }
+
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(9)
+      .fillColor(colors.navy)
+      .text(labels.footer, left, doc.y, { width, align: "center" });
 
     doc.end();
     await this.waitForPdfWrite(stream);

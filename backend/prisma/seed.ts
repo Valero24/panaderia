@@ -367,6 +367,22 @@ async function main() {
         "Cena privada con ambientacion especial para celebraciones.",
       description:
         "Cena romantica coordinada por concierge con montaje privado, menu personalizado y detalles premium.",
+      translations: {
+        en: {
+          title: "Romantic dinner in Cartagena",
+          shortDescription:
+            "Private dinner with special styling for celebrations.",
+          description:
+            "Romantic dinner coordinated by the assistance team with a private setup, tailored menu and premium details.",
+          location: "Historic Cartagena",
+          duration: "3 to 4 hours",
+          category: "Dining",
+          policies:
+            "The final location and menu are confirmed after availability is validated.",
+          recommendations:
+            "Share allergies, dietary restrictions and the special occasion.",
+        },
+      },
       location: "Cartagena historica",
       duration: "3 a 4 horas",
       maxGuests: 2,
@@ -388,6 +404,22 @@ async function main() {
         "Recorrido privado por la ciudad amurallada con guia experto.",
       description:
         "Tour historico privado por Cartagena con guia especializado, ritmo flexible y paradas seleccionadas.",
+      translations: {
+        en: {
+          title: "Premium historic city tour",
+          shortDescription:
+            "Private walk through the walled city with an expert guide.",
+          description:
+            "Private historic tour of Cartagena with a specialized guide, flexible pace and selected stops.",
+          location: "Historic Center, Cartagena",
+          duration: "4 hours",
+          category: "Culture",
+          policies:
+            "Start time is coordinated according to guide availability.",
+          recommendations:
+            "Wear comfortable shoes, light clothing and bring hydration.",
+        },
+      },
       location: "Centro historico, Cartagena",
       duration: "4 horas",
       maxGuests: 8,
@@ -471,6 +503,28 @@ async function main() {
         "Una coleccion de ciudad, gastronomia y experiencias privadas.",
       description:
         "Paquete de tres dias para conocer Cartagena con una seleccion premium de actividades y asistencia concierge.",
+      translations: {
+        en: {
+          title: "Premium Cartagena in 3 days",
+          shortDescription:
+            "A curated blend of city, gastronomy and private experiences.",
+          description:
+            "Three-day package to discover Cartagena with premium activities and advisor assistance.",
+          duration: "3 days",
+          location: "Historic Cartagena and islands",
+          category: "Premium",
+          includes:
+            "Advisor assistance\nPremium city tour\nGastronomic experience\nSuggested transfer coordination",
+          notIncludes:
+            "Flights\nAdditional consumption\nServices not confirmed by an advisor",
+          itinerary:
+            "Day 1: arrival and walled city\nDay 2: private premium plan\nDay 3: flexible closing",
+          policies:
+            "The advisor can adjust components according to availability.",
+          recommendations:
+            "Book in advance for better schedules and providers.",
+        },
+      },
       duration: "3 dias",
       location: "Cartagena historica e islas",
       maxGuests: 6,
@@ -498,6 +552,28 @@ async function main() {
         "Combina mar Caribe y cultura historica en una sola solicitud.",
       description:
         "Paquete concierge que une una salida privada hacia islas con recorrido por los puntos mas emblematicos de Cartagena.",
+      translations: {
+        en: {
+          title: "Islands + walled city",
+          shortDescription:
+            "Combine the Caribbean Sea and historic culture in one assisted request.",
+          description:
+            "Assisted package combining a private island outing with a tour through Cartagena's most iconic landmarks.",
+          duration: "2 days",
+          location: "Rosario Islands and Historic Center",
+          category: "Islands and culture",
+          includes:
+            "Suggested island plan\nWalled city tour\nAdvisor assistance\nPersonalized adjustments",
+          notIncludes:
+            "Unspecified entrance fees\nMeals not described\nPersonal expenses",
+          itinerary:
+            "Day 1: island experience\nDay 2: walled city and closing",
+          policies:
+            "The island outing depends on weather conditions.",
+          recommendations:
+            "Bring light clothing, ID, sunscreen and hydration.",
+        },
+      },
       duration: "2 dias",
       location: "Islas del Rosario y Centro historico",
       maxGuests: 8,
@@ -568,6 +644,13 @@ async function main() {
       name: "Fotografia profesional",
       description:
         "Registro fotografico basico de la experiencia para recuerdos del viaje.",
+      translations: {
+        en: {
+          name: "Professional photography",
+          description:
+            "Basic photographic coverage of the experience for travel memories.",
+        },
+      },
       price: 450000,
       experienceId: demoExperience.id,
     });
@@ -578,6 +661,13 @@ async function main() {
       name: "Decoracion especial",
       description:
         "Ambientacion personalizada para celebraciones, aniversarios o viajes especiales.",
+      translations: {
+        en: {
+          name: "Special decoration",
+          description:
+            "Personalized styling for celebrations, anniversaries or special trips.",
+        },
+      },
       price: 520000,
       packageId: demoPackage.id,
     });
@@ -602,6 +692,12 @@ async function main() {
     {
       name: "Jacuzzi",
       description: "Alojamientos con jacuzzi o zona humeda premium.",
+      translations: {
+        en: {
+          name: "Hot tub",
+          description: "Accommodations with a hot tub or premium wet area.",
+        },
+      },
       icon: "waves",
       category: ProductFeatureCategory.AMENITY,
       appliesTo: ProductFeatureAppliesTo.PROPERTY,
@@ -609,6 +705,13 @@ async function main() {
     {
       name: "Frente al mar",
       description: "Alojamientos ubicados frente al mar o muy cerca de playa.",
+      translations: {
+        en: {
+          name: "Beachfront",
+          description:
+            "Accommodations located by the sea or very close to the beach.",
+        },
+      },
       icon: "water",
       category: ProductFeatureCategory.LOCATION_STYLE,
       appliesTo: ProductFeatureAppliesTo.PROPERTY,
@@ -616,6 +719,13 @@ async function main() {
     {
       name: "Vista al centro historico",
       description: "Alojamientos con vista o cercania al centro historico.",
+      translations: {
+        en: {
+          name: "Historic Center view",
+          description:
+            "Accommodations with a view of or close access to the Historic Center.",
+        },
+      },
       icon: "landmark",
       category: ProductFeatureCategory.LOCATION_STYLE,
       appliesTo: ProductFeatureAppliesTo.PROPERTY,
@@ -623,6 +733,12 @@ async function main() {
     {
       name: "Terraza privada",
       description: "Espacios exteriores privados para descansar o compartir.",
+      translations: {
+        en: {
+          name: "Private terrace",
+          description: "Private outdoor spaces to relax or gather.",
+        },
+      },
       icon: "terrace",
       category: ProductFeatureCategory.AMENITY,
       appliesTo: ProductFeatureAppliesTo.PROPERTY,
@@ -630,6 +746,13 @@ async function main() {
     {
       name: "Cocina equipada",
       description: "Alojamientos con cocina funcional para estadias flexibles.",
+      translations: {
+        en: {
+          name: "Equipped kitchen",
+          description:
+            "Accommodations with a functional kitchen for flexible stays.",
+        },
+      },
       icon: "chef-hat",
       category: ProductFeatureCategory.AMENITY,
       appliesTo: ProductFeatureAppliesTo.PROPERTY,
@@ -637,6 +760,12 @@ async function main() {
     {
       name: "Yate privado",
       description: "Experiencias nauticas con embarcacion privada.",
+      translations: {
+        en: {
+          name: "Private yacht",
+          description: "Nautical experiences with a private boat.",
+        },
+      },
       icon: "ship",
       category: ProductFeatureCategory.EXPERIENCE_STYLE,
       appliesTo: ProductFeatureAppliesTo.EXPERIENCE,
@@ -644,6 +773,12 @@ async function main() {
     {
       name: "Islas del Rosario",
       description: "Experiencias enfocadas en Islas del Rosario.",
+      translations: {
+        en: {
+          name: "Rosario Islands",
+          description: "Experiences focused on the Rosario Islands.",
+        },
+      },
       icon: "island",
       category: ProductFeatureCategory.LOCATION_STYLE,
       appliesTo: ProductFeatureAppliesTo.EXPERIENCE,
@@ -651,6 +786,12 @@ async function main() {
     {
       name: "Gastronomia",
       description: "Experiencias culinarias o de cena especial.",
+      translations: {
+        en: {
+          name: "Gastronomy",
+          description: "Culinary experiences or special dinners.",
+        },
+      },
       icon: "utensils",
       category: ProductFeatureCategory.EXPERIENCE_STYLE,
       appliesTo: ProductFeatureAppliesTo.EXPERIENCE,
@@ -658,6 +799,12 @@ async function main() {
     {
       name: "Vida nocturna",
       description: "Planes para disfrutar Cartagena de noche.",
+      translations: {
+        en: {
+          name: "Nightlife",
+          description: "Plans to enjoy Cartagena at night.",
+        },
+      },
       icon: "music",
       category: ProductFeatureCategory.EXPERIENCE_STYLE,
       appliesTo: ProductFeatureAppliesTo.EXPERIENCE,
@@ -665,6 +812,12 @@ async function main() {
     {
       name: "Cultural",
       description: "Experiencias historicas, patrimoniales o locales.",
+      translations: {
+        en: {
+          name: "Cultural",
+          description: "Historic, heritage or local experiences.",
+        },
+      },
       icon: "landmark",
       category: ProductFeatureCategory.EXPERIENCE_STYLE,
       appliesTo: ProductFeatureAppliesTo.EXPERIENCE,
@@ -672,6 +825,12 @@ async function main() {
     {
       name: "Fotografia",
       description: "Experiencias con enfoque fotografico o registro visual.",
+      translations: {
+        en: {
+          name: "Photography",
+          description: "Experiences with a photography or visual record focus.",
+        },
+      },
       icon: "camera",
       category: ProductFeatureCategory.SERVICE_LEVEL,
       appliesTo: ProductFeatureAppliesTo.EXPERIENCE,
@@ -679,6 +838,12 @@ async function main() {
     {
       name: "Luna de miel",
       description: "Paquetes pensados para viajes romanticos y celebraciones.",
+      translations: {
+        en: {
+          name: "Honeymoon",
+          description: "Packages designed for romantic trips and celebrations.",
+        },
+      },
       icon: "heart",
       category: ProductFeatureCategory.TRAVEL_TYPE,
       appliesTo: ProductFeatureAppliesTo.PACKAGE,
@@ -686,6 +851,12 @@ async function main() {
     {
       name: "Familiar",
       description: "Paquetes adecuados para familias o grupos cercanos.",
+      translations: {
+        en: {
+          name: "Family",
+          description: "Packages suitable for families or close groups.",
+        },
+      },
       icon: "users",
       category: ProductFeatureCategory.TRAVEL_TYPE,
       appliesTo: ProductFeatureAppliesTo.PACKAGE,
@@ -693,6 +864,13 @@ async function main() {
     {
       name: "Celebracion especial",
       description: "Paquetes para aniversarios, cumpleaños o momentos clave.",
+      translations: {
+        en: {
+          name: "Special celebration",
+          description:
+            "Packages for anniversaries, birthdays or meaningful moments.",
+        },
+      },
       icon: "sparkles",
       category: ProductFeatureCategory.TRAVEL_TYPE,
       appliesTo: ProductFeatureAppliesTo.PACKAGE,
@@ -700,6 +878,13 @@ async function main() {
     {
       name: "Cartagena completa",
       description: "Paquetes que combinan ciudad, mar y experiencias locales.",
+      translations: {
+        en: {
+          name: "Complete Cartagena",
+          description:
+            "Packages combining the city, the sea and local experiences.",
+        },
+      },
       icon: "map",
       category: ProductFeatureCategory.TRAVEL_TYPE,
       appliesTo: ProductFeatureAppliesTo.PACKAGE,
@@ -707,6 +892,12 @@ async function main() {
     {
       name: "Romantico",
       description: "Paquetes con enfoque romantico y detalles personalizados.",
+      translations: {
+        en: {
+          name: "Romantic",
+          description: "Packages with a romantic focus and personalized details.",
+        },
+      },
       icon: "heart",
       category: ProductFeatureCategory.TRAVEL_TYPE,
       appliesTo: ProductFeatureAppliesTo.PACKAGE,
@@ -714,6 +905,13 @@ async function main() {
     {
       name: "Premium VIP",
       description: "Paquetes con mayor nivel de asistencia y servicios premium.",
+      translations: {
+        en: {
+          name: "Premium VIP",
+          description:
+            "Packages with a higher level of assistance and premium services.",
+        },
+      },
       icon: "gem",
       category: ProductFeatureCategory.SERVICE_LEVEL,
       appliesTo: ProductFeatureAppliesTo.PACKAGE,

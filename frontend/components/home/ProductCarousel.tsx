@@ -38,7 +38,7 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
 
     const firstCard = scroller.querySelector("[data-carousel-item]") as HTMLElement | null;
     const cardWidth = firstCard?.getBoundingClientRect().width || scroller.clientWidth;
-    const gap = 24;
+    const gap = Number.parseFloat(window.getComputedStyle(scroller).columnGap || "24") || 24;
     const distance = cardWidth + gap;
     const maxScroll = scroller.scrollWidth - scroller.clientWidth;
 
@@ -78,7 +78,7 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
 
   return (
     <div
-      className="group/carousel relative premium-reveal"
+      className="group/carousel relative premium-reveal lg:mx-auto lg:max-w-6xl"
       onMouseEnter={() => {
         clearResumeTimer();
         setPaused(true);
@@ -90,13 +90,13 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
       <div
         ref={scrollerRef}
         data-carousel-track="true"
-        className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2"
+        className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2 lg:gap-5"
       >
         {items.map((item, index) => (
           <div
             key={index}
             data-carousel-item
-            className="min-w-0 shrink-0 basis-full snap-start transition-transform duration-300 md:basis-[calc((100%_-_1.5rem)_/_2)] xl:basis-[calc((100%_-_3rem)_/_3)]"
+            className="min-w-0 shrink-0 basis-full snap-start transition-transform duration-300 md:basis-[calc((100%_-_1.5rem)_/_2)] xl:basis-[calc((100%_-_2.5rem)_/_3)]"
           >
             {item}
           </div>

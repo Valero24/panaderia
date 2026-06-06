@@ -218,7 +218,7 @@ export default function PublicPropertiesPage() {
         </div>
 
         {loading && (
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mx-auto mt-10 grid max-w-6xl gap-6 md:grid-cols-2 lg:gap-5 xl:grid-cols-3 xl:gap-6">
             {[1, 2, 3].map((item) => (
               <div
                 key={item}
@@ -298,7 +298,7 @@ export default function PublicPropertiesPage() {
         )}
 
         {!loading && !error && visibleProperties.length > 0 && (
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mx-auto mt-10 grid max-w-6xl gap-6 md:grid-cols-2 lg:gap-5 xl:grid-cols-3 xl:gap-6">
             {visibleProperties.map((property) => {
               const capacity = property.maxCapacity || property.maxGuests || 1;
 

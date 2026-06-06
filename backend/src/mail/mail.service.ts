@@ -38,6 +38,13 @@ export class MailService {
   }
 
   private async sendMail(options: any) {
+    if (process.env.ENABLE_EMAIL_NOTIFICATIONS === "false") {
+      return {
+        skipped: true,
+        reason: "ENABLE_EMAIL_NOTIFICATIONS=false",
+      };
+    }
+
     if (!this.configured) {
       return {
         skipped: true,
@@ -48,6 +55,22 @@ export class MailService {
     return this.transporter.sendMail(options);
   }
 
+  private fromAddress() {
+    const fromName =
+      process.env.MAIL_FROM_NAME || "Cartagena Tailored Travel";
+    const fromEmail =
+      process.env.MAIL_FROM_EMAIL ||
+      process.env.MAIL_FROM ||
+      process.env.MAIL_USER ||
+      "reservations@cartagenatailoredtravel.com";
+
+    if (fromEmail.includes("<")) {
+      return fromEmail;
+    }
+
+    return `"${fromName}" <${fromEmail}>`;
+  }
+
   async sendBookingConfirmation(
     to: string,
     guestName: string,
@@ -55,8 +78,7 @@ export class MailService {
   ) {
     return this.sendMail({
       from:
-        process.env.MAIL_FROM ||
-        '"Cartagena Tailored Travel" <reservations@cartagenatailoredtravel.com>',
+        this.fromAddress(),
       to,
       subject: "Your Luxury Stay Has Been Confirmed ✨",
       html: `
@@ -109,8 +131,7 @@ export class MailService {
 
     return this.sendMail({
       from:
-        process.env.MAIL_FROM ||
-        '"Cartagena Tailored Travel" <reservations@cartagenatailoredtravel.com>',
+        this.fromAddress(),
       to: data.to,
       subject: `Reserva confirmada #${data.bookingId}`,
       html: `
@@ -201,8 +222,7 @@ export class MailService {
 
     return this.sendMail({
       from:
-        process.env.MAIL_FROM ||
-        '"Cartagena Tailored Travel" <reservations@cartagenatailoredtravel.com>',
+        this.fromAddress(),
       to: data.to,
       subject: `Comprobante de reserva confirmada ${code}`,
       html: `
@@ -267,8 +287,7 @@ export class MailService {
 
     return this.sendMail({
       from:
-        process.env.MAIL_FROM ||
-        '"Cartagena Tailored Travel" <reservations@cartagenatailoredtravel.com>',
+        this.fromAddress(),
       to,
       subject: `Nueva solicitud de contacto #${data.id}: ${data.subject}`,
       html: `
@@ -284,6 +303,29 @@ export class MailService {
           <p>${data.message.replace(/\n/g, "<br />")}</p>
         </div>
       `,
+    });
+  }
+
+  async sendPreReservationRequestSummary(data: {
+    to: string;
+    subject: string;
+    html: string;
+    text: string;
+    pdfPath: string;
+    filename: string;
+  }) {
+    return this.sendMail({
+      from: this.fromAddress(),
+      to: data.to,
+      subject: data.subject,
+      text: data.text,
+      html: data.html,
+      attachments: [
+        {
+          filename: data.filename,
+          path: data.pdfPath,
+        },
+      ],
     });
   }
 }

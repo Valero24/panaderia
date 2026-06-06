@@ -21,6 +21,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import BookingMoney from "@/components/BookingMoney";
 import { apiUrl } from "@/lib/api";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout, trackViewContent } from "@/lib/analytics";
@@ -134,7 +135,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
         ]);
 
         if (!propertyRes.ok) {
-          throw new Error("No se pudo cargar el alojamiento");
+          throw new Error(t("properties.loadErrorTitle"));
         }
 
         setProperty(await propertyRes.json());
@@ -144,9 +145,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
         }
       } catch (err) {
         console.error(err);
-        setError(
-          err instanceof Error ? err.message : "Error inesperado"
-        );
+        setError(err instanceof Error ? err.message : t("properties.connectionError"));
       } finally {
         setLoading(false);
       }
@@ -155,7 +154,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
     if (!Number.isNaN(propertyId)) {
       fetchData();
     }
-  }, [propertyId]);
+  }, [propertyId, t]);
 
   useEffect(() => {
     if (property) {
@@ -315,7 +314,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
           />
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] items-start">
           <div className="space-y-10">
             <section className="border-b border-[#D4AF37]/20 pb-10">
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -517,58 +516,66 @@ export default function PropertyDetailPage({ params }: PageProps) {
             </section>
           </div>
 
-          <aside className="premium-reveal premium-delay-1 sticky top-24 rounded-lg border border-[#D4AF37]/30 bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-xl">
+          <aside className="premium-reveal premium-delay-1 sticky top-24 rounded-lg border border-[#D4AF37]/30 bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-xl sm:p-6 lg:min-w-[360px] lg:max-w-[430px]">
             <p className="text-sm uppercase tracking-[0.28em] text-[#B68D40]">
               {t("property.reserve")}
             </p>
 
-            <div className="mt-4 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-4xl font-semibold text-[#0D2B52]">
-                  {money(pricing.nightly)}
+            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-3xl font-semibold leading-tight text-[#0D2B52] sm:text-4xl">
+                  <BookingMoney
+                    value={pricing.nightly}
+                    language={language}
+                    amountClassName="font-semibold"
+                  />
                 </p>
                 <p className="text-sm text-slate-500">{t("properties.perNight")}</p>
               </div>
 
-              <div className="text-right text-sm text-slate-500">
+              <div className="text-left text-sm leading-6 text-slate-500 sm:text-right">
                 <p>{capacity} {t("properties.guests")}</p>
                 <p>{t("property.minimumStay")} {property.minimumNights || 1} {t("property.minimumNight")}</p>
               </div>
             </div>
 
-            <div className="mt-6 space-y-3 border-t border-[#D4AF37]/20 pt-5 text-sm">
-              <div className="flex justify-between">
-                <span>
+            <div className="mt-6 space-y-3.5 border-t border-[#D4AF37]/20 pt-5 text-sm">
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <span className="min-w-0 text-slate-600">
                   {pricing.minimumNights} {t("checkout.nights")} x{" "}
-                  {money(pricing.nightly)}
+                  <BookingMoney value={pricing.nightly} language={language} />
                 </span>
-                <span>{money(pricing.stay)}</span>
+                <BookingMoney
+                  value={pricing.stay}
+                  language={language}
+                  className="font-medium sm:justify-end sm:text-right"
+                />
               </div>
 
               {pricing.cleaning > 0 && (
-                <div className="flex justify-between">
-                  <span>{t("property.cleaning")}</span>
-                  <span>{money(pricing.cleaning)}</span>
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                  <span className="min-w-0 text-slate-600">{t("property.cleaning")}</span>
+                  <BookingMoney value={pricing.cleaning} language={language} className="font-medium sm:justify-end sm:text-right" />
                 </div>
               )}
 
               {pricing.service > 0 && (
-                <div className="flex justify-between">
-                  <span>{t("property.service")}</span>
-                  <span>{money(pricing.service)}</span>
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                  <span className="min-w-0 text-slate-600">{t("property.service")}</span>
+                  <BookingMoney value={pricing.service} language={language} className="font-medium sm:justify-end sm:text-right" />
                 </div>
               )}
 
               {pricing.taxes > 0 && (
-                <div className="flex justify-between">
-                  <span>{t("property.taxes")}</span>
-                  <span>{money(pricing.taxes)}</span>
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                  <span className="min-w-0 text-slate-600">{t("property.taxes")}</span>
+                  <BookingMoney value={pricing.taxes} language={language} className="font-medium sm:justify-end sm:text-right" />
                 </div>
               )}
 
-              <div className="flex justify-between">
-                <span>{t("property.premiumServices")}</span>
-                <span>{money(extrasTotal)}</span>
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <span className="min-w-0 text-slate-600">{t("property.premiumServices")}</span>
+                <BookingMoney value={extrasTotal} language={language} className="font-medium sm:justify-end sm:text-right" />
               </div>
             </div>
 
@@ -580,9 +587,9 @@ export default function PropertyDetailPage({ params }: PageProps) {
                 </p>
                 <div className="mt-3 space-y-2 text-sm text-slate-600">
                   {selectedExtrasData.map((extra) => (
-                    <div key={extra.id} className="flex justify-between gap-3">
-                      <span>{getDynamicText(extra, "name", language)}</span>
-                      <span>{money(extra.price)}</span>
+                    <div key={extra.id} className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                      <span className="min-w-0">{getDynamicText(extra, "name", language)}</span>
+                      <BookingMoney value={extra.price} language={language} className="font-medium text-[#0D2B52] sm:justify-end sm:text-right" />
                     </div>
                   ))}
                 </div>
@@ -590,11 +597,13 @@ export default function PropertyDetailPage({ params }: PageProps) {
             )}
 
             <div className="mt-5 border-t border-[#D4AF37]/20 pt-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                 <span className="font-semibold">{t("property.totalEstimate")}</span>
-                <span className="text-2xl font-semibold">
-                  {money(pricing.total)}
-                </span>
+                <BookingMoney
+                  value={pricing.total}
+                  language={language}
+                  className="text-2xl font-semibold text-[#0D2B52] sm:justify-end sm:text-right"
+                />
               </div>
               <p className="mt-2 text-xs leading-5 text-slate-500">
                 {t("property.finalAfterDates")}

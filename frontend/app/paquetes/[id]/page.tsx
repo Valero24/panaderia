@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import PackageBookingCard from "@/components/packages/package-booking-card";
-import MoneyText from "@/components/MoneyText";
+import BookingMoney from "@/components/BookingMoney";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
 import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
@@ -244,7 +244,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
           <TranslatedText k="package.back" />
         </Link>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-start">
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(360px,430px)] lg:items-start">
           <div className="space-y-8">
             <div className="premium-hover-lift overflow-hidden rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm">
               <div className="relative">
@@ -508,15 +508,15 @@ export default async function PackageDetailPage({ params }: PageProps) {
             </Card>
           </div>
 
-          <aside className="sticky top-24">
+          <aside className="sticky top-24 lg:min-w-[360px] lg:max-w-[430px]">
             <Card className="premium-reveal premium-delay-1 rounded-3xl border border-[#D4AF37]/25 bg-white shadow-sm transition-shadow duration-300 hover:shadow-xl">
               <CardContent className="space-y-6 p-6">
                 <div>
                   <span className="text-xs uppercase tracking-[0.22em] text-slate-400">
                     <TranslatedText k="properties.from" />
                   </span>
-                  <p className="mt-1 text-3xl font-semibold text-[#B48A5A]">
-                    <MoneyText value={item.basePrice} />
+                  <p className="mt-1 text-3xl font-semibold leading-tight text-[#B48A5A]">
+                    <BookingMoney value={item.basePrice} />
                   </p>
                   <p className="mt-2 text-sm text-slate-500">
                     <TranslatedText k="package.baseNote" />

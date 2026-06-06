@@ -1,0 +1,2 @@
+ALTER TABLE "PreReservation"
+ADD COLUMN "locale" TEXT NOT NULL DEFAULT 'es';

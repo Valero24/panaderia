@@ -208,7 +208,7 @@ export default function ExperienciasPage() {
         </div>
 
         {loading ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mx-auto mt-10 grid max-w-6xl gap-6 md:grid-cols-2 lg:gap-5 xl:grid-cols-3 xl:gap-6">
             {[1, 2, 3].map((item) => (
               <div key={item} className="overflow-hidden rounded-2xl bg-white shadow-sm">
                 <div className="aspect-[4/3] premium-skeleton" />
@@ -272,7 +272,7 @@ export default function ExperienciasPage() {
             </div>
           </div>
         ) : (
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mx-auto mt-10 grid max-w-6xl gap-6 md:grid-cols-2 lg:gap-5 xl:grid-cols-3 xl:gap-6">
             {experiences.map((item) => (
               <PublicProductCard
                 key={item.id}

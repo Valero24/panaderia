@@ -2,7 +2,7 @@ import type { Language } from "@/i18n";
 import { cleanPublicCopy } from "@/lib/public-copy";
 
 export type DynamicTranslations = Partial<
-  Record<Exclude<Language, "es">, Record<string, unknown>>
+  Record<Language, Record<string, unknown>>
 >;
 
 export type TranslatableEntity = {
@@ -33,6 +33,15 @@ export function getDynamicText(
   }
 
   return cleanPublicCopy(String(baseValue));
+}
+
+export function getTranslatedField(
+  entity: TranslatableEntity | null | undefined,
+  field: string,
+  language: Language,
+  fallback?: unknown
+) {
+  return getDynamicText(entity, field, language, fallback);
 }
 
 export function hasDynamicText(

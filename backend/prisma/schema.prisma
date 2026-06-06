@@ -595,6 +595,7 @@ model PreReservation {
   email                  String
   customerPhone          String?
   customerCountry        String?
+  locale                 String @default("es")
   paymentMethodPreferred String?
   specialRequests        String?
   selectedExtras         Json?

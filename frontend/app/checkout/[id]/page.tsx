@@ -592,6 +592,7 @@ export default function CheckoutPage({ params }: PageProps) {
           specialRequests,
           type: productType,
           referenceId: productId,
+          locale: language,
           checkIn,
           checkOut,
           guests: Number(guests),
@@ -819,11 +820,10 @@ export default function CheckoutPage({ params }: PageProps) {
                   <FileText className="mt-1 h-5 w-5 text-[#B68D40]" />
                   <div>
                     <h2 className="text-xl font-semibold">
-                      Datos para facturación electrónica
+                      {t("checkout.billing.title")}
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-slate-500">
-                      Estos datos serán usados únicamente si se confirma la
-                      reserva y se requiere emitir factura electrónica ante DIAN.
+                      {t("checkout.billing.description")}
                     </p>
                   </div>
                 </div>
@@ -835,96 +835,104 @@ export default function CheckoutPage({ params }: PageProps) {
                     onChange={(event) => setUseContactForBilling(event.target.checked)}
                     className="mt-1 h-4 w-4 shrink-0 accent-[#0D2B52]"
                   />
-                  Usar los mismos datos de contacto para facturación.
+                  {t("checkout.billing.useContactData")}
                 </label>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="space-y-2 text-sm">
                     <span className="font-medium text-slate-600">
-                      Tipo de persona / organización
+                      {t("checkout.billing.organizationType")}
                     </span>
                     <select
                       value={billingLegalOrganizationType}
                       onChange={(event) => setBillingLegalOrganizationType(event.target.value)}
                       className="h-11 w-full rounded-md border border-[#D4AF37]/20 bg-white px-3 text-sm outline-none focus:border-[#B68D40]"
                     >
-                      <option value="PERSONA_NATURAL">Persona natural</option>
-                      <option value="PERSONA_JURIDICA">Persona jurídica</option>
+                      <option value="PERSONA_NATURAL">{t("checkout.billing.personNatural")}</option>
+                      <option value="PERSONA_JURIDICA">{t("checkout.billing.personLegal")}</option>
                     </select>
                   </label>
 
                   <label className="space-y-2 text-sm">
                     <span className="font-medium text-slate-600">
-                      Tipo de documento
+                      {t("checkout.billing.documentType")}
                     </span>
                     <select
                       value={billingIdentificationDocumentType}
                       onChange={(event) => setBillingIdentificationDocumentType(event.target.value)}
                       className="h-11 w-full rounded-md border border-[#D4AF37]/20 bg-white px-3 text-sm outline-none focus:border-[#B68D40]"
                     >
-                      <option value="CC">Cédula de ciudadanía</option>
-                      <option value="CE">Cédula de extranjería</option>
+                      <option value="CC">{t("checkout.billing.documentCc")}</option>
+                      <option value="CE">{t("checkout.billing.documentCe")}</option>
                       <option value="NIT">NIT</option>
-                      <option value="PASSPORT">Pasaporte</option>
-                      <option value="FOREIGN_DOCUMENT">Documento extranjero</option>
-                      <option value="OTHER">Otro</option>
+                      <option value="PASSPORT">{t("checkout.billing.documentPassport")}</option>
+                      <option value="FOREIGN_DOCUMENT">{t("checkout.billing.documentForeign")}</option>
+                      <option value="OTHER">{t("checkout.billing.documentOther")}</option>
                     </select>
                   </label>
 
                   <Input
-                    placeholder="Número de identificación"
+                    placeholder={t("checkout.billing.identificationNumber")}
                     value={billingIdentificationNumber}
                     onChange={(event) => setBillingIdentificationNumber(event.target.value)}
                   />
                   <Input
-                    placeholder="Dígito de verificación si aplica"
+                    placeholder={t("checkout.billing.verificationDigit")}
                     value={billingVerificationDigit}
                     onChange={(event) => setBillingVerificationDigit(event.target.value)}
                   />
                   <Input
-                    placeholder="Nombre completo o razón social"
+                    placeholder={t("checkout.billing.customerName")}
                     value={billingCustomerName}
                     onChange={(event) => setBillingCustomerName(event.target.value)}
                   />
                   <Input
                     type="email"
-                    placeholder="Correo de facturación"
+                    placeholder={t("checkout.billing.email")}
                     value={billingEmail}
                     onChange={(event) => setBillingEmail(event.target.value)}
                   />
                   <Input
-                    placeholder="Teléfono de facturación"
+                    placeholder={t("checkout.billing.phone")}
                     value={billingPhone}
                     onChange={(event) => setBillingPhone(event.target.value)}
                   />
                   <Input
-                    placeholder="Departamento"
+                    placeholder={t("checkout.billing.department")}
                     value={billingDepartment}
                     onChange={(event) => setBillingDepartment(event.target.value)}
                   />
                   <Input
-                    placeholder="Municipio / ciudad"
+                    placeholder={t("checkout.billing.city")}
                     value={billingMunicipalityName}
                     onChange={(event) => setBillingMunicipalityName(event.target.value)}
                   />
                   <Input
-                    placeholder="Dirección fiscal"
+                    placeholder={t("checkout.billing.address")}
                     value={billingAddress}
                     onChange={(event) => setBillingAddress(event.target.value)}
                   />
                   <label className="space-y-2 text-sm md:col-span-2">
                     <span className="font-medium text-slate-600">
-                      Responsabilidad tributaria
+                      {t("checkout.billing.taxResponsibility")}
                     </span>
                     <select
                       value={billingTaxResponsibility}
                       onChange={(event) => setBillingTaxResponsibility(event.target.value)}
                       className="h-11 w-full rounded-md border border-[#D4AF37]/20 bg-white px-3 text-sm outline-none focus:border-[#B68D40]"
                     >
-                      <option>No responsable de IVA</option>
-                      <option>Responsable de IVA</option>
-                      <option>Régimen simple</option>
-                      <option>Otro</option>
+                      <option value="No responsable de IVA">
+                        {t("checkout.billing.taxNoVat")}
+                      </option>
+                      <option value="Responsable de IVA">
+                        {t("checkout.billing.taxVat")}
+                      </option>
+                      <option value="Régimen simple">
+                        {t("checkout.billing.taxSimple")}
+                      </option>
+                      <option value="Otro">
+                        {t("checkout.billing.taxOther")}
+                      </option>
                     </select>
                   </label>
                 </div>
@@ -936,8 +944,7 @@ export default function CheckoutPage({ params }: PageProps) {
                     onChange={(event) => setBillingDataAccepted(event.target.checked)}
                     className="mt-1 h-4 w-4 shrink-0 accent-[#0D2B52]"
                   />
-                  Autorizo el uso de estos datos para la emisión de factura
-                  electrónica si la reserva es confirmada.
+                  {t("checkout.billing.acceptance")}
                 </label>
               </CardContent>
             </Card>
