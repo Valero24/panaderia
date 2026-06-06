@@ -161,7 +161,7 @@ export default function ExperienciasPage() {
 
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
-      <section className="premium-reveal mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+      <section id="experiencias-hero" data-scroll-section className="premium-reveal mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
         <PublicJourneyHeader
           eyebrow={t("experiences.eyebrow")}
           title={t("listing.experience.heroTitle")}
@@ -207,16 +207,17 @@ export default function ExperienciasPage() {
           />
         </div>
 
+        <div id="experiencias-listado" data-scroll-section className="scroll-mt-28">
         {loading ? (
-          <div className="mx-auto mt-10 grid max-w-6xl gap-6 md:grid-cols-2 lg:gap-5 xl:grid-cols-3 xl:gap-6">
+          <div className="mx-auto mt-10 grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-4 xl:grid-cols-4 xl:gap-5">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="overflow-hidden rounded-2xl bg-white shadow-sm">
-                <div className="aspect-[4/3] premium-skeleton" />
-                <div className="space-y-4 p-5">
+              <div key={item} className="mx-auto w-full overflow-hidden rounded-2xl bg-white shadow-sm lg:max-w-[330px] xl:max-w-[320px]">
+                <div className="aspect-[4/3] premium-skeleton lg:aspect-[16/9]" />
+                <div className="space-y-4 p-5 lg:space-y-3 lg:p-4">
                   <div className="h-4 w-32 rounded premium-skeleton" />
-                  <div className="h-8 w-4/5 rounded premium-skeleton" />
-                  <div className="h-16 rounded-xl premium-skeleton" />
-                  <div className="h-12 rounded-xl premium-skeleton" />
+                  <div className="h-8 w-4/5 rounded premium-skeleton lg:h-6" />
+                  <div className="h-16 rounded-xl premium-skeleton lg:h-10" />
+                  <div className="h-12 rounded-xl premium-skeleton lg:h-9" />
                 </div>
               </div>
             ))}
@@ -272,7 +273,7 @@ export default function ExperienciasPage() {
             </div>
           </div>
         ) : (
-          <div className="mx-auto mt-10 grid max-w-6xl gap-6 md:grid-cols-2 lg:gap-5 xl:grid-cols-3 xl:gap-6">
+          <div className="mx-auto mt-10 grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-4 xl:grid-cols-4 xl:gap-5">
             {experiences.map((item) => (
               <PublicProductCard
                 key={item.id}
@@ -298,6 +299,7 @@ export default function ExperienciasPage() {
             ))}
           </div>
         )}
+        </div>
       </section>
     </main>
   );

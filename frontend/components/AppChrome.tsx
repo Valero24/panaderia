@@ -7,6 +7,7 @@ import FloatingWhatsapp from "@/components/FloatingWhatsapp";
 import Footer from "@/components/Footer";
 import MarketingScripts from "@/components/MarketingScripts";
 import Navbar from "@/components/Navbar";
+import SectionScrollNavigator from "@/components/SectionScrollNavigator";
 import { LanguageProvider } from "@/context/LanguageContext";
 
 const scrollSnapRoutes = new Set([
@@ -16,6 +17,43 @@ const scrollSnapRoutes = new Set([
   "/paquetes",
   "/nosotros",
 ]);
+
+const guidedScrollSections: Record<string, string[]> = {
+  "/": [
+    "home-hero",
+    "alojamientos",
+    "experiencias",
+    "paquetes",
+    "home-respaldo",
+    "home-cta",
+    "site-footer",
+  ],
+  "/alojamientos": [
+    "alojamientos-hero",
+    "listado-filtros",
+    "alojamientos-listado",
+    "site-footer",
+  ],
+  "/experiencias": [
+    "experiencias-hero",
+    "listado-filtros",
+    "experiencias-listado",
+    "site-footer",
+  ],
+  "/paquetes": [
+    "paquetes-hero",
+    "listado-filtros",
+    "paquetes-listado",
+    "site-footer",
+  ],
+  "/nosotros": [
+    "nosotros-hero",
+    "nosotros-quienes",
+    "nosotros-como",
+    "nosotros-por-que",
+    "site-footer",
+  ],
+};
 
 export default function AppChrome({
   children,
@@ -49,6 +87,9 @@ export default function AppChrome({
           enableGuidedScroll ? "public-guided-scroll-main" : ""
         }`}
       >
+        {enableGuidedScroll && pathname && (
+          <SectionScrollNavigator sections={guidedScrollSections[pathname] || []} />
+        )}
         {children}
       </main>
 

@@ -78,7 +78,7 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
 
   return (
     <div
-      className="group/carousel relative premium-reveal lg:mx-auto lg:max-w-6xl"
+      className="group/carousel relative premium-reveal lg:mx-auto lg:max-w-6xl xl:max-w-7xl"
       onMouseEnter={() => {
         clearResumeTimer();
         setPaused(true);
@@ -90,13 +90,13 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
       <div
         ref={scrollerRef}
         data-carousel-track="true"
-        className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2 lg:gap-5"
+        className="no-scrollbar flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2 lg:gap-4 xl:gap-5"
       >
         {items.map((item, index) => (
           <div
             key={index}
             data-carousel-item
-            className="min-w-0 shrink-0 basis-full snap-start transition-transform duration-300 md:basis-[calc((100%_-_1.5rem)_/_2)] xl:basis-[calc((100%_-_2.5rem)_/_3)]"
+            className="min-w-0 shrink-0 basis-full snap-start transition-transform duration-300 md:basis-[calc((100%_-_1.5rem)_/_2)] lg:basis-[calc((100%_-_2rem)_/_3)] xl:basis-[calc((100%_-_3.75rem)_/_4)]"
           >
             {item}
           </div>

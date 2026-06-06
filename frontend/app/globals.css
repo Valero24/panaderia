@@ -245,19 +245,14 @@
   @media (min-width: 1024px) {
     html.public-guided-scroll {
       scroll-padding-top: 104px;
-      scroll-snap-type: y proximity;
-    }
-
-    html.public-guided-scroll body {
-      scroll-snap-type: y proximity;
     }
 
     .public-guided-scroll-main > main > section,
     .public-guided-scroll-main > main > header,
-    .public-guided-scroll-main #listado-filtros {
+    .public-guided-scroll-main #listado-filtros,
+    .public-guided-scroll-main [data-scroll-section],
+    #site-footer {
       scroll-margin-top: 104px;
-      scroll-snap-align: start;
-      scroll-snap-stop: normal;
     }
 
     .public-guided-scroll-main #listado-filtros {

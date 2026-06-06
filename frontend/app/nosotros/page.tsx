@@ -43,7 +43,7 @@ const steps = [
 export default function NosotrosPage() {
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
-      <section className="premium-reveal mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
+      <section id="nosotros-hero" data-scroll-section className="premium-reveal mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
         <div className="flex flex-col justify-center">
           <p className="text-sm font-medium uppercase tracking-[0.28em] text-[#B48A5A]">
             Cartagena Tailored Travel
@@ -106,7 +106,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="premium-scroll-reveal mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+      <section id="nosotros-quienes" data-scroll-section className="premium-scroll-reveal mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
         <div className="grid gap-5 md:grid-cols-3">
           {pillars.map((pillar) => {
             const Icon = pillar.icon;
@@ -163,7 +163,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="premium-scroll-reveal mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <section id="nosotros-como" data-scroll-section className="premium-scroll-reveal mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#B48A5A]">
@@ -195,7 +195,7 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      <section className="premium-scroll-reveal mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+      <section id="nosotros-por-que" data-scroll-section className="premium-scroll-reveal mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-3xl bg-[#0D2B52] text-white shadow-sm">
           <div className="grid gap-8 p-8 lg:grid-cols-[1fr_auto] lg:items-center lg:p-10">
             <div>

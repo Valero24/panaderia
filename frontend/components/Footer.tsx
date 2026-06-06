@@ -66,7 +66,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#071E3A] text-white">
+    <footer id="site-footer" className="bg-[#071E3A] text-white">
       <div className="mx-auto max-w-7xl px-6 py-14 sm:px-8 lg:py-20">
         <div className="grid gap-10 lg:grid-cols-[1.25fr_0.8fr_0.9fr_0.8fr]">
           <div className="max-w-sm">

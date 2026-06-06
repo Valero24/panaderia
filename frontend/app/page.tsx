@@ -182,7 +182,7 @@ export default async function HomePage() {
 
   return (
     <main className="bg-[#F8F6F1]">
-      <section className="relative min-h-[72vh] overflow-hidden lg:min-h-[76vh]">
+      <section id="home-hero" data-scroll-section className="relative min-h-[72vh] overflow-hidden lg:min-h-[76vh]">
         <Image
           src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600"
           alt="Luxury stay in Cartagena"
@@ -196,19 +196,19 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
 
         <div className="relative z-10 mx-auto flex min-h-[72vh] max-w-7xl items-center px-5 py-14 sm:px-6 lg:min-h-[76vh] lg:px-8">
-          <div className="max-w-3xl premium-reveal-slow">
-            <p className="mb-5 text-xs uppercase tracking-[0.4em] text-[#D4AF37] md:text-sm">
+          <div className="max-w-5xl premium-reveal-slow">
+            <p className="mb-5 max-w-3xl text-xs uppercase tracking-[0.28em] text-[#D4AF37] sm:tracking-[0.34em] md:text-sm">
               <TranslatedText k="home.eyebrow" />
             </p>
 
-            <h1 className="text-4xl font-bold leading-[1.04] text-white sm:text-5xl md:text-7xl md:leading-[0.98]">
+            <h1 className="max-w-5xl text-3xl font-bold leading-[1.08] text-white sm:text-4xl md:text-5xl md:leading-[1.04] lg:text-6xl">
               <TranslatedText k="home.titleLine1" />
               {" "}
               <br />
               <TranslatedText k="home.titleLine2" />
             </h1>
 
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/85 md:text-xl">
+            <p className="mt-7 max-w-3xl text-base leading-7 text-white/85 sm:text-lg md:leading-8 lg:text-xl">
               <TranslatedText k="home.subtitle" />
             </p>
 
@@ -332,7 +332,7 @@ export default async function HomePage() {
         ))}
       </ProductSection>
 
-      <section className="premium-scroll-reveal border-y border-[#D4AF37]/15 bg-white">
+      <section id="home-respaldo" data-scroll-section className="premium-scroll-reveal border-y border-[#D4AF37]/15 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-16">
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.4fr] lg:items-start">
             <div>
@@ -373,7 +373,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
+      <section id="home-cta" data-scroll-section className="premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
         <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-[#0D2B52] px-6 py-12 text-white shadow-sm md:px-10 lg:px-14">
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
@@ -432,7 +432,7 @@ function ProductSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
+    <section id={id} data-scroll-section className="premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
