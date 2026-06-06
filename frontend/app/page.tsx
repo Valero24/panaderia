@@ -182,7 +182,7 @@ export default async function HomePage() {
 
   return (
     <main className="bg-[#F8F6F1]">
-      <section id="home-hero" data-scroll-section className="relative min-h-[640px] overflow-hidden lg:min-h-[680px]">
+      <section id="home-hero" data-scroll-section className="relative min-h-[640px] overflow-hidden lg:min-h-[calc(100vh-96px)]">
         <Image
           src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600"
           alt="Luxury stay in Cartagena"
@@ -195,24 +195,24 @@ export default async function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
 
-        <div className="relative z-10 mx-auto flex min-h-[640px] max-w-7xl items-center px-5 py-12 sm:px-6 lg:min-h-[680px] lg:px-8 lg:py-16">
-          <div className="max-w-5xl premium-reveal-slow">
-            <p className="mb-5 max-w-4xl text-xs uppercase tracking-[0.32em] text-[#D4AF37] md:text-sm md:tracking-[0.35em]">
+        <div className="relative z-10 mx-auto flex min-h-[640px] max-w-7xl items-center px-5 py-12 sm:px-6 lg:min-h-[calc(100vh-96px)] lg:px-8 lg:py-14">
+          <div className="max-w-[900px] premium-reveal-slow">
+            <p className="mb-4 max-w-4xl text-xs uppercase tracking-[0.32em] text-[#D4AF37] md:text-sm md:tracking-[0.35em]">
               <TranslatedText k="home.eyebrow" />
             </p>
 
-            <h1 className="max-w-5xl text-balance text-4xl font-bold leading-[1.02] text-white sm:text-5xl lg:text-6xl lg:leading-[0.98] 2xl:text-7xl">
+            <h1 className="max-w-[900px] text-balance text-4xl font-bold leading-[1.02] text-white md:text-5xl xl:text-6xl">
               <TranslatedText k="home.titleLine1" />
               {" "}
               <br />
               <TranslatedText k="home.titleLine2" />
             </h1>
 
-            <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/85 md:text-lg lg:text-xl">
+            <p className="mt-5 max-w-3xl text-base leading-relaxed text-white/85 md:text-lg">
               <TranslatedText k="home.subtitle" />
             </p>
 
-            <div className="mt-8 flex max-w-full flex-col gap-3 sm:flex-row">
+            <div className="mt-7 flex max-w-full flex-col gap-3 sm:flex-row">
               <TrackedLink
                 href="#alojamientos"
                 trackingLabel="explorar_alojamientos"

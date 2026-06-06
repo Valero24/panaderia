@@ -104,13 +104,27 @@ function sectionHasRemainingScroll(
   return viewportTop - sectionTop > boundaryThreshold;
 }
 
+function getWheelStepCount(delta: number) {
+  const absDelta = Math.abs(delta);
+
+  if (absDelta >= 650) return 2;
+  return 1;
+}
+
 export default function SectionScrollNavigator({
   sections,
   navbarOffset = 96,
   minDesktopWidth = 1024,
-  debounceMs = 820,
+  debounceMs = 620,
 }: SectionScrollNavigatorProps) {
   const lockedRef = useRef(false);
+  const wheelDeltaRef = useRef(0);
+  const lastWheelDirectionRef = useRef<1 | -1 | null>(null);
+  const wheelTimerRef = useRef<number | null>(null);
+  const animationTimerRef = useRef<number | null>(null);
+  const pendingNavigationRef = useRef<{ direction: 1 | -1; steps: number } | null>(
+    null
+  );
   const touchStartYRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -134,14 +148,19 @@ export default function SectionScrollNavigator({
       });
     };
 
-    const navigate = (direction: 1 | -1) => {
+    const getCurrentIndex = (
+      sectionElements: HTMLElement[],
+      direction: 1 | -1
+    ) =>
+      direction > 0
+        ? findCurrentSectionIndex(sectionElements, navbarOffset)
+        : findClosestSectionIndex(sectionElements, navbarOffset);
+
+    const canNavigate = (direction: 1 | -1) => {
       const sectionElements = getSectionElements();
       if (sectionElements.length < 2) return false;
 
-      const currentIndex =
-        direction > 0
-          ? findCurrentSectionIndex(sectionElements, navbarOffset)
-          : findClosestSectionIndex(sectionElements, navbarOffset);
+      const currentIndex = getCurrentIndex(sectionElements, direction);
       const currentSection = sectionElements[currentIndex];
 
       if (
@@ -156,32 +175,114 @@ export default function SectionScrollNavigator({
         sectionElements.length - 1
       );
 
+      return targetIndex !== currentIndex;
+    };
+
+    const navigate = (direction: 1 | -1, steps = 1) => {
+      const sectionElements = getSectionElements();
+      if (sectionElements.length < 2) return false;
+
+      const currentIndex = getCurrentIndex(sectionElements, direction);
+      const currentSection = sectionElements[currentIndex];
+
+      if (
+        currentSection &&
+        sectionHasRemainingScroll(currentSection, direction, navbarOffset)
+      ) {
+        return false;
+      }
+
+      const targetIndex = Math.min(
+        Math.max(currentIndex + direction * steps, 0),
+        sectionElements.length - 1
+      );
+
       if (targetIndex === currentIndex) return false;
 
       lockedRef.current = true;
       scrollToSection(sectionElements[targetIndex]);
 
-      window.setTimeout(() => {
+      if (animationTimerRef.current) {
+        window.clearTimeout(animationTimerRef.current);
+      }
+
+      animationTimerRef.current = window.setTimeout(() => {
         lockedRef.current = false;
+        animationTimerRef.current = null;
+
+        const pendingNavigation = pendingNavigationRef.current;
+        pendingNavigationRef.current = null;
+
+        if (pendingNavigation && canNavigate(pendingNavigation.direction)) {
+          navigate(pendingNavigation.direction, pendingNavigation.steps);
+        }
       }, debounceMs);
 
       return true;
+    };
+
+    const addPendingNavigation = (direction: 1 | -1, steps: number) => {
+      const currentPending = pendingNavigationRef.current;
+
+      pendingNavigationRef.current =
+        currentPending && currentPending.direction === direction
+          ? { direction, steps: Math.min(2, Math.max(currentPending.steps, steps)) }
+          : { direction, steps };
+    };
+
+    const flushWheelIntent = () => {
+      wheelTimerRef.current = null;
+
+      const delta = wheelDeltaRef.current;
+      wheelDeltaRef.current = 0;
+
+      if (Math.abs(delta) < 18) return;
+
+      const direction = delta > 0 ? 1 : -1;
+      const steps = getWheelStepCount(delta);
+
+      if (lockedRef.current) {
+        addPendingNavigation(direction, steps);
+        return;
+      }
+
+      navigate(direction, steps);
+    };
+
+    const scheduleWheelFlush = () => {
+      if (wheelTimerRef.current) {
+        window.clearTimeout(wheelTimerRef.current);
+      }
+
+      wheelTimerRef.current = window.setTimeout(flushWheelIntent, 150);
+    };
+
+    const addWheelDelta = (deltaY: number) => {
+      const direction = deltaY > 0 ? 1 : -1;
+
+      if (lastWheelDirectionRef.current !== direction) {
+        wheelDeltaRef.current = 0;
+      }
+
+      lastWheelDirectionRef.current = direction;
+      wheelDeltaRef.current += deltaY;
     };
 
     const onWheel = (event: WheelEvent) => {
       if (!isDesktop()) return;
       if (hasOpenOverlay()) return;
       if (isEditableTarget(event.target) || shouldUseNormalScroll(event.target)) return;
-      if (lockedRef.current) {
-        event.preventDefault();
-        return;
-      }
       if (event.ctrlKey || event.metaKey || Math.abs(event.deltaY) < 18) return;
 
-      const didNavigate = navigate(event.deltaY > 0 ? 1 : -1);
-      if (didNavigate) {
-        event.preventDefault();
+      const direction = event.deltaY > 0 ? 1 : -1;
+
+      if (!lockedRef.current && !canNavigate(direction)) {
+        return;
       }
+
+      event.preventDefault();
+      addWheelDelta(event.deltaY);
+      scheduleWheelFlush();
     };
 
     const onTouchStart = (event: TouchEvent) => {
@@ -209,6 +310,12 @@ export default function SectionScrollNavigator({
     window.addEventListener("touchend", onTouchEnd, { passive: true });
 
     return () => {
+      if (wheelTimerRef.current) {
+        window.clearTimeout(wheelTimerRef.current);
+      }
+      if (animationTimerRef.current) {
+        window.clearTimeout(animationTimerRef.current);
+      }
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
