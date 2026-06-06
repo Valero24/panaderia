@@ -66,6 +66,44 @@ function findClosestSectionIndex(sections: HTMLElement[], offset: number) {
   return closestIndex;
 }
 
+function findCurrentSectionIndex(sections: HTMLElement[], offset: number) {
+  const currentTop = window.scrollY + offset + 2;
+  let currentIndex = 0;
+
+  sections.forEach((section, index) => {
+    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+
+    if (sectionTop <= currentTop) {
+      currentIndex = index;
+    }
+  });
+
+  return currentIndex;
+}
+
+function sectionHasRemainingScroll(
+  section: HTMLElement,
+  direction: 1 | -1,
+  offset: number
+) {
+  const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+  const sectionBottom = sectionTop + section.offsetHeight;
+  const viewportTop = window.scrollY + offset;
+  const viewportBottom = window.scrollY + window.innerHeight;
+  const availableViewport = window.innerHeight - offset;
+  const boundaryThreshold = 32;
+
+  if (section.offsetHeight <= availableViewport + boundaryThreshold) {
+    return false;
+  }
+
+  if (direction > 0) {
+    return sectionBottom - viewportBottom > boundaryThreshold;
+  }
+
+  return viewportTop - sectionTop > boundaryThreshold;
+}
+
 export default function SectionScrollNavigator({
   sections,
   navbarOffset = 96,
@@ -100,7 +138,19 @@ export default function SectionScrollNavigator({
       const sectionElements = getSectionElements();
       if (sectionElements.length < 2) return false;
 
-      const currentIndex = findClosestSectionIndex(sectionElements, navbarOffset);
+      const currentIndex =
+        direction > 0
+          ? findCurrentSectionIndex(sectionElements, navbarOffset)
+          : findClosestSectionIndex(sectionElements, navbarOffset);
+      const currentSection = sectionElements[currentIndex];
+
+      if (
+        currentSection &&
+        sectionHasRemainingScroll(currentSection, direction, navbarOffset)
+      ) {
+        return false;
+      }
+
       const targetIndex = Math.min(
         Math.max(currentIndex + direction, 0),
         sectionElements.length - 1

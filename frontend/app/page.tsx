@@ -197,18 +197,18 @@ export default async function HomePage() {
 
         <div className="relative z-10 mx-auto flex min-h-[72vh] max-w-7xl items-center px-5 py-14 sm:px-6 lg:min-h-[76vh] lg:px-8">
           <div className="max-w-5xl premium-reveal-slow">
-            <p className="mb-5 max-w-3xl text-xs uppercase tracking-[0.28em] text-[#D4AF37] sm:tracking-[0.34em] md:text-sm">
+            <p className="mb-5 max-w-4xl text-xs uppercase tracking-[0.32em] text-[#D4AF37] md:text-sm md:tracking-[0.38em]">
               <TranslatedText k="home.eyebrow" />
             </p>
 
-            <h1 className="max-w-5xl text-3xl font-bold leading-[1.08] text-white sm:text-4xl md:text-5xl md:leading-[1.04] lg:text-6xl">
+            <h1 className="max-w-[1120px] text-balance text-[clamp(2.75rem,5vw,5.75rem)] font-bold leading-[1.02] text-white md:leading-[0.98]">
               <TranslatedText k="home.titleLine1" />
               {" "}
               <br />
               <TranslatedText k="home.titleLine2" />
             </h1>
 
-            <p className="mt-7 max-w-3xl text-base leading-7 text-white/85 sm:text-lg md:leading-8 lg:text-xl">
+            <p className="mt-7 max-w-3xl text-lg leading-8 text-white/85 md:text-xl">
               <TranslatedText k="home.subtitle" />
             </p>
 
