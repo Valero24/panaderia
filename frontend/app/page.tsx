@@ -432,17 +432,17 @@ function ProductSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} data-scroll-section className="premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
+    <section id={id} data-scroll-section className="premium-scroll-reveal bg-[#F8F6F1] px-5 py-12 sm:px-6 lg:px-8 lg:py-12 xl:py-14">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
             <p className="text-sm font-medium uppercase tracking-[0.25em] text-[#B48A5A]">
               <TranslatedText k={eyebrowKey} />
             </p>
-            <h2 className="mt-3 text-3xl font-semibold text-[#0D2B52] md:text-4xl">
+            <h2 className="mt-2.5 text-3xl font-semibold text-[#0D2B52] md:text-4xl">
               <TranslatedText k={titleKey} />
             </h2>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+            <p className="mt-2.5 max-w-2xl text-base leading-7 text-slate-600">
               <TranslatedText k={subtitleKey} />
             </p>
           </div>

@@ -54,7 +54,7 @@ export default function PublicProductCard({
 
   return (
     <article className="group mx-auto h-full w-full [perspective:1400px] lg:max-w-[330px] xl:max-w-[320px]">
-      <div className="relative h-full min-h-[540px] rounded-2xl transition-transform duration-700 ease-out lg:min-h-[430px] xl:min-h-[420px] lg:[transform-style:preserve-3d] lg:group-focus-within:[transform:rotateY(180deg)] lg:group-hover:[transform:rotateY(180deg)]">
+      <div className="relative h-full min-h-[540px] rounded-2xl transition-transform duration-700 ease-out lg:min-h-[405px] xl:min-h-[395px] lg:[transform-style:preserve-3d] lg:group-focus-within:[transform:rotateY(180deg)] lg:group-hover:[transform:rotateY(180deg)]">
         <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#D4AF37]/15 bg-white shadow-sm transition-shadow duration-300 lg:absolute lg:inset-0 lg:rounded-xl lg:[backface-visibility:hidden] lg:group-hover:shadow-xl xl:rounded-2xl">
           <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-slate-100 lg:aspect-[16/9]">
             <PublicImage
@@ -73,7 +73,7 @@ export default function PublicProductCard({
           </div>
 
           <div className="flex flex-1 flex-col p-5 lg:p-3.5 xl:p-4">
-            <div className="min-h-[154px] lg:min-h-[104px] xl:min-h-[108px]">
+            <div className="min-h-[154px] lg:min-h-[96px] xl:min-h-[100px]">
               <div className="flex items-center gap-2 text-sm text-slate-500 lg:text-[0.72rem] xl:text-xs">
                 <MapPin className="h-4 w-4 shrink-0 text-[#B48A5A] lg:h-3 lg:w-3 xl:h-3.5 xl:w-3.5" />
                 <span className="line-clamp-1">{location}</span>
@@ -90,7 +90,7 @@ export default function PublicProductCard({
               )}
             </div>
 
-            <div className="mt-5 flex min-h-[82px] flex-wrap gap-3 text-sm text-slate-600 lg:mt-2.5 lg:min-h-[54px] lg:gap-1.5 lg:text-[0.7rem] xl:text-xs">
+            <div className="mt-5 flex min-h-[82px] flex-wrap gap-3 text-sm text-slate-600 lg:mt-2 lg:min-h-[48px] lg:gap-1.5 lg:text-[0.7rem] xl:text-xs">
               <span className="inline-flex h-10 min-w-0 items-center gap-2 rounded-xl bg-[#F8F6F1] px-3 py-2 lg:h-7 lg:rounded-lg lg:px-2">
                 <MetaIcon className="h-4 w-4 shrink-0 text-[#B48A5A] lg:h-3 lg:w-3 xl:h-3.5 xl:w-3.5" />
                 <span className="line-clamp-1">{meta}</span>
