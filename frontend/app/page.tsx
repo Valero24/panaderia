@@ -214,7 +214,7 @@ export default async function HomePage() {
 
             <div className="mt-7 flex max-w-full flex-col gap-3 sm:flex-row">
               <TrackedLink
-                href="#alojamientos"
+                href="#home-alojamientos"
                 trackingLabel="explorar_alojamientos"
                 trackingLocation="home_hero"
                 className="premium-soft-button inline-flex h-14 w-full max-w-full items-center justify-center rounded-full bg-[#0D2B52] px-6 text-center text-sm font-semibold text-white transition hover:bg-[#12396d] sm:w-auto sm:px-8"
@@ -236,7 +236,7 @@ export default async function HomePage() {
       </section>
 
       <ProductSection
-        id="alojamientos"
+        id="home-alojamientos"
         eyebrowKey="home.staysEyebrow"
         titleKey="properties.available"
         subtitleKey="properties.availableSubtitle"
@@ -269,7 +269,7 @@ export default async function HomePage() {
       </ProductSection>
 
       <ProductSection
-        id="experiencias"
+        id="home-experiencias"
         eyebrowKey="experiences.eyebrow"
         titleKey="experiences.title"
         subtitleKey="experiences.subtitle"
@@ -301,7 +301,7 @@ export default async function HomePage() {
       </ProductSection>
 
       <ProductSection
-        id="paquetes"
+        id="home-paquetes"
         eyebrowKey="packages.eyebrow"
         titleKey="packages.title"
         subtitleKey="packages.subtitle"

@@ -21,12 +21,11 @@ const scrollSnapRoutes = new Set([
 const guidedScrollSections: Record<string, string[]> = {
   "/": [
     "home-hero",
-    "alojamientos",
-    "experiencias",
-    "paquetes",
+    "home-alojamientos",
+    "home-experiencias",
+    "home-paquetes",
     "home-respaldo",
     "home-cta",
-    "site-footer",
   ],
   "/alojamientos": [
     "alojamientos-hero",
@@ -88,7 +87,11 @@ export default function AppChrome({
         }`}
       >
         {enableGuidedScroll && pathname && (
-          <SectionScrollNavigator sections={guidedScrollSections[pathname] || []} />
+          <SectionScrollNavigator
+            sections={guidedScrollSections[pathname] || []}
+            maxSteps={pathname === "/" ? 1 : 2}
+            respectSectionContent={pathname !== "/"}
+          />
         )}
         {children}
       </main>

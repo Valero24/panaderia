@@ -7,6 +7,8 @@ type SectionScrollNavigatorProps = {
   navbarOffset?: number;
   minDesktopWidth?: number;
   debounceMs?: number;
+  respectSectionContent?: boolean;
+  maxSteps?: 1 | 2;
 };
 
 const interactiveSelector =
@@ -116,6 +118,8 @@ export default function SectionScrollNavigator({
   navbarOffset = 96,
   minDesktopWidth = 1024,
   debounceMs = 620,
+  respectSectionContent = true,
+  maxSteps = 2,
 }: SectionScrollNavigatorProps) {
   const lockedRef = useRef(false);
   const wheelDeltaRef = useRef(0);
@@ -138,9 +142,15 @@ export default function SectionScrollNavigator({
     const isDesktop = () =>
       window.matchMedia(`(min-width: ${minDesktopWidth}px)`).matches;
 
+    const getSectionOffset = (section: HTMLElement) => {
+      const customOffset = Number(section.dataset.scrollOffset);
+
+      return Number.isFinite(customOffset) ? customOffset : navbarOffset;
+    };
+
     const scrollToSection = (section: HTMLElement) => {
       const top =
-        section.getBoundingClientRect().top + window.scrollY - navbarOffset;
+        section.getBoundingClientRect().top + window.scrollY - getSectionOffset(section);
 
       window.scrollTo({
         top: Math.max(0, top),
@@ -164,6 +174,7 @@ export default function SectionScrollNavigator({
       const currentSection = sectionElements[currentIndex];
 
       if (
+        respectSectionContent &&
         currentSection &&
         sectionHasRemainingScroll(currentSection, direction, navbarOffset)
       ) {
@@ -186,6 +197,7 @@ export default function SectionScrollNavigator({
       const currentSection = sectionElements[currentIndex];
 
       if (
+        respectSectionContent &&
         currentSection &&
         sectionHasRemainingScroll(currentSection, direction, navbarOffset)
       ) {
@@ -239,7 +251,7 @@ export default function SectionScrollNavigator({
       if (Math.abs(delta) < 18) return;
 
       const direction = delta > 0 ? 1 : -1;
-      const steps = getWheelStepCount(delta);
+      const steps = Math.min(maxSteps, getWheelStepCount(delta));
 
       if (lockedRef.current) {
         addPendingNavigation(direction, steps);
@@ -320,7 +332,7 @@ export default function SectionScrollNavigator({
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [debounceMs, minDesktopWidth, navbarOffset, sections]);
+  }, [debounceMs, maxSteps, minDesktopWidth, navbarOffset, respectSectionContent, sections]);
 
   return null;
 }
