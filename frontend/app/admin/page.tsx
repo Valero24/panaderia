@@ -298,7 +298,7 @@ export default function AdminDashboard() {
         { label: "Crear experiencia", href: "/admin/experiencias", icon: Sparkles },
         { label: "Crear paquete", href: "/admin/paquetes", icon: Package },
         { label: "Ver asesores", href: "/admin/asesores", icon: Users },
-        { label: "Ver registros", href: "/admin/logs", icon: Activity },
+        { label: "Ver registros", href: "/admin/registros", icon: Activity },
       ]
     : [
         { label: "Ver solicitudes pendientes", href: "/admin/reservas", icon: Clock },

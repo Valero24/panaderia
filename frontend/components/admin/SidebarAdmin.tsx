@@ -104,7 +104,7 @@ const menuItems = [
   },
   {
     title: "Registros",
-    href: "/admin/logs",
+    href: "/admin/registros",
     icon: History,
     roles: ["SUPERADMIN"],
   },

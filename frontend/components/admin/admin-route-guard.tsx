@@ -13,6 +13,7 @@ const superAdminOnlyPrefixes = [
   "/admin/caracteristicas",
   "/admin/sistema",
   "/admin/logs",
+  "/admin/registros",
   "/admin/imagenes",
   "/admin/disponibilidad",
   "/admin/alojamientos/crear",
