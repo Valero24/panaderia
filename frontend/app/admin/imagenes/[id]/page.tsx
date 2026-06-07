@@ -4,14 +4,16 @@ import { Input } from "@/components/ui/input";
 import AdminRoleGate from "@/components/admin/AdminRoleGate";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-export default function ImagenesPage({
+export default async function ImagenesPage({
   params,
 }: PageProps) {
+  const { id } = await params;
+
   return (
     <AdminRoleGate
       allow={["SUPERADMIN", "ADMIN"]}
@@ -37,7 +39,7 @@ export default function ImagenesPage({
         </h1>
 
         <p className="text-slate-500 mt-2">
-          Administra galería visual del alojamiento — ID {params.id}
+          Administra galería visual del alojamiento — ID {id}
         </p>
       </div>
 

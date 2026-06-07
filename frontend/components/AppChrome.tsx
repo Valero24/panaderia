@@ -1,14 +1,25 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 
-import FloatingWhatsapp from "@/components/FloatingWhatsapp";
 import Footer from "@/components/Footer";
-import MarketingScripts from "@/components/MarketingScripts";
 import Navbar from "@/components/Navbar";
-import SectionScrollNavigator from "@/components/SectionScrollNavigator";
 import { LanguageProvider } from "@/context/LanguageContext";
+
+const FloatingWhatsapp = dynamic(() => import("@/components/FloatingWhatsapp"), {
+  ssr: false,
+});
+const MarketingScripts = dynamic(() => import("@/components/MarketingScripts"), {
+  ssr: false,
+});
+const SectionScrollNavigator = dynamic(
+  () => import("@/components/SectionScrollNavigator"),
+  {
+    ssr: false,
+  }
+);
 
 const scrollSnapRoutes = new Set([
   "/",
@@ -24,8 +35,7 @@ const guidedScrollSections: Record<string, string[]> = {
     "home-alojamientos",
     "home-experiencias",
     "home-paquetes",
-    "home-respaldo",
-    "home-cta",
+    "site-footer",
   ],
   "/alojamientos": [
     "alojamientos-hero",
@@ -54,6 +64,16 @@ const guidedScrollSections: Record<string, string[]> = {
   ],
 };
 
+const guidedScrollOffsets: Record<string, Record<string, number>> = {
+  "/": {
+    "home-hero": 0,
+    "home-alojamientos": 104,
+    "home-experiencias": 104,
+    "home-paquetes": 104,
+    "site-footer": 104,
+  },
+};
+
 export default function AppChrome({
   children,
 }: {
@@ -65,17 +85,37 @@ export default function AppChrome({
   const isInternalRoute = Boolean(isAdminRoute || isStaffRoute);
   const showPublicChrome = !isAdminRoute && !isStaffRoute;
   const enableGuidedScroll = Boolean(pathname && scrollSnapRoutes.has(pathname));
+  const [isDesktopGuidedScroll, setIsDesktopGuidedScroll] = useState(false);
+
+  useEffect(() => {
+    if (!enableGuidedScroll) {
+      setIsDesktopGuidedScroll(false);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const updateDesktopGuidedScroll = () => {
+      setIsDesktopGuidedScroll(mediaQuery.matches);
+    };
+
+    updateDesktopGuidedScroll();
+    mediaQuery.addEventListener("change", updateDesktopGuidedScroll);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateDesktopGuidedScroll);
+    };
+  }, [enableGuidedScroll]);
 
   useEffect(() => {
     document.documentElement.classList.toggle(
       "public-guided-scroll",
-      enableGuidedScroll
+      isDesktopGuidedScroll
     );
 
     return () => {
       document.documentElement.classList.remove("public-guided-scroll");
     };
-  }, [enableGuidedScroll]);
+  }, [isDesktopGuidedScroll]);
 
   return (
     <LanguageProvider scope={isInternalRoute ? "admin" : "public"}>
@@ -84,12 +124,13 @@ export default function AppChrome({
 
       <main
         className={`flex-1 ${
-          enableGuidedScroll ? "public-guided-scroll-main" : ""
+          isDesktopGuidedScroll ? "public-guided-scroll-main" : ""
         }`}
       >
-        {enableGuidedScroll && pathname && (
+        {isDesktopGuidedScroll && pathname && (
           <SectionScrollNavigator
             sections={guidedScrollSections[pathname] || []}
+            sectionOffsets={guidedScrollOffsets[pathname]}
             maxSteps={pathname === "/" ? 1 : 2}
             respectSectionContent={pathname !== "/"}
           />

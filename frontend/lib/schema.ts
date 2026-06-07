@@ -28,6 +28,17 @@ type FeatureLike = {
   title?: string | null;
 };
 
+type PublicReviewSchemaInput = {
+  customerName?: string | null;
+  publicName?: string | null;
+  customerCountry?: string | null;
+  rating?: number | string | null;
+  title?: string | null;
+  comment?: string | null;
+  submittedAt?: string | Date | null;
+  createdAt?: string | Date | null;
+};
+
 type PublicProductSchemaInput = {
   id?: string | number | null;
   slug?: string | null;
@@ -58,6 +69,9 @@ type PublicProductSchemaInput = {
   schedule?: string | null;
   experienceCategory?: string | null;
   category?: string | null;
+  averageRating?: number | string | null;
+  reviewCount?: number | null;
+  reviews?: PublicReviewSchemaInput[] | null;
   features?: FeatureLike[] | null;
   components?: {
     title?: string | null;
@@ -81,6 +95,16 @@ type CollectionPageOptions = {
   url: string;
   image?: string | null;
 };
+
+export function canUseAggregateRating(target: {
+  reviewCount?: number | null;
+  averageRating?: number | string | null;
+}) {
+  const reviewCount = Number(target.reviewCount || 0);
+  const averageRating = Number(target.averageRating || 0);
+
+  return reviewCount >= 5 && Number.isFinite(averageRating) && averageRating > 0;
+}
 
 type FaqItem = {
   question?: string | null;
@@ -199,6 +223,80 @@ function offerSchema(item: PublicProductSchemaInput) {
     priceCurrency: item.currency || "COP",
     availability: "https://schema.org/InStock",
   });
+}
+
+export function buildAggregateRating(item: PublicProductSchemaInput) {
+  if (!canUseAggregateRating(item)) return undefined;
+
+  return schemaObject({
+    "@type": "AggregateRating",
+    ratingValue: Number(item.averageRating || 0).toFixed(1),
+    reviewCount: String(Number(item.reviewCount || 0)),
+    bestRating: "5",
+    worstRating: "1",
+  });
+}
+
+export function buildReviewSchema(reviews?: PublicReviewSchemaInput[] | null) {
+  const reviewItems = (reviews || [])
+    .filter((review) => {
+      const rating = Number(review.rating || 0);
+      return (
+        Number.isFinite(rating) &&
+        rating >= 1 &&
+        rating <= 5 &&
+        Boolean(sanitizeSeoText(review.comment))
+      );
+    })
+    .slice(0, 3)
+    .map((review) =>
+      schemaObject({
+        "@type": "Review",
+        name: review.title || undefined,
+        reviewBody: review.comment,
+        datePublished: schemaDate(review.submittedAt || review.createdAt),
+        author: {
+          "@type": "Person",
+          name: sanitizeReviewerName(review.publicName || review.customerName),
+        },
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: String(Number(review.rating || 0)),
+          bestRating: "5",
+          worstRating: "1",
+        },
+        publisher: {
+          "@type": "Organization",
+          name: brandName,
+        },
+      })
+    );
+
+  return reviewItems.length ? reviewItems : undefined;
+}
+
+function schemaDate(value?: string | Date | null) {
+  if (!value) return undefined;
+  if (value instanceof Date) return value.toISOString();
+  return sanitizeSeoText(value) || undefined;
+}
+
+export function sanitizeReviewerName(value?: string | null) {
+  const cleanName = sanitizeSeoText(value || "");
+  if (!cleanName) return "Viajero verificado";
+
+  const parts = cleanName
+    .split(/\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) return "Viajero verificado";
+  if (parts.length === 1) return parts[0];
+
+  const firstName = parts[0];
+  const initial = parts[1]?.charAt(0)?.toUpperCase();
+
+  return initial ? `${firstName} ${initial}.` : firstName;
 }
 
 function priceRangeSchema(item: PublicProductSchemaInput) {
@@ -375,9 +473,15 @@ export function buildLocalBusinessSchema() {
   });
 }
 
-export function buildLodgingBusinessSchema(property: PublicProductSchemaInput) {
+export function buildLodgingBusinessSchema(
+  property: PublicProductSchemaInput,
+  approvedReviews: PublicReviewSchemaInput[] = []
+) {
   const name = productName(property, "Alojamiento premium en Cartagena");
   const url = canonicalUrl(productPath("alojamientos", property));
+  // Review markup is emitted only when approved reviews are visible on detail pages.
+  const includeReviewMarkup =
+    canUseAggregateRating(property) && approvedReviews.length > 0;
 
   return schemaObject({
     "@context": "https://schema.org",
@@ -397,6 +501,8 @@ export function buildLodgingBusinessSchema(property: PublicProductSchemaInput) {
     amenityFeature: amenityFeatureSchema(property),
     additionalProperty: lodgingAdditionalProperties(property),
     priceRange: priceRangeSchema(property),
+    aggregateRating: includeReviewMarkup ? buildAggregateRating(property) : undefined,
+    review: includeReviewMarkup ? buildReviewSchema(approvedReviews) : undefined,
     provider: {
       "@type": "TravelAgency",
       name: brandName,
@@ -408,10 +514,14 @@ export function buildLodgingBusinessSchema(property: PublicProductSchemaInput) {
 
 export function buildTouristTripSchema(
   item: PublicProductSchemaInput,
+  approvedReviews: PublicReviewSchemaInput[] = [],
   basePath: "experiencias" | "paquetes" = "experiencias"
 ) {
   const name = productName(item, "Experiencia premium en Cartagena");
   const url = canonicalUrl(productPath(basePath, item));
+  // Review markup is emitted only when approved reviews are visible on detail pages.
+  const includeReviewMarkup =
+    canUseAggregateRating(item) && approvedReviews.length > 0;
 
   return schemaObject({
     "@context": "https://schema.org",
@@ -432,6 +542,8 @@ export function buildTouristTripSchema(
         }
       : undefined,
     itinerary: touristItinerarySchema(item),
+    aggregateRating: includeReviewMarkup ? buildAggregateRating(item) : undefined,
+    review: includeReviewMarkup ? buildReviewSchema(approvedReviews) : undefined,
     provider: {
       "@type": "TravelAgency",
       name: brandName,

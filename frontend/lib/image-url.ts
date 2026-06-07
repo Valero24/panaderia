@@ -4,7 +4,7 @@ export function isKnownBrokenImage(src: string) {
   return knownBrokenImageIds.some((id) => src.includes(id));
 }
 
-export function optimizedUnsplashUrl(src: string, width = 900) {
+export function optimizedUnsplashUrl(src: string, width = 900, quality = 70) {
   if (!src) return src;
 
   try {
@@ -16,7 +16,7 @@ export function optimizedUnsplashUrl(src: string, width = 900) {
 
     url.searchParams.set("auto", "format");
     url.searchParams.set("fit", "crop");
-    url.searchParams.set("q", "70");
+    url.searchParams.set("q", String(quality));
     url.searchParams.set("w", String(width));
 
     return url.toString();

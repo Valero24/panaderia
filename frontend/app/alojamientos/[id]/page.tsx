@@ -15,7 +15,10 @@ import {
   buildBreadcrumbSchema,
   buildFaqPageSchema,
   buildLodgingBusinessSchema,
+  canUseAggregateRating,
 } from "@/lib/schema";
+
+export const revalidate = 600;
 
 type PageProps = {
   params: Promise<{
@@ -48,6 +51,8 @@ type PropertySeo = {
   locationDescription?: string | null;
   guestRecommendations?: string | null;
   faq?: unknown;
+  averageRating?: number | string | null;
+  reviewCount?: number | null;
   images?: {
     url?: string | null;
     isPrimary?: boolean | null;
@@ -56,6 +61,17 @@ type PropertySeo = {
     name?: string | null;
     title?: string | null;
   }[];
+};
+
+type PublicReviewSeo = {
+  customerName?: string | null;
+  publicName?: string | null;
+  customerCountry?: string | null;
+  rating?: number | string | null;
+  title?: string | null;
+  comment?: string | null;
+  submittedAt?: string | null;
+  createdAt?: string | null;
 };
 
 const fallbackDescription =
@@ -79,7 +95,7 @@ function normalizeFaq(value: unknown) {
 async function getProperty(id: string): Promise<PropertySeo | null> {
   try {
     const response = await fetch(apiUrl(`/properties/${id}`), {
-      cache: "no-store",
+      next: { revalidate },
     });
 
     if (!response.ok) return null;
@@ -87,6 +103,23 @@ async function getProperty(id: string): Promise<PropertySeo | null> {
     return response.json();
   } catch {
     return null;
+  }
+}
+
+async function getApprovedReviews(property: PropertySeo): Promise<PublicReviewSeo[]> {
+  if (!canUseAggregateRating(property)) return [];
+
+  try {
+    const response = await fetch(apiUrl(`/reviews/public/PROPERTY/${property.id}`), {
+      next: { revalidate },
+    });
+
+    if (!response.ok) return [];
+
+    const reviews = await response.json();
+    return Array.isArray(reviews) ? reviews : [];
+  } catch {
+    return [];
   }
 }
 
@@ -160,6 +193,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
   const property = await getProperty(id);
+  const approvedReviews = property ? await getApprovedReviews(property) : [];
   const faqSchema = property
     ? buildFaqPageSchema(normalizeFaq(property.faq))
     : undefined;
@@ -169,7 +203,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       {property ? (
         <JsonLd
           data={[
-            buildLodgingBusinessSchema(property),
+            buildLodgingBusinessSchema(property, approvedReviews),
             buildBreadcrumbSchema([
               { name: "Home", url: "/" },
               { name: "Alojamientos", url: "/alojamientos" },

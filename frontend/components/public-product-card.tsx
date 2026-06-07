@@ -62,9 +62,9 @@ export default function PublicProductCard({
               fallbackSrc={fallbackImage}
               alt={title}
               fill
-              sizes="(min-width: 1280px) 350px, (min-width: 1024px) 30vw, (min-width: 768px) 50vw, 100vw"
+              sizes="(min-width: 1280px) 320px, (min-width: 1024px) 330px, (min-width: 768px) 50vw, 100vw"
               quality={72}
-              optimizeWidth={800}
+              optimizeWidth={640}
               className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
             />
             <div className="absolute left-4 top-4 rounded-md bg-white/90 px-3 py-1 text-xs font-medium text-[#0D2B52] shadow-sm backdrop-blur lg:left-2.5 lg:top-2.5 lg:px-2 lg:py-0.5 lg:text-[0.68rem]">

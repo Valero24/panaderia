@@ -3,14 +3,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 type PageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
-export default function DisponibilidadPage({
+export default async function DisponibilidadPage({
   params,
 }: PageProps) {
+  const { id } = await params;
+
   return (
     <div className="space-y-6">
       <div>
@@ -19,7 +21,7 @@ export default function DisponibilidadPage({
         </h1>
 
         <p className="text-slate-500 mt-2">
-          Bloqueos manuales y control de fechas — ID {params.id}
+          Bloqueos manuales y control de fechas — ID {id}
         </p>
       </div>
 

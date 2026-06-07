@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 type SectionScrollNavigatorProps = {
   sections: string[];
   navbarOffset?: number;
+  sectionOffsets?: Record<string, number>;
   minDesktopWidth?: number;
   debounceMs?: number;
   respectSectionContent?: boolean;
@@ -25,6 +26,8 @@ const normalScrollSelector = [
   ".lightbox",
   ".modal",
 ].join(",");
+
+const defaultSectionOffsets: Record<string, number> = {};
 
 function isEditableTarget(target: EventTarget | null) {
   return target instanceof HTMLElement && Boolean(target.closest(interactiveSelector));
@@ -50,30 +53,29 @@ function hasOpenOverlay() {
   );
 }
 
-function findClosestSectionIndex(sections: HTMLElement[], offset: number) {
-  const currentTop = window.scrollY + offset + 2;
-  let closestIndex = 0;
-  let closestDistance = Number.POSITIVE_INFINITY;
-
-  sections.forEach((section, index) => {
-    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-    const distance = Math.abs(sectionTop - currentTop);
-
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closestIndex = index;
-    }
-  });
-
-  return closestIndex;
+function getDocumentMaxScroll() {
+  return Math.max(
+    0,
+    document.documentElement.scrollHeight - window.innerHeight
+  );
 }
 
-function findCurrentSectionIndex(sections: HTMLElement[], offset: number) {
-  const currentTop = window.scrollY + offset + 2;
+function getClampedTargetTop(section: HTMLElement, offset: number) {
+  const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+  const targetTop = Math.max(0, Math.round(sectionTop - offset));
+
+  return Math.min(targetTop, getDocumentMaxScroll());
+}
+
+function findCurrentSectionIndex(
+  sections: HTMLElement[],
+  getTargetTop: (section: HTMLElement) => number
+) {
+  const currentTop = Math.round(window.scrollY) + 24;
   let currentIndex = 0;
 
   sections.forEach((section, index) => {
-    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+    const sectionTop = getTargetTop(section);
 
     if (sectionTop <= currentTop) {
       currentIndex = index;
@@ -116,6 +118,7 @@ function getWheelStepCount(delta: number) {
 export default function SectionScrollNavigator({
   sections,
   navbarOffset = 96,
+  sectionOffsets = defaultSectionOffsets,
   minDesktopWidth = 1024,
   debounceMs = 620,
   respectSectionContent = true,
@@ -130,47 +133,57 @@ export default function SectionScrollNavigator({
     null
   );
   const touchStartYRef = useRef<number | null>(null);
+  const isDesktopRef = useRef(false);
+  const sectionElementsRef = useRef<HTMLElement[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined" || sections.length < 2) return;
 
-    const getSectionElements = () =>
-      sections
+    const hydrateSectionElements = () => {
+      sectionElementsRef.current = sections
         .map((id) => document.getElementById(id))
         .filter((element): element is HTMLElement => Boolean(element));
+    };
 
-    const isDesktop = () =>
-      window.matchMedia(`(min-width: ${minDesktopWidth}px)`).matches;
+    const updateIsDesktop = () => {
+      isDesktopRef.current = window.matchMedia(
+        `(min-width: ${minDesktopWidth}px)`
+      ).matches;
+    };
+
+    hydrateSectionElements();
+    updateIsDesktop();
+
+    if (sectionElementsRef.current.length < 2) return;
 
     const getSectionOffset = (section: HTMLElement) => {
+      const configuredOffset = sectionOffsets[section.id];
+      if (Number.isFinite(configuredOffset)) {
+        return configuredOffset;
+      }
+
       const customOffset = Number(section.dataset.scrollOffset);
 
       return Number.isFinite(customOffset) ? customOffset : navbarOffset;
     };
 
     const scrollToSection = (section: HTMLElement) => {
-      const top =
-        section.getBoundingClientRect().top + window.scrollY - getSectionOffset(section);
-
       window.scrollTo({
-        top: Math.max(0, top),
+        top: getClampedTargetTop(section, getSectionOffset(section)),
         behavior: "smooth",
       });
     };
 
-    const getCurrentIndex = (
-      sectionElements: HTMLElement[],
-      direction: 1 | -1
-    ) =>
-      direction > 0
-        ? findCurrentSectionIndex(sectionElements, navbarOffset)
-        : findClosestSectionIndex(sectionElements, navbarOffset);
+    const getCurrentIndex = (sectionElements: HTMLElement[]) =>
+      findCurrentSectionIndex(sectionElements, (section) =>
+        getClampedTargetTop(section, getSectionOffset(section))
+      );
 
     const canNavigate = (direction: 1 | -1) => {
-      const sectionElements = getSectionElements();
+      const sectionElements = sectionElementsRef.current;
       if (sectionElements.length < 2) return false;
 
-      const currentIndex = getCurrentIndex(sectionElements, direction);
+      const currentIndex = getCurrentIndex(sectionElements);
       const currentSection = sectionElements[currentIndex];
 
       if (
@@ -190,10 +203,10 @@ export default function SectionScrollNavigator({
     };
 
     const navigate = (direction: 1 | -1, steps = 1) => {
-      const sectionElements = getSectionElements();
+      const sectionElements = sectionElementsRef.current;
       if (sectionElements.length < 2) return false;
 
-      const currentIndex = getCurrentIndex(sectionElements, direction);
+      const currentIndex = getCurrentIndex(sectionElements);
       const currentSection = sectionElements[currentIndex];
 
       if (
@@ -281,7 +294,7 @@ export default function SectionScrollNavigator({
     };
 
     const onWheel = (event: WheelEvent) => {
-      if (!isDesktop()) return;
+      if (!isDesktopRef.current) return;
       if (hasOpenOverlay()) return;
       if (isEditableTarget(event.target) || shouldUseNormalScroll(event.target)) return;
       if (event.ctrlKey || event.metaKey || Math.abs(event.deltaY) < 18) return;
@@ -298,12 +311,12 @@ export default function SectionScrollNavigator({
     };
 
     const onTouchStart = (event: TouchEvent) => {
-      if (!isDesktop() || hasOpenOverlay() || shouldUseNormalScroll(event.target)) return;
+      if (!isDesktopRef.current || hasOpenOverlay() || shouldUseNormalScroll(event.target)) return;
       touchStartYRef.current = event.touches[0]?.clientY ?? null;
     };
 
     const onTouchEnd = (event: TouchEvent) => {
-      if (!isDesktop()) return;
+      if (!isDesktopRef.current) return;
       if (hasOpenOverlay()) return;
       if (lockedRef.current || isEditableTarget(event.target) || shouldUseNormalScroll(event.target)) return;
       const startY = touchStartYRef.current;
@@ -317,6 +330,12 @@ export default function SectionScrollNavigator({
       navigate(distance > 0 ? 1 : -1);
     };
 
+    const onResize = () => {
+      updateIsDesktop();
+      hydrateSectionElements();
+    };
+
+    window.addEventListener("resize", onResize, { passive: true });
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
@@ -331,8 +350,9 @@ export default function SectionScrollNavigator({
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("resize", onResize);
     };
-  }, [debounceMs, maxSteps, minDesktopWidth, navbarOffset, respectSectionContent, sections]);
+  }, [debounceMs, maxSteps, minDesktopWidth, navbarOffset, respectSectionContent, sectionOffsets, sections]);
 
   return null;
 }

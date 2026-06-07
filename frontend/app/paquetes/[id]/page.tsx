@@ -24,6 +24,7 @@ import JsonLd from "@/components/JsonLd";
 import PackageBookingCard from "@/components/packages/package-booking-card";
 import BookingMoney from "@/components/BookingMoney";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import PublicReviewsSection from "@/components/reviews/PublicReviewsSection";
 import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
@@ -37,8 +38,14 @@ import {
   productSeoDescription,
   socialMetadata,
 } from "@/lib/seo";
-import { buildBreadcrumbSchema, buildTouristTripSchema } from "@/lib/schema";
+import {
+  buildBreadcrumbSchema,
+  buildTouristTripSchema,
+  canUseAggregateRating,
+} from "@/lib/schema";
 import type { DynamicTranslations, TranslatableEntity } from "@/lib/dynamic-translations";
+
+export const revalidate = 600;
 
 type PageProps = {
   params: Promise<{
@@ -64,6 +71,8 @@ type PackageItem = {
   itinerary?: string | null;
   policies?: string | null;
   recommendations?: string | null;
+  averageRating?: number | string | null;
+  reviewCount?: number | null;
   images?: {
     id?: number;
     url: string;
@@ -76,6 +85,17 @@ type PackageItem = {
   }[];
   components?: PackageComponent[];
   translations?: DynamicTranslations | null;
+};
+
+type PublicReviewSeo = {
+  customerName?: string | null;
+  publicName?: string | null;
+  customerCountry?: string | null;
+  rating?: number | string | null;
+  title?: string | null;
+  comment?: string | null;
+  submittedAt?: string | null;
+  createdAt?: string | null;
 };
 
 type PackageComponent = {
@@ -115,7 +135,7 @@ function hasText(value?: string | null) {
 async function getPackage(id: string): Promise<PackageItem | null> {
   try {
     const res = await fetch(apiUrl(`/packages/${id}`), {
-      cache: "no-store",
+      next: { revalidate },
     });
 
     if (!res.ok) return null;
@@ -129,13 +149,30 @@ async function getPackage(id: string): Promise<PackageItem | null> {
 async function getPackageExtras(id: string): Promise<ExtraService[]> {
   try {
     const res = await fetch(apiUrl(`/extras/package/${id}`), {
-      cache: "no-store",
+      next: { revalidate },
     });
 
     if (!res.ok) return [];
 
     const data = await res.json();
     return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+async function getApprovedReviews(item: PackageItem): Promise<PublicReviewSeo[]> {
+  if (!canUseAggregateRating(item)) return [];
+
+  try {
+    const res = await fetch(apiUrl(`/reviews/public/PACKAGE/${item.id}`), {
+      next: { revalidate },
+    });
+
+    if (!res.ok) return [];
+
+    const reviews = await res.json();
+    return Array.isArray(reviews) ? reviews : [];
   } catch {
     return [];
   }
@@ -271,6 +308,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
   const { id } = await params;
   const item = await getPackage(id);
   const extras = item ? await getPackageExtras(String(item.id)) : [];
+  const approvedReviews = item ? await getApprovedReviews(item) : [];
 
   if (!item) {
     return (
@@ -300,7 +338,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
       <JsonLd
         data={[
-          buildTouristTripSchema(item, "paquetes"),
+          buildTouristTripSchema(item, approvedReviews, "paquetes"),
           buildBreadcrumbSchema([
             { name: "Home", url: "/" },
             { name: "Paquetes", url: "/paquetes" },
@@ -588,6 +626,11 @@ export default async function PackageDetailPage({ params }: PageProps) {
                 </div>
               </CardContent>
             </Card>
+
+            <PublicReviewsSection
+              targetType="PACKAGE"
+              targetId={item.id}
+            />
           </div>
 
           <aside className="sticky top-24 lg:min-w-[360px] lg:max-w-[430px]">

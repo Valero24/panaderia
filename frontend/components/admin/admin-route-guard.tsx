@@ -7,6 +7,7 @@ const allowedRoles = new Set(["ADVISOR", "SUPERADMIN", "ADMIN"]);
 const superAdminOnlyPrefixes = [
   "/admin/asesores",
   "/admin/configuracion",
+  "/admin/opiniones",
   "/admin/pagos",
   "/admin/extras",
   "/admin/caracteristicas",

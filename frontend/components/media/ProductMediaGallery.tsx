@@ -73,9 +73,9 @@ function MediaPreview({
           src={item.url}
           alt={item.title || title}
           fill
-          sizes="(min-width: 1280px) 620px, (min-width: 1024px) 50vw, 100vw"
+          sizes="(min-width: 1280px) 580px, (min-width: 1024px) 50vw, 100vw"
           quality={74}
-          optimizeWidth={1200}
+          optimizeWidth={1100}
           className="premium-media object-cover transition duration-500 group-hover:scale-[1.03]"
         />
       )}

@@ -26,6 +26,7 @@ import { apiUrl } from "@/lib/api";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout, trackViewContent } from "@/lib/analytics";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import PublicReviewsSection from "@/components/reviews/PublicReviewsSection";
 import { formatMoneyByLanguage } from "@/lib/currency";
 import {
   getDynamicText,
@@ -588,6 +589,11 @@ export default function PropertyDetailPage({ params }: PageProps) {
                 </div>
               </section>
             )}
+
+            <PublicReviewsSection
+              targetType="PROPERTY"
+              targetId={property.id}
+            />
 
             {faqItems.length > 0 && (
               <section className="border-b border-[#D4AF37]/20 pb-10">

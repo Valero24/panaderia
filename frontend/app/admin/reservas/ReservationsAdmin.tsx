@@ -625,6 +625,92 @@ export default function ReservasPage() {
     }
   }
 
+  async function sendReviewRequest(requestId: string, bookingId: number) {
+    try {
+      setActionLoading(`${requestId}:review-request`);
+      setMessage("");
+
+      const token = localStorage.getItem("token");
+      const res = await fetch(apiUrl(`/reviews/admin/bookings/${bookingId}/send-request`), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setMessage(getApiMessage(data, "No se pudo enviar el link de reseña."));
+        return;
+      }
+
+      const fresh = await fetchRequestById(requestId);
+
+      if (fresh) {
+        replaceRequest(fresh);
+        setSelected(fresh);
+        void fetchRequestLogs(fresh.id);
+      }
+
+      if (data?.status === "already-sent") {
+        setMessage("El link de reseña ya habia sido enviado para esta reserva.");
+      } else if (data?.email === "sent") {
+        setMessage("Link de reseña enviado por correo.");
+      } else if (data?.whatsapp === "prepared") {
+        setMessage("Link de reseña preparado para WhatsApp. No se llamo ninguna API externa.");
+      } else {
+        setMessage(data?.reason || "Solicitud de reseña procesada.");
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage("Error de conexión enviando link de reseña.");
+    } finally {
+      setActionLoading("");
+    }
+  }
+
+  async function sendReviewReminder(requestId: string, bookingId: number) {
+    try {
+      setActionLoading(`${requestId}:review-reminder`);
+      setMessage("");
+
+      const token = localStorage.getItem("token");
+      const res = await fetch(apiUrl(`/reviews/admin/bookings/${bookingId}/send-reminder`), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setMessage(getApiMessage(data, "No se pudo enviar el recordatorio de reseña."));
+        return;
+      }
+
+      const fresh = await fetchRequestById(requestId);
+
+      if (fresh) {
+        replaceRequest(fresh);
+        setSelected(fresh);
+        void fetchRequestLogs(fresh.id);
+      }
+
+      if (data?.email === "sent") {
+        setMessage("Recordatorio de reseña enviado por correo.");
+      } else if (data?.whatsapp === "prepared") {
+        setMessage("Recordatorio de reseña preparado para WhatsApp. No se llamo ninguna API externa.");
+      } else {
+        setMessage(data?.reason || "Recordatorio de reseña procesado.");
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage("Error de conexión enviando recordatorio de reseña.");
+    } finally {
+      setActionLoading("");
+    }
+  }
+
   async function reassignRequest(requestId: string, advisorId: number) {
     try {
       setActionLoading(`${requestId}:reassign`);
@@ -815,6 +901,8 @@ export default function ReservasPage() {
       generatePaymentLink={generatePaymentLink}
       generateManualBooking={generateManualBooking}
       sendManualNotification={sendManualNotification}
+      sendReviewRequest={sendReviewRequest}
+      sendReviewReminder={sendReviewReminder}
       reassignRequest={reassignRequest}
       cancelRequest={cancelRequest}
     />

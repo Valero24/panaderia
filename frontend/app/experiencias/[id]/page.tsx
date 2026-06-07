@@ -10,6 +10,7 @@ import ExperienceBookingCard from "@/components/experiences/experience-booking-c
 import ExperienceSeoSections from "@/components/experiences/ExperienceSeoSections";
 import BookingMoney from "@/components/BookingMoney";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import PublicReviewsSection from "@/components/reviews/PublicReviewsSection";
 import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
@@ -27,8 +28,11 @@ import {
   buildBreadcrumbSchema,
   buildFaqPageSchema,
   buildTouristTripSchema,
+  canUseAggregateRating,
 } from "@/lib/schema";
 import type { DynamicTranslations } from "@/lib/dynamic-translations";
+
+export const revalidate = 600;
 
 type PageProps = {
   params: Promise<{
@@ -62,6 +66,8 @@ type Experience = {
   conditions?: string | null;
   faq?: unknown;
   experienceCategory?: string | null;
+  averageRating?: number | string | null;
+  reviewCount?: number | null;
   images?: {
     id?: number;
     url: string;
@@ -73,6 +79,17 @@ type Experience = {
     sortOrder?: number | null;
   }[];
   translations?: DynamicTranslations | null;
+};
+
+type PublicReviewSeo = {
+  customerName?: string | null;
+  publicName?: string | null;
+  customerCountry?: string | null;
+  rating?: number | string | null;
+  title?: string | null;
+  comment?: string | null;
+  submittedAt?: string | null;
+  createdAt?: string | null;
 };
 
 type ExtraService = {
@@ -92,7 +109,7 @@ const fallbackImage =
 async function getExperience(id: string): Promise<Experience | null> {
   try {
     const res = await fetch(apiUrl(`/experiences/${id}`), {
-      cache: "no-store",
+      next: { revalidate },
     });
 
     if (!res.ok) {
@@ -108,7 +125,7 @@ async function getExperience(id: string): Promise<Experience | null> {
 async function getExperienceExtras(id: string): Promise<ExtraService[]> {
   try {
     const res = await fetch(apiUrl(`/extras/experience/${id}`), {
-      cache: "no-store",
+      next: { revalidate },
     });
 
     if (!res.ok) {
@@ -117,6 +134,23 @@ async function getExperienceExtras(id: string): Promise<ExtraService[]> {
 
     const data = await res.json();
     return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+async function getApprovedReviews(experience: Experience): Promise<PublicReviewSeo[]> {
+  if (!canUseAggregateRating(experience)) return [];
+
+  try {
+    const res = await fetch(apiUrl(`/reviews/public/EXPERIENCE/${experience.id}`), {
+      next: { revalidate },
+    });
+
+    if (!res.ok) return [];
+
+    const reviews = await res.json();
+    return Array.isArray(reviews) ? reviews : [];
   } catch {
     return [];
   }
@@ -211,6 +245,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
   const { id } = await params;
   const experience = await getExperience(id);
   const extras = experience ? await getExperienceExtras(String(experience.id)) : [];
+  const approvedReviews = experience ? await getApprovedReviews(experience) : [];
   const faqSchema = experience
     ? buildFaqPageSchema(normalizeFaq(experience.faq))
     : undefined;
@@ -239,7 +274,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
       <JsonLd
         data={[
-          buildTouristTripSchema(experience, "experiencias"),
+          buildTouristTripSchema(experience, approvedReviews, "experiencias"),
           buildBreadcrumbSchema([
             { name: "Home", url: "/" },
             { name: "Experiencias", url: "/experiencias" },
@@ -307,6 +342,11 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
             </Card>
 
             <ExperienceSeoSections experience={experience} />
+
+            <PublicReviewsSection
+              targetType="EXPERIENCE"
+              targetId={experience.id}
+            />
           </div>
 
           <aside className="sticky top-6 lg:min-w-[360px] lg:max-w-[430px]">

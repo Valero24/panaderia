@@ -77,7 +77,14 @@ export type PreReservation = {
     customerName?: string | null;
     totalPrice?: number | null;
     status?: string | null;
+    checkIn?: string | null;
+    checkOut?: string | null;
     advisorName?: string | null;
+    reviewRequestSentAt?: string | null;
+    reviewSubmittedAt?: string | null;
+    reviewTokenExpiresAt?: string | null;
+    reviewReminderCount?: number | null;
+    lastReviewReminderAt?: string | null;
     billingLegalOrganizationType?: string | null;
     billingIdentificationDocumentType?: string | null;
     billingIdentificationNumber?: string | null;

@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import TranslatedText from "@/components/TranslatedText";
 
+export const revalidate = 3600;
+
 const pillars = [
   {
     title: "about.pillarPersonalized",

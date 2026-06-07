@@ -20,6 +20,7 @@ import {
   Tags,
   ReceiptText,
   Coins,
+  MessageSquare,
 } from "lucide-react";
 
 const menuItems = [
@@ -57,6 +58,12 @@ const menuItems = [
     title: "Facturas",
     href: "/admin/facturas",
     icon: ReceiptText,
+    roles: ["SUPERADMIN"],
+  },
+  {
+    title: "Opiniones",
+    href: "/admin/opiniones",
+    icon: MessageSquare,
     roles: ["SUPERADMIN"],
   },
   {

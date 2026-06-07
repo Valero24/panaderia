@@ -28,7 +28,7 @@ export type PublicFilter = {
   translations?: DynamicTranslations | null;
   icon?: string | null;
   category: string;
-  appliesTo: PublicProductType | "ALL";
+  appliesTo?: PublicProductType | "ALL";
   count: number;
 };
 
@@ -37,6 +37,7 @@ type PublicFilterPanelProps = {
   selectedSlugs: string[];
   onApply: (slugs: string[]) => void;
   resultLabel?: string;
+  initialFilters?: PublicFilter[];
 };
 
 export default function PublicFilterPanel({
@@ -44,14 +45,22 @@ export default function PublicFilterPanel({
   selectedSlugs,
   onApply,
   resultLabel,
+  initialFilters,
 }: PublicFilterPanelProps) {
   const { language, t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [filters, setFilters] = useState<PublicFilter[]>([]);
+  const [filters, setFilters] = useState<PublicFilter[]>(initialFilters || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (initialFilters) {
+      setFilters(initialFilters.filter((item) => item.count > 0));
+      setLoading(false);
+      setError("");
+      return;
+    }
+
     let cancelled = false;
 
     async function loadFilters() {
@@ -59,9 +68,7 @@ export default function PublicFilterPanel({
         setLoading(true);
         setError("");
 
-        const response = await fetch(apiUrl(`/public-filters?type=${productType}`), {
-          cache: "no-store",
-        });
+        const response = await fetch(apiUrl(`/public-filters?type=${productType}`));
         const data = await response.json();
 
         if (!response.ok) {
@@ -89,7 +96,7 @@ export default function PublicFilterPanel({
     return () => {
       cancelled = true;
     };
-  }, [productType, t]);
+  }, [initialFilters, productType, t]);
 
   const filtersBySlug = useMemo(() => {
     return new Map(filters.map((filter) => [filter.slug, filter]));

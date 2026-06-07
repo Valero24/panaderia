@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps, ReactNode } from "react";
+import { memo, type ComponentProps, type ReactNode } from "react";
 
 import PublicProductCard from "@/components/public-product-card";
 import TranslatedText from "@/components/TranslatedText";
@@ -19,7 +19,7 @@ type TranslatedHomeProductCardProps = Omit<
   descriptionFallback?: ReactNode;
 };
 
-export default function TranslatedHomeProductCard({
+function TranslatedHomeProductCard({
   item,
   titleField = "title",
   descriptionField,
@@ -47,6 +47,8 @@ export default function TranslatedHomeProductCard({
     />
   );
 }
+
+export default memo(TranslatedHomeProductCard);
 
 export function ValidationAssistedText() {
   return <TranslatedText k="shared.validationAssisted" />;

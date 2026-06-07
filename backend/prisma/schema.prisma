@@ -92,6 +92,13 @@ enum InvoicePaymentStatus {
   REFUNDED
 }
 
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  HIDDEN
+}
+
 enum PreReservationStatus {
   PENDING_ADVISOR
   ASSIGNED
@@ -220,6 +227,14 @@ model Property {
   locationDescription String?
   guestRecommendations String?
   faq                 Json?
+
+  //////////////////////////////////////////////////////
+  // REVIEW CACHE
+  //////////////////////////////////////////////////////
+
+  averageRating      Decimal @default(0) @db.Decimal(3, 2)
+  reviewCount        Int     @default(0)
+  ratingDistribution Json?
 
   //////////////////////////////////////////////////////
   // INTERNAL
@@ -370,6 +385,14 @@ model Experience {
   faq                 Json?
   experienceCategory  String?
 
+  //////////////////////////////////////////////////////
+  // REVIEW CACHE
+  //////////////////////////////////////////////////////
+
+  averageRating      Decimal @default(0) @db.Decimal(3, 2)
+  reviewCount        Int     @default(0)
+  ratingDistribution Json?
+
   images ExperienceImage[]
   extras ExtraService[]
 
@@ -422,6 +445,14 @@ model Package {
   policies        String?
   recommendations String?
   active          Boolean @default(true)
+
+  //////////////////////////////////////////////////////
+  // REVIEW CACHE
+  //////////////////////////////////////////////////////
+
+  averageRating      Decimal @default(0) @db.Decimal(3, 2)
+  reviewCount        Int     @default(0)
+  ratingDistribution Json?
 
   images     PackageImage[]
   extras     ExtraService[]
@@ -564,6 +595,12 @@ model Booking {
   cancellationReason         String?
   cancelledAt                DateTime?
   cancelledById              Int?
+  reviewToken                String?   @unique
+  reviewTokenExpiresAt       DateTime?
+  reviewRequestSentAt        DateTime?
+  reviewSubmittedAt          DateTime?
+  reviewReminderCount        Int       @default(0)
+  lastReviewReminderAt       DateTime?
 
   status BookingStatus @default(PENDING)
 
@@ -572,6 +609,7 @@ model Booking {
 
   payments Payment[]
   invoices Invoice[]
+  reviews  Review[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -579,6 +617,48 @@ model Booking {
   @@index([type, referenceId])
   @@index([checkIn, checkOut])
   @@index([preReservationId])
+  @@index([reviewToken])
+}
+
+model Review {
+  id Int @id @default(autoincrement())
+
+  bookingId Int @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  targetType BookingType
+  targetId   Int
+
+  customerName    String?
+  customerEmail   String?
+  customerPhone   String?
+  customerCountry String?
+  rating          Int
+  title           String?
+  comment         String
+  categoryRatings Json?
+  status          ReviewStatus @default(PENDING)
+  featured        Boolean      @default(false)
+
+  submittedAt DateTime @default(now())
+  approvedAt  DateTime?
+  approvedById Int?
+  approvedByName String?
+  rejectedAt  DateTime?
+  moderatedAt DateTime?
+  moderatedById Int?
+
+  publicName String?
+  source     String @default("POST_SERVICE")
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([targetType, targetId])
+  @@index([status])
+  @@index([featured])
+  @@index([submittedAt])
 }
 
 //////////////////////////////////////////////////////

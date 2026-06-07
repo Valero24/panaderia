@@ -328,4 +328,19 @@ export class MailService {
       ],
     });
   }
+
+  async sendReviewRequest(data: {
+    to: string;
+    subject: string;
+    html: string;
+    text: string;
+  }) {
+    return this.sendMail({
+      from: this.fromAddress(),
+      to: data.to,
+      subject: data.subject,
+      text: data.text,
+      html: data.html,
+    });
+  }
 }

@@ -103,7 +103,6 @@ export default function Navbar() {
               alt="Cartagena Tailored Travel"
               width={675}
               height={314}
-              priority
               sizes="(max-width: 640px) 150px, (max-width: 1024px) 170px, 190px"
               className={`h-auto w-full object-contain transition-all duration-300 ${
                 scrolled ? "lg:max-h-10" : "lg:max-h-12"

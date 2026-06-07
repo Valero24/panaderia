@@ -27,9 +27,9 @@ export default function MarketingScripts() {
         <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
-          <Script id="ga4-init" strategy="afterInteractive">
+          <Script id="ga4-init" strategy="lazyOnload">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
@@ -43,7 +43,7 @@ export default function MarketingScripts() {
 
       {META_PIXEL_ID && (
         <>
-          <Script id="meta-pixel-init" strategy="afterInteractive">
+          <Script id="meta-pixel-init" strategy="lazyOnload">
             {`
               !function(f,b,e,v,n,t,s)
               {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

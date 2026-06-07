@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Calculator, CheckCircle2, Clock, Copy, CreditCard, Download, Edit3, Eye, FileText, Gem, Mail, Phone, RefreshCw, Save, UserCheck, Users } from "lucide-react";
+import { Bell, Calculator, CheckCircle2, Clock, Copy, CreditCard, Download, Edit3, Eye, FileText, Gem, Mail, Phone, RefreshCw, Save, Star, UserCheck, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,6 +66,8 @@ export function RequestDetail({
   onGeneratePaymentLink,
   onGenerateManualBooking,
   onSendManualNotification,
+  onSendReviewRequest,
+  onSendReviewReminder,
   manualBookingResult,
   onReassign,
   onCancel,
@@ -85,6 +87,8 @@ export function RequestDetail({
     id: string,
     channel: "email" | "whatsapp"
   ) => void;
+  onSendReviewRequest: (id: string, bookingId: number) => void;
+  onSendReviewReminder: (id: string, bookingId: number) => void;
   manualBookingResult: any;
   onReassign: (id: string, advisorId: number) => void;
   onCancel: (id: string, reason: string) => void;
@@ -172,6 +176,34 @@ export function RequestDetail({
     actionLoading === `${request.id}:notify-whatsapp`;
   const emailSentAt = confirmedBooking?.confirmationEmailSentAt;
   const whatsappSentAt = confirmedBooking?.confirmationWhatsappSentAt;
+  const reviewRequestSentAt = confirmedBooking?.reviewRequestSentAt;
+  const reviewSubmittedAt = confirmedBooking?.reviewSubmittedAt;
+  const reviewServiceEnd =
+    confirmedBooking?.checkOut ||
+    request.checkOut ||
+    confirmedBooking?.checkIn ||
+    request.checkIn;
+  const reviewServiceFinished = reviewServiceEnd
+    ? new Date(reviewServiceEnd).getTime() <= Date.now()
+    : false;
+  const canSendReviewRequest =
+    currentUser?.role === "SUPERADMIN" &&
+    Boolean(confirmedBooking?.id) &&
+    (confirmedBooking?.status === "CONFIRMED" || request.status === "CONFIRMED") &&
+    reviewServiceFinished &&
+    !reviewRequestSentAt &&
+    !reviewSubmittedAt;
+  const canSendReviewReminder =
+    currentUser?.role === "SUPERADMIN" &&
+    Boolean(confirmedBooking?.id) &&
+    (confirmedBooking?.status === "CONFIRMED" || request.status === "CONFIRMED") &&
+    reviewServiceFinished &&
+    Boolean(reviewRequestSentAt) &&
+    !reviewSubmittedAt;
+  const isReviewRequestSending =
+    actionLoading === `${request.id}:review-request`;
+  const isReviewReminderSending =
+    actionLoading === `${request.id}:review-reminder`;
 
   useEffect(() => {
     const primary = primaryItem(request);
@@ -1404,6 +1436,102 @@ export function RequestDetail({
                           </p>
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {currentUser?.role === "SUPERADMIN" && confirmedBooking?.id && (
+                    <div className="space-y-3 rounded-xl border border-[#D4AF37]/20 bg-[#F8F6F2] p-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#B48A5A]">
+                          Opinion post-servicio
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600">
+                          Envia el enlace privado de resena solo cuando la
+                          reserva confirmada ya finalizo.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1 text-xs text-slate-500">
+                        <p>
+                          Estado:{" "}
+                          {reviewSubmittedAt
+                            ? `resena recibida ${date(reviewSubmittedAt)}`
+                            : reviewRequestSentAt
+                              ? `link enviado ${date(reviewRequestSentAt)}`
+                              : reviewServiceFinished
+                                ? "lista para solicitar opinion"
+                                : "servicio aun no finalizado"}
+                        </p>
+                        {reviewServiceEnd && (
+                          <p>Fecha final: {date(reviewServiceEnd)}</p>
+                        )}
+                        <p>
+                          Primer envio:{" "}
+                          {reviewRequestSentAt ? date(reviewRequestSentAt) : "pendiente"}
+                        </p>
+                        <p>
+                          Recordatorios:{" "}
+                          {Number(confirmedBooking.reviewReminderCount || 0)}
+                        </p>
+                        <p>
+                          Ultimo recordatorio:{" "}
+                          {confirmedBooking.lastReviewReminderAt
+                            ? date(confirmedBooking.lastReviewReminderAt)
+                            : "sin recordatorios"}
+                        </p>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          onSendReviewRequest(request.id, Number(confirmedBooking.id))
+                        }
+                        disabled={!canSendReviewRequest || isReviewRequestSending}
+                        className="min-h-11 w-full min-w-0 justify-center rounded-xl bg-white px-3 py-2 text-center text-xs leading-snug whitespace-normal sm:text-sm"
+                        title={
+                          reviewSubmittedAt
+                            ? "Esta reserva ya tiene una resena enviada"
+                            : reviewRequestSentAt
+                              ? "El link de resena ya fue enviado"
+                              : !reviewServiceFinished
+                                ? "Disponible cuando la reserva haya finalizado"
+                                : "Enviar link privado de resena"
+                        }
+                      >
+                        <Star className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="min-w-0 break-words">
+                          {isReviewRequestSending
+                            ? "Enviando..."
+                            : "Enviar link de reseña"}
+                        </span>
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          onSendReviewReminder(request.id, Number(confirmedBooking.id))
+                        }
+                        disabled={!canSendReviewReminder || isReviewReminderSending}
+                        className="min-h-11 w-full min-w-0 justify-center rounded-xl bg-white px-3 py-2 text-center text-xs leading-snug whitespace-normal sm:text-sm"
+                        title={
+                          reviewSubmittedAt
+                            ? "Esta reserva ya tiene una resena enviada"
+                            : !reviewRequestSentAt
+                              ? "Primero envia el link inicial"
+                              : !reviewServiceFinished
+                                ? "Disponible cuando la reserva haya finalizado"
+                                : "Enviar recordatorio de resena"
+                        }
+                      >
+                        <Bell className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="min-w-0 break-words">
+                          {isReviewReminderSending
+                            ? "Enviando..."
+                            : "Enviar recordatorio"}
+                        </span>
+                      </Button>
                     </div>
                   )}
 

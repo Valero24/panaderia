@@ -30,6 +30,7 @@ import { ProductFeaturesModule } from "./product-features/product-features.modul
 import { InvoicesModule } from "./invoices/invoices.module";
 import { ExchangeRatesModule } from "./exchange-rates/exchange-rates.module";
 import { CurrencyModule } from "./currency/currency.module";
+import { ReviewsModule } from "./reviews/reviews.module";
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { CurrencyModule } from "./currency/currency.module";
     InvoicesModule,
     ExchangeRatesModule,
     CurrencyModule,
+    ReviewsModule,
   ],
 
   controllers: [AppController],

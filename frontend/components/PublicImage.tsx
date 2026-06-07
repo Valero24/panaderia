@@ -12,6 +12,7 @@ type PublicImageProps = Omit<ImageProps, "src"> & {
   src: string;
   fallbackSrc?: string;
   optimizeWidth?: number;
+  optimizeQuality?: number;
 };
 
 const defaultFallback =
@@ -21,15 +22,19 @@ export default function PublicImage({
   src,
   fallbackSrc = defaultFallback,
   optimizeWidth = 900,
+  optimizeQuality,
   ...props
 }: PublicImageProps) {
   const [failed, setFailed] = useState(false);
   const imageSrc = failed || isKnownBrokenImage(src) ? fallbackSrc : src;
+  const remoteQuality =
+    optimizeQuality ?? (typeof props.quality === "number" ? props.quality : 70);
 
   return (
     <Image
       {...props}
-      src={optimizedUnsplashUrl(imageSrc, optimizeWidth)}
+      src={optimizedUnsplashUrl(imageSrc, optimizeWidth, remoteQuality)}
+      decoding={props.decoding || "async"}
       onError={() => setFailed(true)}
     />
   );

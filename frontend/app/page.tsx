@@ -9,14 +9,15 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import ProductCarousel from "@/components/home/ProductCarousel";
 import JsonLd from "@/components/JsonLd";
+import LazyProductCarousel from "@/components/home/LazyProductCarousel";
 import MoneyText from "@/components/MoneyText";
 import TranslatedHomeProductCard from "@/components/home/TranslatedHomeProductCard";
 import TranslatedText from "@/components/TranslatedText";
 import TrackedLink from "@/components/TrackedLink";
 import { apiUrl } from "@/lib/api";
 import type { DynamicTranslations } from "@/lib/dynamic-translations";
+import { optimizedUnsplashUrl } from "@/lib/image-url";
 import {
   experiencePublicPath,
   packagePublicPath,
@@ -25,7 +26,7 @@ import {
 import { canonicalUrl, socialMetadata, siteUrl } from "@/lib/seo";
 import { buildLocalBusinessSchema, buildWebsiteSchema } from "@/lib/schema";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const homeTitle = "Cartagena Tailored Travel | Luxury Travel in Cartagena";
 const homeDescription =
@@ -110,6 +111,8 @@ const experienceFallback =
   "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=900";
 const packageFallback =
   "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=900";
+const heroImage =
+  "https://images.unsplash.com/photo-1566073771259-6a8506099945";
 
 function primaryImage(
   item: {
@@ -138,15 +141,14 @@ function primaryImage(
 async function fetchList<T>(path: string): Promise<T[]> {
   try {
     const res = await fetch(apiUrl(path), {
-      cache: "no-store",
+      next: { revalidate },
     });
 
     if (!res.ok) return [];
 
     const data = await res.json();
     return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error(error);
+  } catch {
     return [];
   }
 }
@@ -187,20 +189,20 @@ export default async function HomePage() {
   return (
     <main className="bg-[#F8F6F1]">
       <JsonLd data={[buildWebsiteSchema(), buildLocalBusinessSchema()]} />
-      <section id="home-hero" data-scroll-section className="relative min-h-[640px] overflow-hidden lg:min-h-[calc(100vh-96px)]">
+      <section id="home-hero" data-scroll-section className="relative min-h-[520px] overflow-hidden sm:min-h-[600px] lg:min-h-[calc(100vh-96px)]">
         <Image
-          src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600"
+          src={optimizedUnsplashUrl(heroImage, 1200, 62)}
           alt="Luxury stay in Cartagena"
           fill
           priority
           fetchPriority="high"
           sizes="100vw"
-          quality={75}
+          quality={62}
           className="absolute inset-0 object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/20" />
 
-        <div className="relative z-10 mx-auto flex min-h-[640px] max-w-7xl items-center px-5 py-12 sm:px-6 lg:min-h-[calc(100vh-96px)] lg:px-8 lg:py-14">
+        <div className="relative z-10 mx-auto flex min-h-[520px] max-w-7xl items-center px-5 py-8 sm:min-h-[600px] sm:px-6 lg:min-h-[calc(100vh-96px)] lg:px-8 lg:py-14">
           <div className="max-w-[900px] premium-reveal-slow">
             <p className="mb-4 max-w-4xl text-xs uppercase tracking-[0.32em] text-[#D4AF37] md:text-sm md:tracking-[0.35em]">
               <TranslatedText k="home.eyebrow" />
@@ -462,7 +464,7 @@ function ProductSection({
           </TrackedLink>
         </div>
 
-        {children && <ProductCarousel>{children}</ProductCarousel>}
+        {children && <LazyProductCarousel>{children}</LazyProductCarousel>}
       </div>
     </section>
   );
