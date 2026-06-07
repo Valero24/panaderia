@@ -231,6 +231,18 @@ export class ExperiencesService {
         active: data.active ?? true,
         policies: data.policies?.trim() || null,
         recommendations: data.recommendations?.trim() || null,
+        seoTitle: data.seoTitle?.trim() || null,
+        seoDescription: data.seoDescription?.trim() || null,
+        seoContent: data.seoContent?.trim() || null,
+        itinerary: data.itinerary?.trim() || null,
+        included: data.included?.trim() || null,
+        notIncluded: data.notIncluded?.trim() || null,
+        meetingPoint: data.meetingPoint?.trim() || null,
+        durationDescription: data.durationDescription?.trim() || null,
+        schedule: data.schedule?.trim() || null,
+        conditions: data.conditions?.trim() || null,
+        faq: data.faq || undefined,
+        experienceCategory: data.experienceCategory?.trim() || null,
         images: this.mapImages(data.images),
       },
       include: { images: true },
@@ -283,6 +295,17 @@ export class ExperiencesService {
       "mainImage",
       "policies",
       "recommendations",
+      "seoTitle",
+      "seoDescription",
+      "seoContent",
+      "itinerary",
+      "included",
+      "notIncluded",
+      "meetingPoint",
+      "durationDescription",
+      "schedule",
+      "conditions",
+      "experienceCategory",
     ] as const) {
       if (data[key] !== undefined) {
         nextData[key] =
@@ -298,6 +321,10 @@ export class ExperiencesService {
 
     if (data.translations !== undefined) {
       nextData.translations = normalizeTranslations(data.translations);
+    }
+
+    if (data.faq !== undefined) {
+      nextData.faq = data.faq;
     }
 
     if (data.maxGuests !== undefined) {

@@ -377,6 +377,24 @@ export class PropertiesService {
         seoDescription:
           data.seoDescription || null,
 
+        seoKeywords:
+          data.seoKeywords || null,
+
+        seoContent:
+          data.seoContent || null,
+
+        nearbyAttractions:
+          data.nearbyAttractions || null,
+
+        locationDescription:
+          data.locationDescription || null,
+
+        guestRecommendations:
+          data.guestRecommendations || null,
+
+        faq:
+          data.faq || undefined,
+
         // INTERNAL
         internalNotes:
           data.internalNotes || null,
@@ -628,6 +646,42 @@ export class PropertiesService {
     )
       payload.seoDescription =
         data.seoDescription;
+
+    if (
+      data.seoKeywords !== undefined
+    )
+      payload.seoKeywords =
+        data.seoKeywords;
+
+    if (
+      data.seoContent !== undefined
+    )
+      payload.seoContent =
+        data.seoContent;
+
+    if (
+      data.nearbyAttractions !==
+      undefined
+    )
+      payload.nearbyAttractions =
+        data.nearbyAttractions;
+
+    if (
+      data.locationDescription !==
+      undefined
+    )
+      payload.locationDescription =
+        data.locationDescription;
+
+    if (
+      data.guestRecommendations !==
+      undefined
+    )
+      payload.guestRecommendations =
+        data.guestRecommendations;
+
+    if (data.faq !== undefined)
+      payload.faq = data.faq;
 
     if (
       data.internalNotes !==

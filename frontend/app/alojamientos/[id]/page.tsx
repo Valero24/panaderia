@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
 
+import JsonLd from "@/components/JsonLd";
 import PropertyDetailClient from "./PropertyDetailClient";
 import { apiUrl } from "@/lib/api";
-import { absoluteTitle, metaDescription, pageTitle } from "@/lib/seo";
+import {
+  absoluteTitle,
+  canonicalUrl,
+  defaultOgImage,
+  metaDescription,
+  pageTitle,
+  socialMetadata,
+} from "@/lib/seo";
+import {
+  buildBreadcrumbSchema,
+  buildFaqPageSchema,
+  buildLodgingBusinessSchema,
+} from "@/lib/schema";
 
 type PageProps = {
   params: Promise<{
@@ -20,16 +33,48 @@ type PropertySeo = {
   area?: string | null;
   maxGuests?: number | null;
   maxCapacity?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  pricePerNight?: number | null;
+  basePrice?: number | null;
+  currency?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  seoKeywords?: string | null;
+  seoContent?: string | null;
+  nearbyAttractions?: string | null;
+  locationDescription?: string | null;
+  guestRecommendations?: string | null;
+  faq?: unknown;
   images?: {
     url?: string | null;
     isPrimary?: boolean | null;
+  }[];
+  features?: {
+    name?: string | null;
+    title?: string | null;
   }[];
 };
 
 const fallbackDescription =
   "Luxury villa in Cartagena with premium amenities, personalized assistance and strategic location.";
+
+function normalizeFaq(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) =>
+      typeof item === "object" && item !== null
+        ? (item as { question?: string | null; answer?: string | null })
+        : null
+    )
+    .filter(
+      (item): item is { question?: string | null; answer?: string | null } =>
+        Boolean(item?.question?.trim() && item?.answer?.trim())
+    );
+}
 
 async function getProperty(id: string): Promise<PropertySeo | null> {
   try {
@@ -49,7 +94,7 @@ function primaryImage(property: PropertySeo | null) {
   return (
     property?.images?.find((image) => image.isPrimary)?.url ||
     property?.images?.[0]?.url ||
-    "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=1200"
+    defaultOgImage.url
   );
 }
 
@@ -64,49 +109,80 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const location = [property.area, property.city].filter(Boolean).join(", ");
   const title = pageTitle(property.seoTitle || property.title || "Alojamiento premium");
   const capacity = property.maxGuests || property.maxCapacity;
-  const descriptionSource =
-    property.seoDescription || property.shortDescription || property.description || "";
-  const descriptionDetails = [
-    descriptionSource,
-    location ? `Location: ${location}.` : "",
-    capacity ? `Capacity up to ${capacity} guests.` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-  const description = metaDescription(descriptionDetails, fallbackDescription);
+  const location = [property.area, property.city].filter(Boolean).join(", ");
+  const description = property.seoDescription
+    ? metaDescription(property.seoDescription, fallbackDescription)
+    : metaDescription(
+        [
+          property.shortDescription || property.description || "",
+          location ? `Location: ${location}.` : "",
+          capacity ? `Capacity up to ${capacity} guests.` : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+        fallbackDescription
+      );
   const image = primaryImage(property);
+  const identifier = property.slug || property.id;
+  const path = `/alojamientos/${identifier}`;
+  const canonical = canonicalUrl(path);
+  const social = socialMetadata({
+    title: absoluteTitle(title),
+    description,
+    url: canonical,
+    image: {
+      url: image,
+      width: 1200,
+      height: 630,
+      alt: title,
+    },
+  });
 
   return {
     title: absoluteTitle(title),
     description,
+    keywords: property.seoKeywords
+      ? property.seoKeywords
+          .split(",")
+          .map((keyword) => keyword.trim())
+          .filter(Boolean)
+      : undefined,
     alternates: {
-      canonical: property.slug ? `/alojamientos/${property.slug}` : `/alojamientos/${property.id}`,
+      canonical,
     },
-    openGraph: {
-      title: absoluteTitle(title),
-      description,
-      type: "website",
-      images: [
-        {
-          url: image,
-          width: 1200,
-          height: 800,
-          alt: title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: absoluteTitle(title),
-      description,
-      images: [image],
-    },
+    openGraph: social.openGraph,
+    twitter: social.twitter,
   };
 }
 
-export default function PropertyDetailPage({ params }: PageProps) {
-  return <PropertyDetailClient params={params} />;
+export default async function PropertyDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const property = await getProperty(id);
+  const faqSchema = property
+    ? buildFaqPageSchema(normalizeFaq(property.faq))
+    : undefined;
+
+  return (
+    <>
+      {property ? (
+        <JsonLd
+          data={[
+            buildLodgingBusinessSchema(property),
+            buildBreadcrumbSchema([
+              { name: "Home", url: "/" },
+              { name: "Alojamientos", url: "/alojamientos" },
+              {
+                name: property.title || "Alojamiento premium",
+                url: `/alojamientos/${property.slug || property.id}`,
+              },
+            ]),
+            ...(faqSchema ? [faqSchema] : []),
+          ]}
+        />
+      ) : null}
+      <PropertyDetailClient params={params} />
+    </>
+  );
 }

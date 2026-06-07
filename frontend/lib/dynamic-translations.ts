@@ -52,6 +52,24 @@ export function getDynamicText(
   return toSafeText(baseValue);
 }
 
+export function getDynamicValue(
+  entity: TranslatableEntity | null | undefined,
+  field: string,
+  language: Language,
+  fallback?: unknown
+) {
+  const baseValue = fallback ?? entity?.[field];
+
+  if (language !== "es") {
+    const translated = entity?.translations?.[language]?.[field];
+    if (translated !== null && translated !== undefined) {
+      return translated;
+    }
+  }
+
+  return baseValue;
+}
+
 export function getTranslatedField(
   entity: TranslatableEntity | null | undefined,
   field: string,

@@ -1,31 +1,26 @@
 import type { Metadata } from "next";
 
+import { canonicalUrl, socialMetadata } from "@/lib/seo";
+
+const title = "About Cartagena Tailored Travel";
+const description =
+  "Agency specialized in luxury tourism, private tours and premium accommodations in Cartagena.";
+const social = socialMetadata({
+  title,
+  description,
+  url: canonicalUrl("/nosotros"),
+});
+
 export const metadata: Metadata = {
   title: {
-    absolute: "About Cartagena Tailored Travel",
+    absolute: title,
   },
-  description:
-    "Agency specialized in luxury tourism, private tours and premium accommodations in Cartagena.",
-  openGraph: {
-    title: "About Cartagena Tailored Travel",
-    description:
-      "Agency specialized in luxury tourism, private tours and premium accommodations in Cartagena.",
-    images: [
-      {
-        url: "/branding/LOGO-12.png",
-        width: 1200,
-        height: 630,
-        alt: "Cartagena Tailored Travel",
-      },
-    ],
+  description,
+  alternates: {
+    canonical: canonicalUrl("/nosotros"),
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "About Cartagena Tailored Travel",
-    description:
-      "Agency specialized in luxury tourism, private tours and premium accommodations in Cartagena.",
-    images: ["/branding/LOGO-12.png"],
-  },
+  openGraph: social.openGraph,
+  twitter: social.twitter,
 };
 
 export default function NosotrosLayout({

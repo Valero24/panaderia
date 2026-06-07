@@ -19,26 +19,28 @@ export default function ExperienceTranslationsStep({
 }: ExperienceTranslationsStepProps) {
   return (
     <TranslationEditor
+      title="Traducciones de la experiencia"
+      description="El espanol se edita en los campos principales. Completa EN, FR, PT e IT solo cuando tengas una version revisada; si queda vacio, el sitio usara espanol."
       fields={[
-        { key: "title", label: "Título", baseValue: form.title },
+        { key: "title", label: "Titulo", baseValue: form.title },
         {
           key: "shortDescription",
-          label: "Descripción corta",
+          label: "Descripcion corta",
           type: "textarea",
           baseValue: form.shortDescription,
         },
         {
           key: "description",
-          label: "Descripción completa",
+          label: "Descripcion completa",
           type: "textarea",
           baseValue: form.description,
         },
-        { key: "location", label: "Ubicación", baseValue: form.location },
-        { key: "duration", label: "Duración", baseValue: form.duration },
-        { key: "category", label: "Categoría", baseValue: form.category },
+        { key: "location", label: "Ubicacion", baseValue: form.location },
+        { key: "duration", label: "Duracion", baseValue: form.duration },
+        { key: "category", label: "Categoria", baseValue: form.category },
         {
           key: "policies",
-          label: "Políticas",
+          label: "Politicas",
           type: "textarea",
           baseValue: form.policies,
         },
@@ -47,6 +49,72 @@ export default function ExperienceTranslationsStep({
           label: "Recomendaciones",
           type: "textarea",
           baseValue: form.recommendations,
+        },
+        { key: "seoTitle", label: "Titulo SEO", baseValue: form.seoTitle },
+        {
+          key: "seoDescription",
+          label: "Meta descripcion",
+          type: "textarea",
+          baseValue: form.seoDescription,
+        },
+        {
+          key: "seoContent",
+          label: "Contenido SEO extendido",
+          type: "textarea",
+          baseValue: form.seoContent,
+        },
+        {
+          key: "itinerary",
+          label: "Itinerario / que vivira",
+          type: "textarea",
+          baseValue: form.itinerary,
+        },
+        {
+          key: "included",
+          label: "Incluye",
+          type: "textarea",
+          baseValue: form.included,
+        },
+        {
+          key: "notIncluded",
+          label: "No incluye",
+          type: "textarea",
+          baseValue: form.notIncluded,
+        },
+        {
+          key: "meetingPoint",
+          label: "Punto de encuentro",
+          type: "textarea",
+          baseValue: form.meetingPoint,
+        },
+        {
+          key: "durationDescription",
+          label: "Duracion y horarios",
+          type: "textarea",
+          baseValue: form.durationDescription,
+        },
+        {
+          key: "schedule",
+          label: "Horario",
+          type: "textarea",
+          baseValue: form.schedule,
+        },
+        {
+          key: "conditions",
+          label: "Condiciones",
+          type: "textarea",
+          baseValue: form.conditions,
+        },
+        {
+          key: "faq",
+          label: "Preguntas frecuentes JSON",
+          type: "textarea",
+          baseValue: form.faq,
+        },
+        {
+          key: "experienceCategory",
+          label: "Categoria SEO",
+          baseValue: form.experienceCategory,
         },
       ]}
       value={form.translations}

@@ -1,33 +1,40 @@
 import type { Metadata } from "next";
 
+import JsonLd from "@/components/JsonLd";
+import { canonicalUrl, socialMetadata } from "@/lib/seo";
+import { buildCollectionPageSchema } from "@/lib/schema";
+
+const title = "Private Tours & Experiences in Cartagena";
+const description =
+  "Luxury experiences, yacht rentals, gastronomy and exclusive tours in Cartagena.";
+const social = socialMetadata({
+  title,
+  description,
+  url: canonicalUrl("/experiencias"),
+  image: {
+    url: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200",
+    width: 1200,
+    height: 630,
+    alt: "Premium experience in Cartagena",
+  },
+});
+const collectionSchema = buildCollectionPageSchema({
+  name: title,
+  description,
+  url: "/experiencias",
+  image: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200",
+});
+
 export const metadata: Metadata = {
   title: {
-    absolute: "Private Tours & Experiences in Cartagena",
+    absolute: title,
   },
-  description:
-    "Luxury experiences, yacht rentals, gastronomy and exclusive tours in Cartagena.",
-  openGraph: {
-    title: "Private Tours & Experiences in Cartagena",
-    description:
-      "Luxury experiences, yacht rentals, gastronomy and exclusive tours in Cartagena.",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200",
-        width: 1600,
-        height: 900,
-        alt: "Experiencia premium en Cartagena",
-      },
-    ],
+  description,
+  alternates: {
+    canonical: canonicalUrl("/experiencias"),
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Private Tours & Experiences in Cartagena",
-    description:
-      "Luxury experiences, yacht rentals, gastronomy and exclusive tours in Cartagena.",
-    images: [
-      "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200",
-    ],
-  },
+  openGraph: social.openGraph,
+  twitter: social.twitter,
 };
 
 export default function ExperienciasLayout({
@@ -35,5 +42,10 @@ export default function ExperienciasLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <JsonLd data={collectionSchema} />
+      {children}
+    </>
+  );
 }

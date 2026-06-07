@@ -1,33 +1,26 @@
 import type { Metadata } from "next";
 
+import { canonicalUrl, socialMetadata } from "@/lib/seo";
+
+const title = "Contact Cartagena Tailored Travel";
+const description =
+  "Get in touch with our advisors to plan your luxury experience in Cartagena.";
+const social = socialMetadata({
+  title,
+  description,
+  url: canonicalUrl("/contacto"),
+});
+
 export const metadata: Metadata = {
   title: {
-    absolute: "Contact Cartagena Tailored Travel",
+    absolute: title,
   },
-  description:
-    "Get in touch with our advisors to plan your luxury experience in Cartagena.",
-  openGraph: {
-    title: "Contact Cartagena Tailored Travel",
-    description:
-      "Get in touch with our advisors to plan your luxury experience in Cartagena.",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&q=70&w=1200",
-        width: 1600,
-        height: 900,
-        alt: "Cartagena premium travel assistance",
-      },
-    ],
+  description,
+  alternates: {
+    canonical: canonicalUrl("/contacto"),
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Contact Cartagena Tailored Travel",
-    description:
-      "Get in touch with our advisors to plan your luxury experience in Cartagena.",
-    images: [
-      "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&q=70&w=1200",
-    ],
-  },
+  openGraph: social.openGraph,
+  twitter: social.twitter,
 };
 
 export default function ContactoLayout({

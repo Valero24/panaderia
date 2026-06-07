@@ -2,12 +2,20 @@ import { cleanPublicCopy } from "@/lib/public-copy";
 
 const brand = "Cartagena Tailored Travel";
 const defaultSeoLocale = "es";
-export const siteUrl = "https://cartagenatailoredtravel.com";
+const fallbackSiteUrl = "https://panaderia-psi.vercel.app";
+
+function normalizeSiteUrl(value?: string | null) {
+  const cleanValue = value?.trim().replace(/\/+$/, "");
+
+  return cleanValue || fallbackSiteUrl;
+}
+
+export const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 export const defaultOgImage = {
-  url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1200",
+  url: `${siteUrl}/og/cartagena-tailored-travel.jpg`,
   width: 1200,
   height: 630,
-  alt: "Luxury travel experience in Cartagena",
+  alt: "Cartagena Tailored Travel luxury travel in Cartagena",
 };
 
 type SeoLocale = "es" | "en" | "fr" | "pt" | "it";
@@ -23,22 +31,83 @@ type SocialMetadataOptions = {
   title: string;
   description: string;
   url?: string;
-  image?: typeof defaultOgImage;
+  image?: string | typeof defaultOgImage;
+  locale?: string;
+  type?: "article" | "profile" | "website";
 };
 
+export function absoluteUrl(pathOrUrl?: string | null) {
+  const value = String(pathOrUrl || "").trim();
+
+  if (!value) return siteUrl;
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  if (value.startsWith("//")) {
+    return `https:${value}`;
+  }
+
+  return `${siteUrl}${value.startsWith("/") ? value : `/${value}`}`;
+}
+
+export function canonicalUrl(pathOrUrl?: string | null) {
+  const absolute = absoluteUrl(pathOrUrl);
+
+  try {
+    const url = new URL(absolute);
+    url.search = "";
+    url.hash = "";
+
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return siteUrl;
+  }
+}
+
+export function buildHreflangAlternates(pathOrUrl?: string | null) {
+  const canonical = canonicalUrl(pathOrUrl);
+
+  return {
+    canonical,
+    languages: {
+      "x-default": canonicalUrl("/"),
+    },
+  };
+}
+
+export function sanitizeSeoText(value?: string | null) {
+  const raw = String(value || "");
+
+  if (!raw || raw === "undefined" || raw === "null" || raw === "[object Object]") {
+    return "";
+  }
+
+  return cleanPublicCopy(raw)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function pageTitle(title: string) {
-  const cleanTitle = cleanPublicCopy(title).trim();
+  const cleanTitle = sanitizeSeoText(title);
   return cleanTitle || brand;
 }
 
 export function absoluteTitle(title: string) {
-  const cleanTitle = cleanPublicCopy(title).trim();
-  return cleanTitle ? `${cleanTitle} | ${brand}` : brand;
+  const cleanTitle = sanitizeSeoText(title);
+  if (!cleanTitle) return brand;
+
+  return cleanTitle.toLowerCase().includes(brand.toLowerCase())
+    ? cleanTitle
+    : `${cleanTitle} | ${brand}`;
 }
 
 export function metaDescription(value: string, fallback: string) {
-  const cleanValue = cleanPublicCopy(value).replace(/\s+/g, " ").trim();
-  const cleanFallback = cleanPublicCopy(fallback).replace(/\s+/g, " ").trim();
+  const cleanValue = sanitizeSeoText(value);
+  const cleanFallback = sanitizeSeoText(fallback);
   const description = cleanValue || cleanFallback;
 
   return description.length > 160
@@ -55,9 +124,7 @@ export function productSeoDescription({
   fallback: string;
   location?: string | null;
 }) {
-  const cleanDescription = cleanPublicCopy(description || "")
-    .replace(/\s+/g, " ")
-    .trim();
+  const cleanDescription = sanitizeSeoText(description || "");
 
   if (cleanDescription) {
     return metaDescription(cleanDescription, fallback);
@@ -100,25 +167,41 @@ export function socialMetadata({
   description,
   url = siteUrl,
   image = defaultOgImage,
+  locale = "es_CO",
+  type = "website",
 }: SocialMetadataOptions) {
   const cleanTitle = pageTitle(title);
   const cleanDescription = metaDescription(description, brand);
+  const socialImage =
+    typeof image === "string"
+      ? {
+          url: absoluteUrl(image),
+          width: 1200,
+          height: 630,
+          alt: cleanTitle,
+        }
+      : {
+          ...image,
+          url: absoluteUrl(image.url),
+          alt: image.alt || cleanTitle,
+        };
+  const absoluteSocialUrl = absoluteUrl(url);
 
   return {
     openGraph: {
       title: cleanTitle,
       description: cleanDescription,
-      url,
+      url: absoluteSocialUrl,
       siteName: brand,
-      images: [image],
-      locale: "es_CO",
-      type: "website",
+      locale,
+      type,
+      images: [socialImage],
     },
     twitter: {
       card: "summary_large_image" as const,
       title: cleanTitle,
       description: cleanDescription,
-      images: [image.url],
+      images: [socialImage.url],
     },
   };
 }

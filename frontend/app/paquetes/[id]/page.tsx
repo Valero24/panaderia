@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import JsonLd from "@/components/JsonLd";
 import PackageBookingCard from "@/components/packages/package-booking-card";
 import BookingMoney from "@/components/BookingMoney";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
@@ -28,7 +29,15 @@ import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
 import { cleanPublicCopy } from "@/lib/public-copy";
-import { absoluteTitle, pageTitle, productSeoDescription } from "@/lib/seo";
+import {
+  absoluteTitle,
+  canonicalUrl,
+  defaultOgImage,
+  pageTitle,
+  productSeoDescription,
+  socialMetadata,
+} from "@/lib/seo";
+import { buildBreadcrumbSchema, buildTouristTripSchema } from "@/lib/schema";
 import type { DynamicTranslations, TranslatableEntity } from "@/lib/dynamic-translations";
 
 type PageProps = {
@@ -41,6 +50,7 @@ type PackageItem = {
   id: number;
   slug?: string | null;
   title: string;
+  seoDescription?: string | null;
   shortDescription: string;
   description: string;
   duration: string;
@@ -93,10 +103,10 @@ type ExtraService = {
   translations?: DynamicTranslations | null;
 };
 
-const fallbackImage =
-  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=1200";
 const fallbackDescription =
   "Premium travel package in Cartagena combining curated stays, private experiences and personalized assistance.";
+const fallbackImage =
+  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=1200";
 
 function hasText(value?: string | null) {
   return Boolean(value && cleanPublicCopy(value).trim());
@@ -136,7 +146,7 @@ function primaryImage(item: PackageItem | null) {
     item?.images?.find((image) => image.isPrimary)?.url ||
     item?.images?.[0]?.url ||
     item?.mainImage ||
-    fallbackImage
+    defaultOgImage.url
   );
 }
 
@@ -153,37 +163,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const title = pageTitle(item.title || "Paquete premium");
   const description = productSeoDescription({
-    description: item.shortDescription || item.description,
+    description:
+      item.seoDescription ||
+      item.shortDescription ||
+      item.description,
     fallback: fallbackDescription,
     location: item.location,
   });
   const image = primaryImage(item);
+  const identifier = item.slug || item.id;
+  const path = `/paquetes/${identifier}`;
+  const canonical = canonicalUrl(path);
+  const social = socialMetadata({
+    title: absoluteTitle(title),
+    description,
+    url: canonical,
+    image: {
+      url: image,
+      width: 1200,
+      height: 630,
+      alt: title,
+    },
+  });
 
   return {
     title: absoluteTitle(title),
     description,
     alternates: {
-      canonical: item.slug ? `/paquetes/${item.slug}` : `/paquetes/${item.id}`,
+      canonical,
     },
-    openGraph: {
-      title: absoluteTitle(title),
-      description,
-      type: "website",
-      images: [
-        {
-          url: image,
-          width: 1200,
-          height: 800,
-          alt: title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: absoluteTitle(title),
-      description,
-      images: [image],
-    },
+    openGraph: social.openGraph,
+    twitter: social.twitter,
   };
 }
 
@@ -288,6 +298,19 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
+      <JsonLd
+        data={[
+          buildTouristTripSchema(item, "paquetes"),
+          buildBreadcrumbSchema([
+            { name: "Home", url: "/" },
+            { name: "Paquetes", url: "/paquetes" },
+            {
+              name: item.title || "Paquete premium",
+              url: `/paquetes/${item.slug || item.id}`,
+            },
+          ]),
+        ]}
+      />
       <ViewContentTracker
         contentType="PACKAGE"
         contentId={item.id}

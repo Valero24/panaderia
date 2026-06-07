@@ -54,6 +54,12 @@ export type PropertyFormState = {
   longitude: string;
   seoTitle: string;
   seoDescription: string;
+  seoKeywords: string;
+  seoContent: string;
+  nearbyAttractions: string;
+  locationDescription: string;
+  guestRecommendations: string;
+  faq: string;
   internalNotes: string;
   images: AdminMediaItem[];
   featureIds: number[];
@@ -137,6 +143,12 @@ export function emptyPropertyForm(): PropertyFormState {
     longitude: "",
     seoTitle: "",
     seoDescription: "",
+    seoKeywords: "",
+    seoContent: "",
+    nearbyAttractions: "",
+    locationDescription: "",
+    guestRecommendations: "",
+    faq: "",
     internalNotes: "",
     images: [],
     featureIds: [],
@@ -197,6 +209,12 @@ export function buildPropertyFormState(
     longitude: toInputValue(property.longitude),
     seoTitle: toInputValue(property.seoTitle),
     seoDescription: toInputValue(property.seoDescription),
+    seoKeywords: toInputValue(property.seoKeywords),
+    seoContent: toInputValue(property.seoContent),
+    nearbyAttractions: toInputValue(property.nearbyAttractions),
+    locationDescription: toInputValue(property.locationDescription),
+    guestRecommendations: toInputValue(property.guestRecommendations),
+    faq: property.faq ? JSON.stringify(property.faq, null, 2) : "",
     internalNotes: toInputValue(property.internalNotes),
     images: Array.isArray(property.images) ? property.images : [],
     featureIds: featureAssignments.map((item) => Number(item.featureId)),

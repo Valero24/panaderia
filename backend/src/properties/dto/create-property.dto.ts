@@ -206,6 +206,29 @@ export class CreatePropertyDto {
   @IsString()
   seoDescription?: string;
 
+  @IsOptional()
+  @IsString()
+  seoKeywords?: string;
+
+  @IsOptional()
+  @IsString()
+  seoContent?: string;
+
+  @IsOptional()
+  @IsString()
+  nearbyAttractions?: string;
+
+  @IsOptional()
+  @IsString()
+  locationDescription?: string;
+
+  @IsOptional()
+  @IsString()
+  guestRecommendations?: string;
+
+  @IsOptional()
+  faq?: unknown;
+
   //////////////////////////////////////////////////////
   // INTERNAL
   //////////////////////////////////////////////////////

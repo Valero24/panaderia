@@ -20,6 +20,18 @@ export type Experience = {
   active: boolean;
   policies?: string | null;
   recommendations?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoContent?: string | null;
+  itinerary?: string | null;
+  included?: string | null;
+  notIncluded?: string | null;
+  meetingPoint?: string | null;
+  durationDescription?: string | null;
+  schedule?: string | null;
+  conditions?: string | null;
+  faq?: unknown;
+  experienceCategory?: string | null;
   images?: AdminMediaItem[];
   translations?: unknown;
 };
@@ -47,6 +59,18 @@ export type ExperienceForm = {
   mainImage: string;
   policies: string;
   recommendations: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoContent: string;
+  itinerary: string;
+  included: string;
+  notIncluded: string;
+  meetingPoint: string;
+  durationDescription: string;
+  schedule: string;
+  conditions: string;
+  faq: string;
+  experienceCategory: string;
   images: AdminMediaItem[];
   active: boolean;
   translations: TranslationMap;
@@ -124,6 +148,18 @@ export const emptyForm: ExperienceForm = {
   mainImage: "",
   policies: "",
   recommendations: "",
+  seoTitle: "",
+  seoDescription: "",
+  seoContent: "",
+  itinerary: "",
+  included: "",
+  notIncluded: "",
+  meetingPoint: "",
+  durationDescription: "",
+  schedule: "",
+  conditions: "",
+  faq: "",
+  experienceCategory: "",
   images: [],
   active: true,
   translations: {},
@@ -167,6 +203,18 @@ export function toForm(experience: Experience): ExperienceForm {
     mainImage: experience.mainImage || "",
     policies: experience.policies || "",
     recommendations: experience.recommendations || "",
+    seoTitle: experience.seoTitle || "",
+    seoDescription: experience.seoDescription || "",
+    seoContent: experience.seoContent || "",
+    itinerary: experience.itinerary || "",
+    included: experience.included || "",
+    notIncluded: experience.notIncluded || "",
+    meetingPoint: experience.meetingPoint || "",
+    durationDescription: experience.durationDescription || "",
+    schedule: experience.schedule || "",
+    conditions: experience.conditions || "",
+    faq: experience.faq ? JSON.stringify(experience.faq, null, 2) : "",
+    experienceCategory: experience.experienceCategory || "",
     images: experience.images || [],
     active: Boolean(experience.active),
     translations: normalizeTranslations(experience.translations),

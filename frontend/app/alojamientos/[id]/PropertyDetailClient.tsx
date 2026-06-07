@@ -27,7 +27,11 @@ import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout, trackViewContent } from "@/lib/analytics";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
 import { formatMoneyByLanguage } from "@/lib/currency";
-import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
+import {
+  getDynamicText,
+  getDynamicValue,
+  type DynamicTranslations,
+} from "@/lib/dynamic-translations";
 
 type PropertyImage = {
   id: number;
@@ -73,6 +77,11 @@ type Property = {
   checkInTime?: string | null;
   checkOutTime?: string | null;
   cancellationPolicy?: string | null;
+  seoContent?: string | null;
+  nearbyAttractions?: string | null;
+  locationDescription?: string | null;
+  guestRecommendations?: string | null;
+  faq?: unknown;
   latitude?: number | null;
   longitude?: number | null;
   images?: PropertyImage[];
@@ -110,6 +119,58 @@ function normalizeExtras(data: ExtrasApiResponse): ExtraService[] {
   if (Array.isArray(data?.data)) return data.data;
   if (Array.isArray(data?.extras)) return data.extras;
   return [];
+}
+
+function hasText(value?: string | null) {
+  return Boolean(value && value.trim());
+}
+
+function splitTextLines(value?: string | null) {
+  return (value || "")
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+type FaqItem = {
+  question?: string | null;
+  answer?: string | null;
+};
+
+function normalizeFaq(value: unknown): FaqItem[] {
+  if (typeof value === "string") {
+    try {
+      return normalizeFaq(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) =>
+      typeof item === "object" && item !== null
+        ? (item as FaqItem)
+        : null
+    )
+    .filter(
+      (item): item is FaqItem =>
+        Boolean(item?.question?.trim() && item?.answer?.trim())
+    );
+}
+
+function formatReadableList(items: string[], locale: string) {
+  if (items.length === 0) return "";
+
+  try {
+    return new Intl.ListFormat(locale, {
+      style: "long",
+      type: "conjunction",
+    }).format(items);
+  } catch {
+    return items.join(", ");
+  }
 }
 
 export default function PropertyDetailPage({ params }: PageProps) {
@@ -242,6 +303,49 @@ export default function PropertyDetailPage({ params }: PageProps) {
   }
 
   const capacity = property.maxCapacity || property.maxGuests;
+  const areaLabel = getDynamicText(property, "area", language, property.area);
+  const cityLabel = getDynamicText(property, "city", language, property.city);
+  const locationLabel = [areaLabel, cityLabel].filter(Boolean).join(", ");
+  const seoContent = getDynamicText(
+    property,
+    "seoContent",
+    language,
+    property.seoContent
+  );
+  const locationDescription = getDynamicText(
+    property,
+    "locationDescription",
+    language,
+    property.locationDescription
+  );
+  const nearbyAttractions = getDynamicText(
+    property,
+    "nearbyAttractions",
+    language,
+    property.nearbyAttractions
+  );
+  const guestRecommendations = getDynamicText(
+    property,
+    "guestRecommendations",
+    language,
+    property.guestRecommendations
+  );
+  const faqItems = normalizeFaq(
+    getDynamicValue(property, "faq", language, property.faq)
+  );
+  const nearbyItems = splitTextLines(nearbyAttractions);
+  const locationContext =
+    locationDescription ||
+    (locationLabel
+      ? `${t("property.locationContextPrefix")} ${locationLabel}. ${t(
+          "property.locationContextSuffix"
+        )}`
+      : "");
+  const featureNames = (property.features || [])
+    .map((feature) => getDynamicText(feature, "name", language))
+    .filter(Boolean)
+    .slice(0, 8);
+  const featureListText = formatReadableList(featureNames, language);
   const rules = [
     {
       icon: PawPrint,
@@ -280,7 +384,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
           <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
             <span className="inline-flex items-center gap-2">
               <MapPin className="h-4 w-4 text-[#B68D40]" />
-              {getDynamicText(property, "area", language, property.area)}, {getDynamicText(property, "city", language, property.city)}
+              {locationLabel}
             </span>
             {getDynamicText(property, "address", language, property.address) && (
               <span>{getDynamicText(property, "address", language, property.address)}</span>
@@ -371,11 +475,103 @@ export default function PropertyDetailPage({ params }: PageProps) {
               </p>
             </section>
 
+            {(hasText(seoContent) || hasText(locationContext) || hasText(nearbyAttractions) || hasText(guestRecommendations)) && (
+              <section className="border-b border-[#D4AF37]/20 pb-10">
+                <div className="grid gap-5 lg:grid-cols-2">
+                  {hasText(seoContent) && (
+                    <article className="rounded-xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <Home className="h-5 w-5 text-[#B68D40]" />
+                        <h2 className="text-xl font-semibold">
+                          {t("property.extendedDescription")}
+                        </h2>
+                      </div>
+                      <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
+                        {seoContent}
+                      </p>
+                    </article>
+                  )}
+
+                  {hasText(locationContext) && (
+                    <article className="rounded-xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-5 w-5 text-[#B68D40]" />
+                        <h2 className="text-xl font-semibold">
+                          {t("property.locationEnvironment")}
+                        </h2>
+                      </div>
+                      <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
+                        {locationContext}
+                      </p>
+                    </article>
+                  )}
+
+                  <article className="rounded-xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <Users className="h-5 w-5 text-[#B68D40]" />
+                      <h2 className="text-xl font-semibold">
+                        {t("property.idealFor")}
+                      </h2>
+                    </div>
+                    <p className="mt-4 text-sm leading-7 text-slate-600">
+                      {t("property.idealForText")} {capacity} {t("properties.guests")}.
+                    </p>
+                  </article>
+
+                  {hasText(nearbyAttractions) && (
+                    <article className="rounded-xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <Sparkles className="h-5 w-5 text-[#B68D40]" />
+                        <h2 className="text-xl font-semibold">
+                          {t("property.nearbyAttractions")}
+                        </h2>
+                      </div>
+                      {nearbyItems.length > 1 ? (
+                        <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-600">
+                          {nearbyItems.map((item) => (
+                            <li key={item} className="flex gap-3">
+                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#B68D40]" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
+                          {nearbyAttractions}
+                        </p>
+                      )}
+                    </article>
+                  )}
+
+                  {hasText(guestRecommendations) && (
+                    <article className="rounded-xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm lg:col-span-2">
+                      <div className="flex items-center gap-3">
+                        <ShieldCheck className="h-5 w-5 text-[#B68D40]" />
+                        <h2 className="text-xl font-semibold">
+                          {t("property.guestRecommendations")}
+                        </h2>
+                      </div>
+                      <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
+                        {guestRecommendations}
+                      </p>
+                    </article>
+                  )}
+                </div>
+              </section>
+            )}
+
             {property.features && property.features.length > 0 && (
               <section className="border-b border-[#D4AF37]/20 pb-10">
                 <h2 className="text-2xl font-semibold">
                   {t("property.features")}
                 </h2>
+
+                {featureListText && (
+                  <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+                    {t("property.featureSeoIntro")} {featureListText}.{" "}
+                    {t("property.featureSeoOutro")}
+                  </p>
+                )}
 
                 <div className="mt-5 grid sm:grid-cols-2 gap-3">
                   {property.features.map((feature) => (
@@ -388,6 +584,35 @@ export default function PropertyDetailPage({ params }: PageProps) {
                         {getDynamicText(feature, "name", language)}
                       </span>
                     </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {faqItems.length > 0 && (
+              <section className="border-b border-[#D4AF37]/20 pb-10">
+                <div className="mb-5">
+                  <h2 className="text-2xl font-semibold">
+                    {t("property.faq")}
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
+                    {t("property.faqIntro")}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {faqItems.map((item, index) => (
+                    <details
+                      key={`${item.question}-${index}`}
+                      className="rounded-xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm"
+                    >
+                      <summary className="cursor-pointer text-base font-semibold text-[#0D2B52]">
+                        {item.question}
+                      </summary>
+                      <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">
+                        {item.answer}
+                      </p>
+                    </details>
                   ))}
                 </div>
               </section>
@@ -505,7 +730,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
                   <MapPin className="mt-1 h-5 w-5 text-[#B68D40]" />
                   <div>
                     <p className="font-semibold">
-                      {getDynamicText(property, "area", language, property.area)}, {getDynamicText(property, "city", language, property.city)}
+                      {locationLabel}
                     </p>
                     {getDynamicText(property, "address", language, property.address) && (
                       <p className="mt-1 text-sm text-slate-600">

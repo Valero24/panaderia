@@ -54,6 +54,14 @@ type PropertyFormProps = {
   propertyId?: string | number;
 };
 
+function parseOptionalJson(value: string) {
+  const cleanValue = value.trim();
+
+  if (!cleanValue) return null;
+
+  return JSON.parse(cleanValue);
+}
+
 export default function PropertyForm({
   propertyId,
 }: PropertyFormProps) {
@@ -222,6 +230,19 @@ export default function PropertyForm({
         return;
       }
 
+      let parsedFaq = null;
+
+      try {
+        parsedFaq = parseOptionalJson(form.faq);
+      } catch {
+        setWizardError(
+          "El campo FAQ debe ser JSON valido o quedar vacio."
+        );
+        setActiveTab("pricing");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         //////////////////////////////////////////////////////
         // OVERVIEW
@@ -353,6 +374,28 @@ export default function PropertyForm({
         seoDescription:
           form.seoDescription ||
           null,
+
+        seoKeywords:
+          form.seoKeywords ||
+          null,
+
+        seoContent:
+          form.seoContent ||
+          null,
+
+        nearbyAttractions:
+          form.nearbyAttractions ||
+          null,
+
+        locationDescription:
+          form.locationDescription ||
+          null,
+
+        guestRecommendations:
+          form.guestRecommendations ||
+          null,
+
+        faq: parsedFaq,
 
         //////////////////////////////////////////////////////
         // INTERNAL

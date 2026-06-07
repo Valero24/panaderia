@@ -27,6 +27,14 @@ import {
 import { ExperienceList } from "./ExperienceList";
 import ExperienceWizard from "./ExperienceWizard";
 
+function parseOptionalJson(value: string) {
+  const cleanValue = value.trim();
+
+  if (!cleanValue) return null;
+
+  return JSON.parse(cleanValue);
+}
+
 export default function AdminExperienciasPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -277,6 +285,17 @@ export default function AdminExperienciasPage() {
       setMessage("");
 
       const token = localStorage.getItem("token");
+      let parsedFaq = null;
+
+      try {
+        parsedFaq = parseOptionalJson(form.faq);
+      } catch {
+        setActiveStep("pricing");
+        setWizardError("El campo de preguntas frecuentes debe ser JSON valido o quedar vacio.");
+        setMessage("El campo de preguntas frecuentes debe ser JSON valido o quedar vacio.");
+        return;
+      }
+
       const payload = {
         title: form.title,
         slug: form.slug || undefined,
@@ -290,6 +309,18 @@ export default function AdminExperienciasPage() {
         mainImage: form.mainImage || undefined,
         policies: form.policies || undefined,
         recommendations: form.recommendations || undefined,
+        seoTitle: form.seoTitle || undefined,
+        seoDescription: form.seoDescription || undefined,
+        seoContent: form.seoContent || undefined,
+        itinerary: form.itinerary || undefined,
+        included: form.included || undefined,
+        notIncluded: form.notIncluded || undefined,
+        meetingPoint: form.meetingPoint || undefined,
+        durationDescription: form.durationDescription || undefined,
+        schedule: form.schedule || undefined,
+        conditions: form.conditions || undefined,
+        faq: parsedFaq,
+        experienceCategory: form.experienceCategory || undefined,
         translations: form.translations,
         images: form.images
           .filter((item) => item.url?.trim())

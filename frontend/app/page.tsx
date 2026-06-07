@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import ProductCarousel from "@/components/home/ProductCarousel";
+import JsonLd from "@/components/JsonLd";
 import MoneyText from "@/components/MoneyText";
 import TranslatedHomeProductCard from "@/components/home/TranslatedHomeProductCard";
 import TranslatedText from "@/components/TranslatedText";
@@ -21,37 +22,30 @@ import {
   packagePublicPath,
   propertyPublicPath,
 } from "@/lib/product-url";
+import { canonicalUrl, socialMetadata, siteUrl } from "@/lib/seo";
+import { buildLocalBusinessSchema, buildWebsiteSchema } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
 
+const homeTitle = "Cartagena Tailored Travel | Luxury Travel in Cartagena";
+const homeDescription =
+  "Private tours, luxury accommodations and unique experiences in Cartagena, Colombia.";
+const homeSocial = socialMetadata({
+  title: homeTitle,
+  description: homeDescription,
+  url: siteUrl,
+});
+
 export const metadata: Metadata = {
   title: {
-    absolute: "Cartagena Tailored Travel | Luxury Travel in Cartagena",
+    absolute: homeTitle,
   },
-  description:
-    "Private tours, luxury accommodations and unique experiences in Cartagena, Colombia.",
-  openGraph: {
-    title: "Cartagena Tailored Travel | Luxury Travel in Cartagena",
-    description:
-      "Private tours, luxury accommodations and unique experiences in Cartagena, Colombia.",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600",
-        width: 1600,
-        height: 900,
-        alt: "Luxury villa and travel experience in Cartagena",
-      },
-    ],
+  description: homeDescription,
+  alternates: {
+    canonical: canonicalUrl("/"),
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Cartagena Tailored Travel | Luxury Travel in Cartagena",
-    description:
-      "Private tours, luxury accommodations and unique experiences in Cartagena, Colombia.",
-    images: [
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600",
-    ],
-  },
+  openGraph: homeSocial.openGraph,
+  twitter: homeSocial.twitter,
 };
 
 type Property = {
@@ -192,6 +186,7 @@ export default async function HomePage() {
 
   return (
     <main className="bg-[#F8F6F1]">
+      <JsonLd data={[buildWebsiteSchema(), buildLocalBusinessSchema()]} />
       <section id="home-hero" data-scroll-section className="relative min-h-[640px] overflow-hidden lg:min-h-[calc(100vh-96px)]">
         <Image
           src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600"

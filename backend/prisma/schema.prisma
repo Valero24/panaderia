@@ -213,6 +213,13 @@ model Property {
 
   seoTitle       String?
   seoDescription String?
+  seoKeywords    String?
+  seoContent     String?
+
+  nearbyAttractions   String?
+  locationDescription String?
+  guestRecommendations String?
+  faq                 Json?
 
   //////////////////////////////////////////////////////
   // INTERNAL
@@ -345,6 +352,23 @@ model Experience {
 
   policies        String?
   recommendations String?
+
+  //////////////////////////////////////////////////////
+  // SEO
+  //////////////////////////////////////////////////////
+
+  seoTitle            String?
+  seoDescription      String?
+  seoContent          String?
+  itinerary           String?
+  included            String?
+  notIncluded         String?
+  meetingPoint        String?
+  durationDescription String?
+  schedule            String?
+  conditions          String?
+  faq                 Json?
+  experienceCategory  String?
 
   images ExperienceImage[]
   extras ExtraService[]

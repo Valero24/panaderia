@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, CalendarDays, Clock, MapPin, ShieldCheck, Users } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import JsonLd from "@/components/JsonLd";
 import ExperienceBookingCard from "@/components/experiences/experience-booking-card";
+import ExperienceSeoSections from "@/components/experiences/ExperienceSeoSections";
 import BookingMoney from "@/components/BookingMoney";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
 import TranslatedDynamicText from "@/components/TranslatedDynamicText";
@@ -13,7 +15,19 @@ import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
 import { cleanPublicCopy } from "@/lib/public-copy";
-import { absoluteTitle, pageTitle, productSeoDescription } from "@/lib/seo";
+import {
+  absoluteTitle,
+  canonicalUrl,
+  defaultOgImage,
+  metaDescription,
+  pageTitle,
+  socialMetadata,
+} from "@/lib/seo";
+import {
+  buildBreadcrumbSchema,
+  buildFaqPageSchema,
+  buildTouristTripSchema,
+} from "@/lib/schema";
 import type { DynamicTranslations } from "@/lib/dynamic-translations";
 
 type PageProps = {
@@ -26,6 +40,9 @@ type Experience = {
   id: number;
   slug?: string | null;
   title: string;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoContent?: string | null;
   shortDescription: string;
   description: string;
   location: string;
@@ -36,6 +53,15 @@ type Experience = {
   mainImage?: string | null;
   policies?: string | null;
   recommendations?: string | null;
+  itinerary?: string | null;
+  included?: string | null;
+  notIncluded?: string | null;
+  meetingPoint?: string | null;
+  durationDescription?: string | null;
+  schedule?: string | null;
+  conditions?: string | null;
+  faq?: unknown;
+  experienceCategory?: string | null;
   images?: {
     id?: number;
     url: string;
@@ -58,10 +84,10 @@ type ExtraService = {
   translations?: DynamicTranslations | null;
 };
 
-const fallbackImage =
-  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200";
 const fallbackDescription =
   "Private experience in Cartagena with personalized service, curated details and premium assistance.";
+const fallbackImage =
+  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200";
 
 async function getExperience(id: string): Promise<Experience | null> {
   try {
@@ -101,8 +127,31 @@ function primaryImage(experience: Experience | null) {
     experience?.images?.find((image) => image.isPrimary)?.url ||
     experience?.images?.[0]?.url ||
     experience?.mainImage ||
-    fallbackImage
+    defaultOgImage.url
   );
+}
+
+function normalizeFaq(value: unknown) {
+  if (typeof value === "string") {
+    try {
+      return normalizeFaq(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) =>
+      typeof item === "object" && item !== null
+        ? (item as { question?: string | null; answer?: string | null })
+        : null
+    )
+    .filter(
+      (item): item is { question?: string | null; answer?: string | null } =>
+        Boolean(item?.question?.trim() && item?.answer?.trim())
+    );
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -116,41 +165,45 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = pageTitle(experience.title || "Experiencia premium");
-  const description = productSeoDescription({
-    description: experience.shortDescription || experience.description,
-    fallback: fallbackDescription,
-    location: experience.location,
-  });
+  const title = pageTitle(
+    experience.seoTitle || experience.title || "Experiencia premium"
+  );
+  const description = experience.seoDescription
+    ? metaDescription(experience.seoDescription, fallbackDescription)
+    : metaDescription(
+        [
+          experience.shortDescription || experience.description || "",
+          experience.location ? `Location: ${experience.location}.` : "",
+          experience.duration ? `Duration: ${experience.duration}.` : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+        fallbackDescription
+      );
   const image = primaryImage(experience);
+  const identifier = experience.slug || experience.id;
+  const path = `/experiencias/${identifier}`;
+  const canonical = canonicalUrl(path);
+  const social = socialMetadata({
+    title: absoluteTitle(title),
+    description,
+    url: canonical,
+    image: {
+      url: image,
+      width: 1200,
+      height: 630,
+      alt: title,
+    },
+  });
 
   return {
     title: absoluteTitle(title),
     description,
     alternates: {
-      canonical: experience.slug
-        ? `/experiencias/${experience.slug}`
-        : `/experiencias/${experience.id}`,
+      canonical,
     },
-    openGraph: {
-      title: absoluteTitle(title),
-      description,
-      type: "website",
-      images: [
-        {
-          url: image,
-          width: 1200,
-          height: 800,
-          alt: title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: absoluteTitle(title),
-      description,
-      images: [image],
-    },
+    openGraph: social.openGraph,
+    twitter: social.twitter,
   };
 }
 
@@ -158,6 +211,9 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
   const { id } = await params;
   const experience = await getExperience(id);
   const extras = experience ? await getExperienceExtras(String(experience.id)) : [];
+  const faqSchema = experience
+    ? buildFaqPageSchema(normalizeFaq(experience.faq))
+    : undefined;
 
   if (!experience) {
     return (
@@ -181,6 +237,20 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
+      <JsonLd
+        data={[
+          buildTouristTripSchema(experience, "experiencias"),
+          buildBreadcrumbSchema([
+            { name: "Home", url: "/" },
+            { name: "Experiencias", url: "/experiencias" },
+            {
+              name: experience.title || "Experiencia premium",
+              url: `/experiencias/${experience.slug || experience.id}`,
+            },
+          ]),
+          ...(faqSchema ? [faqSchema] : []),
+        ]}
+      />
       <ViewContentTracker
         contentType="EXPERIENCE"
         contentId={experience.id}
@@ -236,41 +306,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            {(experience.policies || experience.recommendations) && (
-              <div className="grid gap-5 md:grid-cols-2">
-                {experience.policies && (
-                  <Card className="premium-hover-lift rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3">
-                        <ShieldCheck className="h-5 w-5 text-[#B48A5A]" />
-                        <h2 className="text-xl font-semibold">
-                          <TranslatedText k="experience.policies" />
-                        </h2>
-                      </div>
-                      <p className="mt-4 whitespace-pre-line leading-7 text-slate-600">
-                        <TranslatedDynamicText entity={experience} field="policies" />
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {experience.recommendations && (
-                  <Card className="premium-hover-lift rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3">
-                        <CalendarDays className="h-5 w-5 text-[#B48A5A]" />
-                        <h2 className="text-xl font-semibold">
-                          <TranslatedText k="experience.recommendations" />
-                        </h2>
-                      </div>
-                      <p className="mt-4 whitespace-pre-line leading-7 text-slate-600">
-                        <TranslatedDynamicText entity={experience} field="recommendations" />
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            )}
+            <ExperienceSeoSections experience={experience} />
           </div>
 
           <aside className="sticky top-6 lg:min-w-[360px] lg:max-w-[430px]">

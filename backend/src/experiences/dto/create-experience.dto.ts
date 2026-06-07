@@ -101,6 +101,53 @@ export class CreateExperienceDto {
   recommendations?: string;
 
   @IsOptional()
+  @IsString()
+  seoTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  seoDescription?: string;
+
+  @IsOptional()
+  @IsString()
+  seoContent?: string;
+
+  @IsOptional()
+  @IsString()
+  itinerary?: string;
+
+  @IsOptional()
+  @IsString()
+  included?: string;
+
+  @IsOptional()
+  @IsString()
+  notIncluded?: string;
+
+  @IsOptional()
+  @IsString()
+  meetingPoint?: string;
+
+  @IsOptional()
+  @IsString()
+  durationDescription?: string;
+
+  @IsOptional()
+  @IsString()
+  schedule?: string;
+
+  @IsOptional()
+  @IsString()
+  conditions?: string;
+
+  @IsOptional()
+  faq?: unknown;
+
+  @IsOptional()
+  @IsString()
+  experienceCategory?: string;
+
+  @IsOptional()
   @IsArray()
   images?: CreateExperienceImageDto[];
 }

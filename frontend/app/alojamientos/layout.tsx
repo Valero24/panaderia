@@ -1,33 +1,40 @@
 import type { Metadata } from "next";
 
+import JsonLd from "@/components/JsonLd";
+import { canonicalUrl, socialMetadata } from "@/lib/seo";
+import { buildCollectionPageSchema } from "@/lib/schema";
+
+const title = "Luxury Accommodations in Cartagena | Cartagena Tailored Travel";
+const description =
+  "Explore premium villas, apartments and luxury stays in Cartagena with personalized assistance.";
+const social = socialMetadata({
+  title,
+  description,
+  url: canonicalUrl("/alojamientos"),
+  image: {
+    url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=1200",
+    width: 1200,
+    height: 630,
+    alt: "Luxury accommodation in Cartagena",
+  },
+});
+const collectionSchema = buildCollectionPageSchema({
+  name: title,
+  description,
+  url: "/alojamientos",
+  image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=1200",
+});
+
 export const metadata: Metadata = {
   title: {
-    absolute: "Luxury Accommodations in Cartagena | Cartagena Tailored Travel",
+    absolute: title,
   },
-  description:
-    "Explore premium villas, apartments and luxury stays in Cartagena with personalized assistance.",
-  openGraph: {
-    title: "Luxury Accommodations in Cartagena | Cartagena Tailored Travel",
-    description:
-      "Explore premium villas, apartments and luxury stays in Cartagena with personalized assistance.",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=1200",
-        width: 1600,
-        height: 900,
-        alt: "Alojamiento premium en Cartagena",
-      },
-    ],
+  description,
+  alternates: {
+    canonical: canonicalUrl("/alojamientos"),
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Luxury Accommodations in Cartagena | Cartagena Tailored Travel",
-    description:
-      "Explore premium villas, apartments and luxury stays in Cartagena with personalized assistance.",
-    images: [
-      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=1200",
-    ],
-  },
+  openGraph: social.openGraph,
+  twitter: social.twitter,
 };
 
 export default function AlojamientosLayout({
@@ -35,5 +42,10 @@ export default function AlojamientosLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <JsonLd data={collectionSchema} />
+      {children}
+    </>
+  );
 }
