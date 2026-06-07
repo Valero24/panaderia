@@ -8,6 +8,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
 import { AuditService } from "../common/audit.service";
+import { normalizeSeoSlug } from "../common/slug";
 import { normalizeTranslations } from "../common/translations";
 import { ProductFeaturesService } from "../product-features/product-features.service";
 import { BookingType } from "@prisma/client";
@@ -28,11 +29,7 @@ export class ExperiencesService {
   ) {}
 
   private generateSlug(title: string): string {
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-");
+    return normalizeSeoSlug(title);
   }
 
   private normalizeSlug(data: { title?: string; slug?: string | null }) {
@@ -45,15 +42,25 @@ export class ExperiencesService {
     return this.generateSlug(raw);
   }
 
-  private async assertUniqueSlug(slug: string | null, id?: number) {
-    if (!slug) return;
+  private async uniqueSlug(baseSlug: string | null, id?: number) {
+    if (!baseSlug) {
+      throw new BadRequestException("Slug de experiencia requerido");
+    }
 
-    const existing = await this.prisma.experience.findUnique({
-      where: { slug },
-    });
+    let slug = baseSlug;
+    let suffix = 2;
 
-    if (existing && existing.id !== id) {
-      throw new BadRequestException("Slug de experiencia ya existe");
+    while (true) {
+      const existing = await this.prisma.experience.findUnique({
+        where: { slug },
+      });
+
+      if (!existing || existing.id === id) {
+        return slug;
+      }
+
+      slug = `${baseSlug}-${suffix}`;
+      suffix += 1;
     }
   }
 
@@ -128,10 +135,12 @@ export class ExperiencesService {
     });
   }
 
-  async findOnePublic(id: number) {
+  async findOnePublic(identifier: string | number) {
+    const value = String(identifier).trim();
+    const numericId = /^\d+$/.test(value) ? Number(value) : null;
     const experience = await this.prisma.experience.findFirst({
       where: {
-        id,
+        ...(numericId ? { id: numericId } : { slug: value }),
         active: true,
       },
       include: {
@@ -198,12 +207,11 @@ export class ExperiencesService {
       throw new BadRequestException("Precio base invalido");
     }
 
-    const slug = this.normalizeSlug({
+    const baseSlug = this.normalizeSlug({
       title: data.title,
       slug: data.slug,
     });
-
-    await this.assertUniqueSlug(slug);
+    const slug = await this.uniqueSlug(baseSlug);
 
     const created = await this.prisma.experience.create({
       data: {
@@ -257,8 +265,10 @@ export class ExperiencesService {
           })
         : undefined;
 
+    let nextSlug = slug;
+
     if (slug !== undefined) {
-      await this.assertUniqueSlug(slug, id);
+      nextSlug = await this.uniqueSlug(slug, id);
     }
 
     const nextData: any = {};
@@ -282,8 +292,8 @@ export class ExperiencesService {
       }
     }
 
-    if (slug !== undefined) {
-      nextData.slug = slug;
+    if (nextSlug !== undefined) {
+      nextData.slug = nextSlug;
     }
 
     if (data.translations !== undefined) {

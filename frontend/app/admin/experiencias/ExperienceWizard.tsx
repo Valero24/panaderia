@@ -103,7 +103,7 @@ export default function ExperienceWizard({
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             {canManage
-              ? "Estos datos alimentan el catalogo publico."
+              ? "Estos datos alimentan el catálogo público."
               : "Tu rol permite consulta, no modificacion."}
           </p>
         </div>

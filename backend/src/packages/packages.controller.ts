@@ -33,16 +33,16 @@ export class PackagesController {
     return this.packagesService.findAllAdmin();
   }
 
-  @Public()
-  @Get(":id")
-  findOnePublic(@Param("id", ParseIntPipe) id: number) {
-    return this.packagesService.findOnePublic(id);
-  }
-
   @Roles("ADMIN", "SUPERADMIN", "ADVISOR")
   @Get("admin/:id")
   findOneAdmin(@Param("id", ParseIntPipe) id: number) {
     return this.packagesService.findOneAdmin(id);
+  }
+
+  @Public()
+  @Get(":id")
+  findOnePublic(@Param("id") id: string) {
+    return this.packagesService.findOnePublic(id);
   }
 
   @Roles("ADMIN", "SUPERADMIN")

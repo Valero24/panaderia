@@ -5,9 +5,11 @@ import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackViewContent } from "@/lib/analytics";
+import { propertyPublicPath } from "@/lib/product-url";
 
 type Property = {
   id: number;
+  slug?: string | null;
   title: string;
   city: string;
   area: string;
@@ -178,7 +180,7 @@ function PropertyCard({
 
   return (
     <Link
-      href={`/alojamientos/${property.id}`}
+      href={propertyPublicPath(property)}
       className="group block"
       onClick={() =>
         trackViewContent("PROPERTY", property.id, property.title)

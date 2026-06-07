@@ -29,7 +29,7 @@ export default function PropertyMediaStep({
             Fotos y videos del alojamiento
           </h2>
           <p className="mt-3 max-w-2xl text-slate-500">
-            Organiza el recorrido visual que vera el cliente en la pagina publica.
+            Organiza el recorrido visual que verá el cliente en la página pública.
           </p>
         </div>
 

@@ -33,7 +33,7 @@ export default function PackageComponentsStep({
           </h3>
           <p className="mt-1 text-sm leading-6 text-slate-500">
             Describe las experiencias o actividades que conforman este paquete.
-            Se mostraran como tarjetas en la pagina publica.
+            Se mostrarán como tarjetas en la página pública.
           </p>
         </div>
         {canManage && (
@@ -47,7 +47,7 @@ export default function PackageComponentsStep({
       {form.components.length === 0 ? (
         <div className="mt-4 rounded-xl border border-dashed border-[#D4AF37]/35 bg-white p-5 text-center text-sm text-slate-500">
           Sin componentes. Puedes agregar actividades como paseo nocturno, chiva
-          rumbera o pasadia en bote privado.
+          rumbera o pasadía en bote privado.
         </div>
       ) : (
         <div className="mt-4 space-y-4">
@@ -72,45 +72,45 @@ export default function PackageComponentsStep({
               </div>
 
               <div className="min-w-0 space-y-3">
-                <Input placeholder="Titulo del componente" value={component.title} onChange={(event) => updateComponent(index, { title: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
-                <Textarea placeholder="Descripcion corta" value={component.shortDescription || ""} onChange={(event) => updateComponent(index, { shortDescription: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
-                <Textarea placeholder="Descripcion completa" value={component.description || ""} onChange={(event) => updateComponent(index, { description: event.target.value })} disabled={!canManage} className="min-h-32 w-full min-w-0" />
+                <Input placeholder="Título del componente" value={component.title} onChange={(event) => updateComponent(index, { title: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
+                <Textarea placeholder="Descripción corta" value={component.shortDescription || ""} onChange={(event) => updateComponent(index, { shortDescription: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
+                <Textarea placeholder="Descripción completa" value={component.description || ""} onChange={(event) => updateComponent(index, { description: event.target.value })} disabled={!canManage} className="min-h-32 w-full min-w-0" />
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <Input placeholder="Duracion" value={component.duration || ""} onChange={(event) => updateComponent(index, { duration: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
-                  <Input placeholder="Ubicacion" value={component.location || ""} onChange={(event) => updateComponent(index, { location: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
+                  <Input placeholder="Duración" value={component.duration || ""} onChange={(event) => updateComponent(index, { duration: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
+                  <Input placeholder="Ubicación" value={component.location || ""} onChange={(event) => updateComponent(index, { location: event.target.value })} disabled={!canManage} className="w-full min-w-0" />
                   <Input type="number" placeholder="Orden" value={component.sortOrder ?? index} onChange={(event) => updateComponent(index, { sortOrder: Number(event.target.value) })} disabled={!canManage} className="w-full min-w-0" />
                 </div>
-                <Textarea placeholder="Que incluye" value={component.includes || ""} onChange={(event) => updateComponent(index, { includes: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
-                <Textarea placeholder="Que no incluye" value={component.excludes || ""} onChange={(event) => updateComponent(index, { excludes: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
+                <Textarea placeholder="Qué incluye" value={component.includes || ""} onChange={(event) => updateComponent(index, { includes: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
+                <Textarea placeholder="Qué no incluye" value={component.excludes || ""} onChange={(event) => updateComponent(index, { excludes: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
                 <Textarea placeholder="Condiciones" value={component.conditions || ""} onChange={(event) => updateComponent(index, { conditions: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
                 <Textarea placeholder="Recomendaciones" value={component.recommendations || ""} onChange={(event) => updateComponent(index, { recommendations: event.target.value })} disabled={!canManage} className="min-h-24 w-full min-w-0" />
                 <TranslationEditor
                   title="Traducciones del componente"
                   fields={[
-                    { key: "title", label: "Titulo", baseValue: component.title },
+                    { key: "title", label: "Título", baseValue: component.title },
                     {
                       key: "shortDescription",
-                      label: "Descripcion corta",
+                      label: "Descripción corta",
                       type: "textarea",
                       baseValue: component.shortDescription,
                     },
                     {
                       key: "description",
-                      label: "Descripcion completa",
+                      label: "Descripción completa",
                       type: "textarea",
                       baseValue: component.description,
                     },
-                    { key: "duration", label: "Duracion", baseValue: component.duration },
-                    { key: "location", label: "Ubicacion", baseValue: component.location },
+                    { key: "duration", label: "Duración", baseValue: component.duration },
+                    { key: "location", label: "Ubicación", baseValue: component.location },
                     {
                       key: "includes",
-                      label: "Que incluye",
+                      label: "Qué incluye",
                       type: "textarea",
                       baseValue: component.includes,
                     },
                     {
                       key: "excludes",
-                      label: "Que no incluye",
+                      label: "Qué no incluye",
                       type: "textarea",
                       baseValue: component.excludes,
                     },

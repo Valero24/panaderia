@@ -14,6 +14,7 @@ import {
   PropertyStatus,
 } from "@prisma/client";
 import { AuditService } from "../common/audit.service";
+import { normalizeSeoSlug } from "../common/slug";
 import { normalizeTranslations } from "../common/translations";
 import { ProductFeaturesService } from "../product-features/product-features.service";
 
@@ -37,11 +38,29 @@ export class PropertiesService {
   // =====================================================
 
   private generateSlug(title: string): string {
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-");
+    return normalizeSeoSlug(title);
+  }
+
+  private async uniqueSlug(baseSlug: string, id?: number): Promise<string> {
+    if (!baseSlug) {
+      throw new BadRequestException("Slug is required");
+    }
+
+    let slug = baseSlug;
+    let suffix = 2;
+
+    while (true) {
+      const existing = await this.prisma.property.findUnique({
+        where: { slug },
+      });
+
+      if (!existing || existing.id === id) {
+        return slug;
+      }
+
+      slug = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
   }
 
   private toNumber(
@@ -157,11 +176,15 @@ export class PropertiesService {
   // FIND ONE
   // =====================================================
 
-  async findOne(id: number) {
+  async findOne(identifier: string | number) {
+    const value = String(identifier).trim();
+    const numericId = /^\d+$/.test(value) ? Number(value) : null;
     const property =
-      await this.prisma.property.findUnique({
+      await this.prisma.property.findFirst({
         where: {
-          id: Number(id),
+          ...(numericId
+            ? { id: numericId }
+            : { slug: value }),
         },
         include: {
           images: {
@@ -218,22 +241,8 @@ export class PropertiesService {
       );
     }
 
-    const slug =
-      data.slug?.trim() ||
-      this.generateSlug(data.title);
-
-    const existing =
-      await this.prisma.property.findUnique({
-        where: {
-          slug,
-        },
-      });
-
-    if (existing) {
-      throw new BadRequestException(
-        "Slug already exists"
-      );
-    }
+    const baseSlug = this.generateSlug(data.slug || data.title);
+    const slug = await this.uniqueSlug(baseSlug);
 
     const created = await this.prisma.property.create({
       data: {
@@ -431,9 +440,7 @@ export class PropertiesService {
     }
 
     if (data.slug !== undefined) {
-      const slug = String(
-        data.slug
-      ).trim();
+      const slug = this.generateSlug(String(data.slug));
 
       if (!slug) {
         throw new BadRequestException(
@@ -441,20 +448,7 @@ export class PropertiesService {
         );
       }
 
-      if (slug !== current.slug) {
-        const existing =
-          await this.prisma.property.findUnique({
-            where: { slug },
-          });
-
-        if (existing && existing.id !== Number(id)) {
-          throw new BadRequestException(
-            "Slug already exists"
-          );
-        }
-      }
-
-      payload.slug = slug;
+      payload.slug = await this.uniqueSlug(slug, Number(id));
     }
 
     if (data.description !== undefined)

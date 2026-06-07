@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { apiUrl } from "@/lib/api";
+import { normalizeSeoSlug } from "@/lib/slug";
 import ProductWizardProgress from "@/components/admin/ProductWizardProgress";
 import {
   fetchFeatureAssignments,
@@ -157,20 +158,12 @@ export default function PropertyForm({
   ) {
     setForm((prev) => ({
       ...prev,
-      [key]: value,
+      [key]: key === "slug" ? normalizeSeoSlug(String(value)) : value,
     }));
   }
 
   const generatedSlug = useMemo(() => {
-    if (form.slug.trim()) {
-      return form.slug;
-    }
-
-    return form.title
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-");
+    return normalizeSeoSlug(form.slug || form.title);
   }, [form.title, form.slug]);
 
   function validateStep(step = activeTab) {
@@ -437,7 +430,7 @@ export default function PropertyForm({
         }
       } catch (featureError: any) {
         alert(
-          `El alojamiento se guardo, pero no se pudieron guardar sus caracteristicas: ${
+          `El alojamiento se guardó, pero no se pudieron guardar sus características: ${
             featureError?.message || "error desconocido"
           }`
         );
@@ -562,12 +555,12 @@ export default function PropertyForm({
             Permisos
           </p>
           <h1 className="mt-3 text-3xl font-bold text-[#0F2A44]">
-            Accion restringida
+            Acción restringida
           </h1>
           <p className="mt-3 text-slate-500">
             Tu rol permite consultar alojamientos y operar solicitudes
-            asignadas. La creacion y edicion de alojamientos esta reservada
-            para Super Admin.
+            asignadas. La creación y edición de alojamientos está reservada
+            para Superadmin.
           </p>
           <Button
             type="button"
@@ -594,13 +587,13 @@ export default function PropertyForm({
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8 mb-10">
           <div>
             <p className="uppercase tracking-[0.35em] text-[#B68D40] text-sm">
-              Luxury Property Management
+              Gestión premium de alojamientos
             </p>
 
             <h1 className="text-5xl font-bold text-[#0F2A44] mt-4">
               {isEditMode
-                ? "Editar propiedad"
-                : "Crear nueva propiedad"}
+                ? "Editar alojamiento"
+                : "Crear nuevo alojamiento"}
             </h1>
 
             <p className="text-slate-500 text-lg mt-4 max-w-2xl">
@@ -639,7 +632,7 @@ export default function PropertyForm({
                     : "Publicando..."
                   : isEditMode
                     ? "Guardar cambios"
-                    : "Publicar propiedad"}
+                    : "Publicar alojamiento"}
               </Button>
             )}
           </div>
@@ -753,7 +746,7 @@ export default function PropertyForm({
                       ? "Guardando..."
                       : isEditMode
                         ? "Guardar cambios"
-                        : "Publicar propiedad"}
+                        : "Publicar alojamiento"}
                   </Button>
                 )}
               </div>

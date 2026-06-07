@@ -101,28 +101,28 @@ export type PackageWizardStep =
 export const packageWizardSteps: ProductWizardStep<PackageWizardStep>[] = [
   {
     key: "basic",
-    label: "Informacion basica",
-    description: "Titulo, ubicacion, duracion y capacidad.",
+    label: "Información básica",
+    description: "Título, ubicación, duración y capacidad.",
   },
   {
     key: "media",
     label: "Multimedia",
-    description: "Imagen principal y galeria.",
+    description: "Imagen principal y galería.",
   },
   {
     key: "translations",
     label: "Traducciones",
-    description: "Versiones EN, FR, PT e IT con fallback a espanol.",
+    description: "Versiones EN, FR, PT e IT con fallback a español.",
   },
   {
     key: "features",
-    label: "Caracteristicas filtrables",
-    description: "Filtros publicos PACKAGE + ALL del paquete.",
+    label: "Características filtrables",
+    description: "Filtros públicos PACKAGE + ALL del paquete.",
   },
   {
     key: "pricing",
     label: "Precios y condiciones",
-    description: "Tarifa, incluye, politicas y recomendaciones.",
+    description: "Tarifa, incluye, políticas y recomendaciones.",
   },
   {
     key: "premium",
@@ -136,7 +136,7 @@ export const packageWizardSteps: ProductWizardStep<PackageWizardStep>[] = [
   },
   {
     key: "review",
-    label: "Revision",
+    label: "Revisión",
     description: "Resumen antes de guardar.",
   },
 ];

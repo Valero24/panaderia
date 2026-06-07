@@ -29,11 +29,11 @@ export function RequestsTable({
             <TableHead className="text-xs">Cliente</TableHead>
             <TableHead className="text-xs">Producto</TableHead>
             <TableHead className="text-xs">Fechas</TableHead>
-            <TableHead className="text-xs">Huespedes</TableHead>
-            <TableHead className="hidden text-xs 2xl:table-cell">Metodo</TableHead>
+            <TableHead className="text-xs">Huéspedes</TableHead>
+            <TableHead className="hidden text-xs 2xl:table-cell">Método</TableHead>
             <TableHead className="text-xs">Estado</TableHead>
             <TableHead className="hidden text-xs 2xl:table-cell">Creada</TableHead>
-            <TableHead className="text-xs text-right">Accion</TableHead>
+            <TableHead className="text-xs text-right">Acción</TableHead>
           </TableRow>
         </TableHeader>
 

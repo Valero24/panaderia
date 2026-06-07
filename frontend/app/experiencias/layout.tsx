@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Experiencias premium en Cartagena",
+  title: {
+    absolute: "Private Tours & Experiences in Cartagena",
+  },
   description:
-    "Reserva experiencias privadas en Cartagena: islas, cenas, recorridos históricos, yates y planes diseñados a la medida.",
+    "Luxury experiences, yacht rentals, gastronomy and exclusive tours in Cartagena.",
   openGraph: {
-    title: "Experiencias premium en Cartagena",
+    title: "Private Tours & Experiences in Cartagena",
     description:
-      "Planes privados, experiencias VIP y actividades a la medida en Cartagena.",
+      "Luxury experiences, yacht rentals, gastronomy and exclusive tours in Cartagena.",
     images: [
       {
         url: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200",
@@ -19,9 +21,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Experiencias premium en Cartagena",
+    title: "Private Tours & Experiences in Cartagena",
     description:
-      "Planes privados, experiencias VIP y actividades a la medida en Cartagena.",
+      "Luxury experiences, yacht rentals, gastronomy and exclusive tours in Cartagena.",
     images: [
       "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200",
     ],

@@ -134,7 +134,7 @@ export default function MediaGalleryEditor({
 
       {items.length === 0 ? (
         <div className="m-5 rounded-xl border border-dashed border-[#D4AF37]/35 bg-white p-6 text-center text-sm leading-6 text-slate-500">
-          Sin elementos multimedia. Las cards publicas usaran la imagen
+          Sin elementos multimedia. Las cards públicas usarán la imagen
           principal o un placeholder elegante.
         </div>
       ) : (
@@ -214,9 +214,9 @@ export default function MediaGalleryEditor({
                 </label>
 
                 <label className="block w-full min-w-0 space-y-2 text-sm">
-                  <span className="font-medium text-[#0D2B52]">Titulo</span>
+                  <span className="font-medium text-[#0D2B52]">Título</span>
                   <Input
-                    placeholder="Titulo opcional"
+                    placeholder="Título opcional"
                     value={item.title || ""}
                     onChange={(event) =>
                       update(index, { title: event.target.value })
@@ -242,10 +242,10 @@ export default function MediaGalleryEditor({
 
                 <label className="block w-full min-w-0 space-y-2 text-sm">
                   <span className="font-medium text-[#0D2B52]">
-                    Descripcion
+                    Descripción
                   </span>
                   <Textarea
-                    placeholder="Descripcion opcional"
+                    placeholder="Descripción opcional"
                     value={item.description || ""}
                     onChange={(event) =>
                       update(index, { description: event.target.value })

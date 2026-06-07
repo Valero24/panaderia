@@ -52,6 +52,37 @@ function paymentAmount(payment: Payment) {
   return money(payment.amountCop ?? payment.amount, "COP");
 }
 
+function paymentStatusLabel(status?: string | null) {
+  const labels: Record<string, string> = {
+    APPROVED: "Aprobado",
+    CANCELLED: "Cancelado",
+    DECLINED: "Rechazado",
+    FAILED: "Fallido",
+    MANUAL: "Manual",
+    PAID: "Pagado",
+    PENDING: "Pendiente",
+    PENDING_PAYMENT: "Pendiente de pago",
+    REFUNDED: "Reembolsado",
+    UNPAID: "Sin pagar",
+    VOIDED: "Anulado",
+  };
+
+  return status ? labels[status] || status : "Sin estado";
+}
+
+function paymentMethodLabel(method?: string | null) {
+  const labels: Record<string, string> = {
+    CARD: "Tarjeta",
+    CASH: "Efectivo",
+    MANUAL: "Manual",
+    PSE: "PSE",
+    TRANSFER: "Transferencia",
+    WOMPI: "Wompi",
+  };
+
+  return method ? labels[method] || method : "No aplica";
+}
+
 export default function PagosPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [message, setMessage] = useState("");
@@ -67,7 +98,7 @@ export default function PagosPage() {
 
       if (!["SUPERADMIN", "ADMIN"].includes(storedRole)) {
         setRole(storedRole || "");
-        setMessage("Acceso reservado para Super Admin.");
+        setMessage("Acceso reservado para Superadmin.");
         setPayments([]);
         return;
       }
@@ -109,7 +140,7 @@ export default function PagosPage() {
           </h1>
           <p className="mt-3 text-slate-500">
             Tu rol permite gestionar solicitudes asignadas. La vista global de
-            pagos esta reservada para Super Admin.
+            pagos está reservada para Superadmin.
           </p>
         </div>
       </div>
@@ -151,7 +182,7 @@ export default function PagosPage() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Asesor</TableHead>
                   <TableHead>Monto</TableHead>
-                  <TableHead>Metodo</TableHead>
+                  <TableHead>Método</TableHead>
                   <TableHead>Referencia</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Fecha</TableHead>
@@ -196,8 +227,8 @@ export default function PagosPage() {
                       ) : null}
                     </TableCell>
                     <TableCell>
-                      {payment.paymentProvider || payment.provider} /{" "}
-                      {payment.paymentMethod || payment.preReservation?.paymentMethodPreferred || "N/A"}
+                      {paymentMethodLabel(payment.paymentProvider || payment.provider)} /{" "}
+                      {paymentMethodLabel(payment.paymentMethod || payment.preReservation?.paymentMethodPreferred)}
                     </TableCell>
                     <TableCell>
                       {payment.providerReference ||
@@ -207,7 +238,7 @@ export default function PagosPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={payment.status === "FAILED" ? "destructive" : "outline"}>
-                        {payment.status}
+                        {paymentStatusLabel(payment.status)}
                       </Badge>
                     </TableCell>
                     <TableCell>

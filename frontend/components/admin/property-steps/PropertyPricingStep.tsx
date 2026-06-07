@@ -14,10 +14,10 @@ type PropertyPricingStepProps = {
 };
 
 const ruleToggles = [
-  { key: "allowsPets", label: "Pets Allowed" },
-  { key: "allowsSmoking", label: "Smoking Allowed" },
-  { key: "allowsEvents", label: "Events Allowed" },
-  { key: "allowsChildren", label: "Children Allowed" },
+  { key: "allowsPets", label: "Permite mascotas" },
+  { key: "allowsSmoking", label: "Permite fumar" },
+  { key: "allowsEvents", label: "Permite eventos" },
+  { key: "allowsChildren", label: "Permite niños" },
 ] as const;
 
 export default function PropertyPricingStep({
@@ -30,17 +30,17 @@ export default function PropertyPricingStep({
         <CardContent className="p-10">
           <div className="mb-8">
             <p className="uppercase tracking-[0.3em] text-[#B68D40] text-sm">
-              Pricing Engine
+              Motor de precios
             </p>
             <h2 className="text-4xl font-bold text-[#0F2A44] mt-3">
-              Public Pricing
+              Precios públicos
             </h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Input type="number" placeholder="Price per night" value={form.pricePerNight} onChange={(e) => updateField("pricePerNight", e.target.value)} className="h-14 rounded-2xl" />
-            <Input type="number" placeholder="High season price" value={form.highSeasonPrice} onChange={(e) => updateField("highSeasonPrice", e.target.value)} className="h-14 rounded-2xl" />
-            <Input type="number" placeholder="Low season price" value={form.lowSeasonPrice} onChange={(e) => updateField("lowSeasonPrice", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Precio por noche" value={form.pricePerNight} onChange={(e) => updateField("pricePerNight", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Precio temporada alta" value={form.highSeasonPrice} onChange={(e) => updateField("highSeasonPrice", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Precio temporada baja" value={form.lowSeasonPrice} onChange={(e) => updateField("lowSeasonPrice", e.target.value)} className="h-14 rounded-2xl" />
           </div>
         </CardContent>
       </Card>
@@ -49,15 +49,15 @@ export default function PropertyPricingStep({
         <CardContent className="p-10">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-[#0F2A44]">
-              Internal Pricing
+              Precios internos
             </h2>
           </div>
 
           <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <Input type="number" placeholder="Base price" value={form.basePrice} onChange={(e) => updateField("basePrice", e.target.value)} className="h-14 rounded-2xl" />
-            <Input type="number" placeholder="Cleaning fee" value={form.cleaningFee} onChange={(e) => updateField("cleaningFee", e.target.value)} className="h-14 rounded-2xl" />
-            <Input type="number" placeholder="Service fee" value={form.serviceFee} onChange={(e) => updateField("serviceFee", e.target.value)} className="h-14 rounded-2xl" />
-            <Input type="number" placeholder="Taxes" value={form.taxes} onChange={(e) => updateField("taxes", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Tarifa base" value={form.basePrice} onChange={(e) => updateField("basePrice", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Tarifa de limpieza" value={form.cleaningFee} onChange={(e) => updateField("cleaningFee", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Tarifa de servicio" value={form.serviceFee} onChange={(e) => updateField("serviceFee", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Impuestos" value={form.taxes} onChange={(e) => updateField("taxes", e.target.value)} className="h-14 rounded-2xl" />
           </div>
         </CardContent>
       </Card>
@@ -66,13 +66,13 @@ export default function PropertyPricingStep({
         <CardContent className="p-10">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-[#0F2A44]">
-              Dynamic Pricing
+              Precios dinámicos
             </h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <Input type="number" placeholder="2 guests increment" value={form.twoGuestsIncrease} onChange={(e) => updateField("twoGuestsIncrease", e.target.value)} className="h-14 rounded-2xl" />
-            <Input type="number" placeholder="Extra guest increment" value={form.extraGuestIncrease} onChange={(e) => updateField("extraGuestIncrease", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Incremento para 2 huéspedes" value={form.twoGuestsIncrease} onChange={(e) => updateField("twoGuestsIncrease", e.target.value)} className="h-14 rounded-2xl" />
+            <Input type="number" placeholder="Incremento por huésped extra" value={form.extraGuestIncrease} onChange={(e) => updateField("extraGuestIncrease", e.target.value)} className="h-14 rounded-2xl" />
           </div>
         </CardContent>
       </Card>
@@ -81,10 +81,10 @@ export default function PropertyPricingStep({
         <CardContent className="p-10 space-y-10">
           <div>
             <p className="uppercase tracking-[0.3em] text-[#B68D40] text-sm">
-              Rules & Operations
+              Reglas y operación
             </p>
             <h2 className="text-4xl font-bold text-[#0F2A44] mt-3">
-              Property Rules
+              Reglas del alojamiento
             </h2>
           </div>
 
@@ -112,11 +112,11 @@ export default function PropertyPricingStep({
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <Input placeholder="Check-in time" value={form.checkInTime} onChange={(e) => updateField("checkInTime", e.target.value)} className="h-14 rounded-2xl" />
-            <Input placeholder="Check-out time" value={form.checkOutTime} onChange={(e) => updateField("checkOutTime", e.target.value)} className="h-14 rounded-2xl" />
+            <Input placeholder="Hora de check-in" value={form.checkInTime} onChange={(e) => updateField("checkInTime", e.target.value)} className="h-14 rounded-2xl" />
+            <Input placeholder="Hora de check-out" value={form.checkOutTime} onChange={(e) => updateField("checkOutTime", e.target.value)} className="h-14 rounded-2xl" />
           </div>
 
-          <Textarea placeholder="Cancellation policy" value={form.cancellationPolicy} onChange={(e) => updateField("cancellationPolicy", e.target.value)} className="min-h-[180px] rounded-3xl" />
+          <Textarea placeholder="Política de cancelación" value={form.cancellationPolicy} onChange={(e) => updateField("cancellationPolicy", e.target.value)} className="min-h-[180px] rounded-3xl" />
         </CardContent>
       </Card>
 
@@ -124,15 +124,15 @@ export default function PropertyPricingStep({
         <CardContent className="p-10 space-y-8">
           <div>
             <p className="uppercase tracking-[0.3em] text-[#B68D40] text-sm">
-              Search Optimization
+              Optimización de búsqueda
             </p>
             <h2 className="text-4xl font-bold text-[#0F2A44] mt-3">
-              SEO Configuration
+              Configuración SEO
             </h2>
           </div>
 
-          <Input placeholder="SEO Title" value={form.seoTitle} onChange={(e) => updateField("seoTitle", e.target.value)} className="h-14 rounded-2xl" />
-          <Textarea placeholder="SEO Description" value={form.seoDescription} onChange={(e) => updateField("seoDescription", e.target.value)} className="min-h-[160px] rounded-3xl" />
+          <Input placeholder="Título SEO" value={form.seoTitle} onChange={(e) => updateField("seoTitle", e.target.value)} className="h-14 rounded-2xl" />
+          <Textarea placeholder="Descripción SEO" value={form.seoDescription} onChange={(e) => updateField("seoDescription", e.target.value)} className="min-h-[160px] rounded-3xl" />
         </CardContent>
       </Card>
 
@@ -150,8 +150,8 @@ export default function PropertyPricingStep({
           <Textarea placeholder="Notas internas, instrucciones para el asesor, detalles VIP..." value={form.internalNotes} onChange={(e) => updateField("internalNotes", e.target.value)} className="min-h-[300px] rounded-3xl" />
 
           <div className="grid md:grid-cols-2 gap-6">
-            <Input placeholder="Latitude" value={form.latitude} onChange={(e) => updateField("latitude", e.target.value)} className="h-14 rounded-2xl" />
-            <Input placeholder="Longitude" value={form.longitude} onChange={(e) => updateField("longitude", e.target.value)} className="h-14 rounded-2xl" />
+            <Input placeholder="Latitud" value={form.latitude} onChange={(e) => updateField("latitude", e.target.value)} className="h-14 rounded-2xl" />
+            <Input placeholder="Longitud" value={form.longitude} onChange={(e) => updateField("longitude", e.target.value)} className="h-14 rounded-2xl" />
           </div>
         </CardContent>
       </Card>

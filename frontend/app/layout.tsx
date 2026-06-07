@@ -1,46 +1,31 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AppChrome from "@/components/AppChrome";
+import { siteUrl, socialMetadata } from "@/lib/seo";
+
+const defaultTitle = "Cartagena Tailored Travel";
+const defaultDescription =
+  "Luxury travel in Cartagena with premium villas, curated experiences, private packages and personalized travel assistance.";
+const defaultSocial = socialMetadata({
+  title: defaultTitle,
+  description: defaultDescription,
+  url: siteUrl,
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cartagenatailoredtravel.com"),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "Cartagena Tailored Travel",
+    default: defaultTitle,
     template: "%s | Cartagena Tailored Travel",
   },
-  description:
-    "Luxury travel in Cartagena with premium villas, curated experiences, private packages and personalized travel assistance.",
+  description: defaultDescription,
   icons: {
     icon: "/branding/LOGO-06.png",
     shortcut: "/branding/LOGO-06.png",
     apple: "/branding/LOGO-06.png",
   },
-  openGraph: {
-    title: "Cartagena Tailored Travel",
-    description:
-      "Premium villas, private experiences and tailored travel planning in Cartagena, Colombia.",
-    url: "https://cartagenatailoredtravel.com",
-    siteName: "Cartagena Tailored Travel",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600",
-        width: 1600,
-        height: 900,
-        alt: "Luxury travel experience in Cartagena",
-      },
-    ],
-    locale: "es_CO",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Cartagena Tailored Travel",
-    description:
-      "Premium villas, private experiences and tailored travel planning in Cartagena, Colombia.",
-    images: [
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600",
-    ],
-  },
+  openGraph: defaultSocial.openGraph,
+  twitter: defaultSocial.twitter,
 };
 
 export default function RootLayout({

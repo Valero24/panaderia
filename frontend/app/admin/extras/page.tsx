@@ -70,7 +70,7 @@ export default function AdminExtrasPage() {
         </h1>
         <p className="mt-3 max-w-xl text-slate-500">
           Tu rol permite gestionar solicitudes y reservas asignadas. La
-          administracion de servicios premium esta reservada para Super Admin.
+          administración de servicios premium está reservada para Superadmin.
         </p>
       </div>
     );

@@ -3,6 +3,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { PropertyFormState } from "@/components/admin/property-form-model";
 
+const propertyStatusLabels: Record<string, string> = {
+  DRAFT: "Borrador",
+  ACTIVE: "Activo",
+  FEATURED: "Destacado",
+  MAINTENANCE: "Mantenimiento",
+  ARCHIVED: "Archivado",
+};
+
 type PropertyReviewStepProps = {
   form: PropertyFormState;
   isEditMode: boolean;
@@ -17,13 +25,13 @@ export default function PropertyReviewStep({
       <CardContent className="space-y-8 p-10">
         <div>
           <p className="text-sm uppercase tracking-[0.3em] text-[#B68D40]">
-            Revision y publicacion
+            Revisión y publicación
           </p>
           <h2 className="mt-3 text-4xl font-bold text-[#0F2A44]">
             Confirma antes de guardar
           </h2>
           <p className="mt-3 max-w-2xl text-slate-500">
-            Revisa los datos principales. El guardado final mantiene la accion
+            Revisa los datos principales. El guardado final mantiene la acción
             correcta: {isEditMode ? "PATCH" : "POST"}.
           </p>
         </div>
@@ -39,11 +47,11 @@ export default function PropertyReviewStep({
           </div>
           <div className="rounded-2xl bg-[#F8F6F1] p-5">
             <p className="text-xs uppercase tracking-[0.2em] text-[#B68D40]">
-              Ubicacion
+              Ubicación
             </p>
             <p className="mt-2 font-semibold text-[#0F2A44]">
               {[form.city, form.area].filter(Boolean).join(" - ") ||
-                "Sin ubicacion"}
+                "Sin ubicación"}
             </p>
           </div>
           <div className="rounded-2xl bg-[#F8F6F1] p-5">
@@ -59,7 +67,7 @@ export default function PropertyReviewStep({
               Estado
             </p>
             <p className="mt-2 font-semibold text-[#0F2A44]">
-              {form.status}
+              {propertyStatusLabels[form.status] || form.status}
             </p>
           </div>
         </div>

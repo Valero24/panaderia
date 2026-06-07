@@ -247,7 +247,7 @@ export default function AdminAsesoresPage() {
     if (!canManage) return;
 
     const confirmed = window.confirm(
-      `Archivar asesor ${advisor.name}? Esta accion lo ocultara de la vista principal, lo dejara inactivo y conservara el historial de reservas.`
+      `Archivar asesor ${advisor.name}? Esta acción lo ocultará de la vista principal, lo dejará inactivo y conservará el historial de reservas.`
     );
 
     if (!confirmed) return;
@@ -289,7 +289,7 @@ export default function AdminAsesoresPage() {
             Gestion de asesores restringida
           </h1>
           <p className="mt-3 text-slate-500">
-            Solo Super Admin puede crear, editar y activar asesores.
+            Solo Superadmin puede crear, editar y activar asesores.
           </p>
         </div>
       </div>
@@ -457,7 +457,7 @@ export default function AdminAsesoresPage() {
                   {editingId ? "Editar asesor" : "Crear asesor"}
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  El rol se asigna automaticamente como ADVISOR.
+                  El rol se asigna automáticamente como asesor.
                 </p>
               </div>
 

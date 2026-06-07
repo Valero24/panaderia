@@ -122,6 +122,57 @@ function productLabel(request: DashboardRequest) {
   return request.items?.[0]?.name || request.items?.[0]?.type || "Producto pendiente";
 }
 
+const auditActionLabels: Record<string, string> = {
+  ADVISOR_ASSIGNED: "Asesor asignado",
+  BOOKING_CONFIRMED: "Reserva confirmada",
+  BOOKING_CREATED: "Reserva creada",
+  CHECKOUT_CURRENCY_APPLIED: "Moneda aplicada en checkout",
+  CONTACT_CREATED: "Contacto creado",
+  EXCHANGE_RATE_CREATED: "Tasa de cambio creada",
+  EXCHANGE_RATE_DISABLED: "Tasa de cambio desactivada",
+  EXCHANGE_RATE_UPDATED: "Tasa de cambio actualizada",
+  FACTUS_COP_PAYLOAD_PREPARED: "Payload COP preparado para Factus",
+  INVOICE_COP_GENERATED: "Factura interna generada",
+  INVOICE_CREATED: "Factura interna creada",
+  INVOICE_DETAIL_VIEWED: "Detalle de factura consultado",
+  INVOICE_DUPLICATE_ATTEMPT: "Intento de factura duplicada",
+  INVOICE_PAYMENT_STATUS_UPDATED: "Estado de pago actualizado",
+  INVOICE_STATUS_UPDATED: "Estado de factura actualizado",
+  PAYMENT_CURRENCY_SAVED: "Moneda de pago guardada",
+  PRE_RESERVATION_CREATED: "Solicitud creada",
+  REQUEST_ASSIGNED: "Solicitud asignada",
+  REQUEST_STATUS_UPDATED: "Estado de solicitud actualizado",
+  SETTINGS_UPDATED: "Configuración actualizada",
+};
+
+const entityTypeLabels: Record<string, string> = {
+  AUDIT_LOG: "Registro",
+  BOOKING: "Reserva",
+  CONTACT: "Contacto",
+  EXCHANGE_RATE: "Tasa de cambio",
+  INVOICE: "Factura",
+  PAYMENT: "Pago",
+  PRE_RESERVATION: "Solicitud",
+  PROPERTY: "Alojamiento",
+  SYSTEM_SETTINGS: "Configuración",
+  USER: "Usuario",
+};
+
+function readableTechnicalLabel(value: string) {
+  return value
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/^\w/, (letter) => letter.toUpperCase());
+}
+
+function auditActionLabel(action: string) {
+  return auditActionLabels[action] || readableTechnicalLabel(action);
+}
+
+function entityTypeLabel(entityType: string) {
+  return entityTypeLabels[entityType] || readableTechnicalLabel(entityType);
+}
+
 export default function AdminDashboard() {
   const [summary, setSummary] = useState<DashboardSummary>(emptySummary);
   const [loading, setLoading] = useState(true);
@@ -137,7 +188,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        setMessage("Debes iniciar sesion para ver el dashboard.");
+        setMessage("Debes iniciar sesión para ver el panel.");
         return;
       }
 
@@ -149,14 +200,14 @@ export default function AdminDashboard() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data?.message || "No se pudo cargar el dashboard.");
+        setMessage(data?.message || "No se pudo cargar el panel.");
         return;
       }
 
       setSummary(data);
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion cargando dashboard.");
+      setMessage("Error de conexión cargando el panel.");
     } finally {
       setLoading(false);
     }
@@ -175,7 +226,7 @@ export default function AdminDashboard() {
         },
         {
           icon: UserCheck,
-          label: "Solicitudes en gestion",
+          label: "Solicitudes en gestión",
           value: summary.metrics.requestsInManagement,
         },
         {
@@ -220,7 +271,7 @@ export default function AdminDashboard() {
         },
         {
           icon: Clock,
-          label: "En validacion",
+          label: "En validación",
           value: summary.metrics.myValidatingRequests,
         },
         {
@@ -230,7 +281,7 @@ export default function AdminDashboard() {
         },
         {
           icon: Activity,
-          label: "Pendientes de gestion",
+          label: "Pendientes de gestión",
           value: summary.metrics.myPendingManagement,
         },
         {
@@ -247,7 +298,7 @@ export default function AdminDashboard() {
         { label: "Crear experiencia", href: "/admin/experiencias", icon: Sparkles },
         { label: "Crear paquete", href: "/admin/paquetes", icon: Package },
         { label: "Ver asesores", href: "/admin/asesores", icon: Users },
-        { label: "Ver historial", href: "/admin/logs", icon: Activity },
+        { label: "Ver registros", href: "/admin/logs", icon: Activity },
       ]
     : [
         { label: "Ver solicitudes pendientes", href: "/admin/reservas", icon: Clock },
@@ -262,13 +313,13 @@ export default function AdminDashboard() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.28em] text-[#B48A5A]">
-              {isSuperAdmin ? "Super Admin" : "Asesor de viajes"}
+              {isSuperAdmin ? "Superadministrador" : "Asesor de viajes"}
             </p>
             <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52] sm:text-4xl">
               Centro operativo
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              Hola{user?.name ? `, ${user.name}` : ""}. Aqui tienes el estado de la operacion y las acciones mas importantes para continuar.
+              Hola{user?.name ? `, ${user.name}` : ""}. Aquí tienes el estado de la operación y las acciones más importantes para continuar.
             </p>
           </div>
           <Button
@@ -309,10 +360,10 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-semibold text-[#0D2B52]">
-                  Acciones rapidas
+                  Acciones rápidas
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Atajos para mover la operacion sin buscar en el menu.
+                  Atajos para mover la operación sin buscar en el menú.
                 </p>
               </div>
               <Plus className="h-5 w-5 text-[#B48A5A]" />
@@ -360,7 +411,7 @@ export default function AdminDashboard() {
                   <div key={item} className="h-16 rounded-xl premium-skeleton" />
                 ))
               ) : summary.recentActivity.length === 0 ? (
-                <EmptyState text="Aun no hay actividad reciente para mostrar." />
+                <EmptyState text="Aún no hay actividad reciente para mostrar." />
               ) : (
                 summary.recentActivity.slice(0, 6).map((log) => (
                   <div
@@ -369,7 +420,7 @@ export default function AdminDashboard() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <Badge variant="outline" className="rounded-md bg-white">
-                        {log.action}
+                        {auditActionLabel(log.action)}
                       </Badge>
                       <span className="text-xs text-slate-500">{date(log.createdAt)}</span>
                     </div>
@@ -377,7 +428,7 @@ export default function AdminDashboard() {
                       {log.message || "Evento registrado"}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      {log.actorName || "Sistema"} · {log.entityType} #{log.entityId}
+                      {log.actorName || "Sistema"} · {entityTypeLabel(log.entityType)} #{log.entityId}
                     </p>
                   </div>
                 ))
@@ -389,15 +440,15 @@ export default function AdminDashboard() {
 
       <section className="grid gap-6 xl:grid-cols-2">
         <RequestsPanel
-          title={isSuperAdmin ? "Ultimas 5 solicitudes" : "Mis ultimas 5 solicitudes"}
+          title={isSuperAdmin ? "Últimas 5 solicitudes" : "Mis últimas 5 solicitudes"}
           requests={summary.latestRequests}
           loading={loading}
         />
         <BookingsPanel
           title={
             isSuperAdmin
-              ? "Ultimas 5 reservas confirmadas"
-              : "Mis ultimas 5 reservas confirmadas"
+              ? "Últimas 5 reservas confirmadas"
+              : "Mis últimas 5 reservas confirmadas"
           }
           bookings={summary.latestConfirmedBookings}
           loading={loading}
@@ -462,7 +513,7 @@ function RequestsPanel({
             <TableHead>Cliente</TableHead>
             <TableHead>Producto</TableHead>
             <TableHead>Estado</TableHead>
-            <TableHead>Accion</TableHead>
+            <TableHead>Acción</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -511,10 +562,10 @@ function BookingsPanel({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Codigo</TableHead>
+            <TableHead>Código</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Total</TableHead>
-            <TableHead>Accion</TableHead>
+            <TableHead>Acción</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -562,14 +613,14 @@ function ContactsPanel({
   loading: boolean;
 }) {
   return (
-    <TablePanel title="Ultimos 5 contactos">
+    <TablePanel title="Últimos 5 contactos">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Contacto</TableHead>
-            <TableHead>Interes</TableHead>
+            <TableHead>Interés</TableHead>
             <TableHead>Asunto</TableHead>
-            <TableHead>Accion</TableHead>
+            <TableHead>Acción</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

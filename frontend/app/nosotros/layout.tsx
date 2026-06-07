@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Nosotros | Cartagena Tailored Travel",
+  title: {
+    absolute: "About Cartagena Tailored Travel",
+  },
   description:
-    "Conoce Cartagena Tailored Travel, plataforma de viajes premium con atención personalizada, alojamientos seleccionados, experiencias locales y paquetes turísticos en Cartagena.",
+    "Agency specialized in luxury tourism, private tours and premium accommodations in Cartagena.",
   openGraph: {
-    title: "Nosotros | Cartagena Tailored Travel",
+    title: "About Cartagena Tailored Travel",
     description:
-      "Viajes premium asistidos en Cartagena con atención humana, validación personalizada y servicios turísticos a medida.",
+      "Agency specialized in luxury tourism, private tours and premium accommodations in Cartagena.",
     images: [
       {
         url: "/branding/LOGO-12.png",
@@ -19,9 +21,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nosotros | Cartagena Tailored Travel",
+    title: "About Cartagena Tailored Travel",
     description:
-      "Plataforma de viajes premium asistidos en Cartagena.",
+      "Agency specialized in luxury tourism, private tours and premium accommodations in Cartagena.",
     images: ["/branding/LOGO-12.png"],
   },
 };

@@ -12,9 +12,10 @@ import ReservationTimeline from "@/components/admin/reservation-timeline";
 import StatusBadge, {
   getReservationStatusMeta,
 } from "@/components/admin/status-badge";
+import { auditActionLabel, roleLabel } from "@/lib/admin-log-labels";
 import { apiUrl } from "@/lib/api";
 import { InfoTile } from "./components";
-import { allowedStatusTransitions, getOperationalStatusLabel, realAvailabilityEnabled, realPaymentsEnabled, statusActions } from "./constants";
+import { allowedStatusTransitions, getOperationalStatusLabel, getReservationStatusLabel, realAvailabilityEnabled, realPaymentsEnabled, statusActions } from "./constants";
 import type { AdvisorOption, InvoiceRecord, OperationalLog, PreReservation, PropertyOption, QuoteForm, User } from "./types";
 import { date, dateInput, guestsLabel, money, primaryItem, productLabel } from "./utils";
 
@@ -366,7 +367,7 @@ export function RequestDetail({
       setInternalInvoiceMessage(
         error instanceof Error
           ? error.message
-          : "Error de conexion generando factura interna."
+          : "Error de conexión generando factura interna."
       );
     } finally {
       setInternalInvoiceLoading(false);
@@ -397,12 +398,12 @@ export function RequestDetail({
       setBillingForm(billingFormFromRequest(data));
       setBillingMessage(
         data.billingIsComplete
-          ? "Datos de facturacion completos y guardados."
-          : "Datos de facturacion guardados como incompletos."
+          ? "Datos de facturación completos y guardados."
+          : "Datos de facturación guardados como incompletos."
       );
     } catch (error) {
       console.error(error);
-      setBillingMessage("Error de conexion guardando datos fiscales.");
+      setBillingMessage("Error de conexión guardando datos fiscales.");
     } finally {
       setBillingLoading(false);
     }
@@ -463,7 +464,7 @@ export function RequestDetail({
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <InfoTile icon={Mail} label="Correo" value={request.email} />
           <InfoTile icon={Phone} label="WhatsApp" value={request.customerPhone || "Pendiente"} />
-          <InfoTile icon={CreditCard} label="Metodo preferido" value={request.paymentMethodPreferred || "Pendiente"} />
+          <InfoTile icon={CreditCard} label="Método preferido" value={request.paymentMethodPreferred || "Pendiente"} />
           <InfoTile icon={Clock} label="Creada" value={date(request.createdAt)} />
         </div>
 
@@ -485,7 +486,7 @@ export function RequestDetail({
                   {date(request.checkIn)} - {date(request.checkOut)}
                 </p>
                 <p>
-                  <span className="text-slate-500">Huespedes:</span>{" "}
+                  <span className="text-slate-500">Huéspedes:</span>{" "}
                   {guestsLabel(request)}
                 </p>
               </div>
@@ -768,10 +769,10 @@ export function RequestDetail({
                 <div>
                   <h3 className="flex items-center gap-2 font-semibold text-[#0D2B52]">
                     <FileText className="h-4 w-4 text-[#B48A5A]" />
-                    Datos de facturacion
+                    Datos de facturación
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Informacion preparada para una futura factura electronica
+                    Información preparada para una futura factura electrónica
                     DIAN. Factus permanece desactivado.
                   </p>
                 </div>
@@ -789,8 +790,8 @@ export function RequestDetail({
 
               {!billingIsComplete && (
                 <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  Faltan datos para emitir factura electronica cuando se active
-                  la integracion DIAN.
+                  Faltan datos para emitir factura electrónica cuando se active
+                  la integración DIAN.
                 </p>
               )}
 
@@ -862,14 +863,14 @@ export function RequestDetail({
                 />
                 <Input
                   type="email"
-                  placeholder="Correo de facturacion"
+                  placeholder="Correo de facturación"
                   value={billingForm.billingEmail}
                   onChange={(event) =>
                     updateBillingForm("billingEmail", event.target.value)
                   }
                 />
                 <Input
-                  placeholder="Telefono de facturacion"
+                  placeholder="Teléfono de facturación"
                   value={billingForm.billingPhone}
                   onChange={(event) =>
                     updateBillingForm("billingPhone", event.target.value)
@@ -931,7 +932,7 @@ export function RequestDetail({
                   className="mt-1 h-4 w-4 shrink-0 accent-[#0D2B52]"
                 />
                 Autorizo el uso de estos datos para la emision de factura
-                electronica si la reserva es confirmada.
+                electrónica si la reserva es confirmada.
               </label>
 
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1018,7 +1019,7 @@ export function RequestDetail({
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <Badge variant="outline" className="rounded-md bg-white">
-                            {log.action}
+                            {auditActionLabel(log.action)}
                           </Badge>
                           <span className="text-xs text-slate-500">
                             {date(log.createdAt)}
@@ -1028,7 +1029,7 @@ export function RequestDetail({
                           {log.message || "Evento registrado"}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          {log.actorName || "Sistema"} · {log.actorRole || "PUBLIC"}
+                          {log.actorName || "Sistema"} · {roleLabel(log.actorRole || "PUBLIC")}
                         </p>
                       </div>
                     ))}
@@ -1079,8 +1080,8 @@ export function RequestDetail({
                     className="justify-start rounded-xl"
                     title={
                       allowed
-                        ? `Pasar a ${action.nextStatus}`
-                        : `No disponible desde ${request.status}`
+                        ? `Pasar a ${getReservationStatusLabel(action.nextStatus)}`
+                        : `No disponible desde ${getReservationStatusLabel(request.status)}`
                     }
                   >
                     <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -1097,7 +1098,7 @@ export function RequestDetail({
             {currentUser?.role === "SUPERADMIN" && (
               <section className="rounded-2xl border border-[#D4AF37]/20 p-5">
                 <h3 className="font-semibold text-[#0D2B52]">
-                  Control Super Admin
+                  Control Superadmin
                 </h3>
                 <p className="mt-2 text-sm text-slate-500">
                   Reasigna o cancela sin eliminar registros.
@@ -1210,7 +1211,7 @@ export function RequestDetail({
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="text-slate-500">Estado</span>
-                    <span>{confirmedBooking.status || "CONFIRMED"}</span>
+                    <span>{getReservationStatusLabel(confirmedBooking.status || "CONFIRMED")}</span>
                   </div>
 
                   {canManageInternalInvoice && (
@@ -1226,7 +1227,7 @@ export function RequestDetail({
                             </p>
                           ) : (
                             <p className="mt-1 text-sm text-slate-600">
-                              Aun no se ha generado factura interna para esta
+                              Aún no se ha generado factura interna para esta
                               reserva.
                             </p>
                           )}
@@ -1243,7 +1244,7 @@ export function RequestDetail({
 
                       {!billingIsComplete && (
                         <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                          Datos fiscales incompletos para factura electronica
+                          Datos fiscales incompletos para factura electrónica
                           futura.
                         </p>
                       )}
@@ -1325,7 +1326,7 @@ export function RequestDetail({
 
                       <div className="min-w-0 rounded-xl bg-[#F8F6F2] p-3">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#B48A5A]">
-                          Notificacion manual
+                          Notificación manual
                         </p>
                         <div className="mt-3 grid min-w-0 gap-2">
                           <Button
@@ -1369,7 +1370,7 @@ export function RequestDetail({
                             className="min-h-11 w-full min-w-0 justify-center rounded-xl bg-white px-3 py-2 text-center text-xs leading-snug whitespace-normal sm:text-sm"
                             title={
                               !request.customerPhone
-                                ? "Cliente sin telefono"
+                                ? "Cliente sin teléfono"
                                 : whatsappSentAt
                                   ? "El WhatsApp ya fue enviado"
                                   : "Enviar resumen de reserva por WhatsApp"
@@ -1399,7 +1400,7 @@ export function RequestDetail({
                               ? `enviado ${date(whatsappSentAt)}`
                               : request.customerPhone
                                 ? "pendiente"
-                                : "sin telefono"}
+                                : "sin teléfono"}
                           </p>
                         </div>
                       </div>
@@ -1426,7 +1427,7 @@ export function RequestDetail({
                 title={
                   canGenerateManualBooking
                     ? "Generar reserva confirmada"
-                    : `Disponible solo desde AVAILABLE o PAYMENT_PENDING`
+                    : `Disponible solo desde Disponible o Pendiente de pago`
                 }
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -1501,7 +1502,7 @@ export function RequestDetail({
                   title={
                     canGeneratePayment
                       ? "Generar link Wompi"
-                      : `No disponible en estado ${request.status}`
+                      : `No disponible en estado ${getReservationStatusLabel(request.status)}`
                   }
                 >
                   <CreditCard className="mr-2 h-4 w-4" />

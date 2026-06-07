@@ -21,7 +21,7 @@ export default function PackagePricingStep({
       <Textarea placeholder="Incluye" value={form.includes} onChange={(e) => updateForm("includes", e.target.value)} disabled={!canManage} />
       <Textarea placeholder="No incluye" value={form.notIncludes} onChange={(e) => updateForm("notIncludes", e.target.value)} disabled={!canManage} />
       <Textarea placeholder="Itinerario" value={form.itinerary} onChange={(e) => updateForm("itinerary", e.target.value)} disabled={!canManage} />
-      <Textarea placeholder="Politicas" value={form.policies} onChange={(e) => updateForm("policies", e.target.value)} disabled={!canManage} />
+      <Textarea placeholder="Políticas" value={form.policies} onChange={(e) => updateForm("policies", e.target.value)} disabled={!canManage} />
       <Textarea placeholder="Recomendaciones" value={form.recommendations} onChange={(e) => updateForm("recommendations", e.target.value)} disabled={!canManage} />
     </div>
   );

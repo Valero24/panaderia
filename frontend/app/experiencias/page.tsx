@@ -11,6 +11,7 @@ import { useTranslation } from "@/context/LanguageContext";
 import { apiUrl } from "@/lib/api";
 import { formatMoneyByLanguage } from "@/lib/currency";
 import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
+import { experiencePublicPath } from "@/lib/product-url";
 import {
   buildFeaturedCollections,
   type PublicFeature,
@@ -18,6 +19,7 @@ import {
 
 type Experience = {
   id: number;
+  slug?: string | null;
   title: string;
   shortDescription: string;
   location: string;
@@ -277,7 +279,7 @@ export default function ExperienciasPage() {
             {experiences.map((item) => (
               <PublicProductCard
                 key={item.id}
-                href={`/experiencias/${item.id}`}
+                href={experiencePublicPath(item)}
                 reserveHref={`/checkout/${item.id}?type=EXPERIENCE`}
                 image={imageFor(item)}
                 fallbackImage={fallbackImage}

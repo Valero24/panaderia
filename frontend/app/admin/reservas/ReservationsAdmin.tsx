@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -8,6 +8,7 @@ import {
   allowedStatusTransitions,
   confirmedStatuses,
   getOperationalStatusLabel,
+  getReservationStatusLabel,
   operationalStatuses,
   realPaymentsEnabled,
 } from "./constants";
@@ -310,7 +311,7 @@ export default function ReservasPage() {
     } catch (error) {
       console.error(error);
       targetWindow?.close();
-      setMessage("Error de conexion cargando la factura.");
+      setMessage("Error de conexión cargando la factura.");
     } finally {
       setActionLoading("");
     }
@@ -399,7 +400,7 @@ export default function ReservasPage() {
 
     if (current && !allowed) {
       setMessage(
-        `No se puede pasar de ${current} a ${status}. ${getOperationalStatusLabel(current) || ""}`
+        `No se puede pasar de ${getReservationStatusLabel(current)} a ${getReservationStatusLabel(status)}. ${getOperationalStatusLabel(current) || ""}`
       );
       return;
     }
@@ -407,7 +408,7 @@ export default function ReservasPage() {
     return performAction(
       requestId,
       `status/${endpoint}`,
-      `Solicitud actualizada a ${status}.`
+      `Solicitud actualizada a ${getReservationStatusLabel(status)}.`
     );
   }
 
@@ -725,7 +726,7 @@ export default function ReservasPage() {
       setMessage("Registro archivado correctamente.");
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion archivando solicitud.");
+      setMessage("Error de conexión archivando solicitud.");
     } finally {
       setActionLoading("");
     }
@@ -740,14 +741,14 @@ export default function ReservasPage() {
     }
 
     const reason = window.prompt(
-      `Motivo de cancelacion para ${request.customerName || "esta solicitud"} (opcional):`,
+      `Motivo de cancelación para ${request.customerName || "esta solicitud"} (opcional):`,
       ""
     );
 
     if (reason === null) return;
 
     const confirmed = window.confirm(
-      "Esta accion no elimina fisicamente el registro. Se marcara como CANCELLED y quedara trazabilidad. ¿Continuar?"
+      "Esta acción no elimina físicamente el registro. Se marcará como Cancelada y quedará trazabilidad. ¿Continuar?"
     );
 
     if (!confirmed) return;
@@ -771,7 +772,7 @@ export default function ReservasPage() {
     if (reason === null) return;
 
     const confirmed = window.confirm(
-      "El registro quedara oculto de la tabla operativa, pero se conserva en la base de datos. ¿Continuar?"
+      "El registro quedará oculto de la tabla operativa, pero se conserva en la base de datos. ¿Continuar?"
     );
 
     if (!confirmed) return;
@@ -819,4 +820,5 @@ export default function ReservasPage() {
     />
   );
 }
+
 

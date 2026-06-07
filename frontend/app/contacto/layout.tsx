@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contacto | Planea tu viaje premium a Cartagena",
+  title: {
+    absolute: "Contact Cartagena Tailored Travel",
+  },
   description:
-    "Habla con un asesor de viajes para planear alojamientos, experiencias y paquetes premium en Cartagena.",
+    "Get in touch with our advisors to plan your luxury experience in Cartagena.",
   openGraph: {
-    title: "Contacto | Cartagena Tailored Travel",
+    title: "Contact Cartagena Tailored Travel",
     description:
-      "Cuéntanos qué estás imaginando para Cartagena y un asesor de viajes te acompañará.",
+      "Get in touch with our advisors to plan your luxury experience in Cartagena.",
     images: [
       {
         url: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&q=70&w=1200",
@@ -19,9 +21,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contacto | Cartagena Tailored Travel",
+    title: "Contact Cartagena Tailored Travel",
     description:
-      "Planea alojamientos, experiencias y paquetes premium en Cartagena.",
+      "Get in touch with our advisors to plan your luxury experience in Cartagena.",
     images: [
       "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&q=70&w=1200",
     ],

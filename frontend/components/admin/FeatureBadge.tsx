@@ -14,13 +14,13 @@ const typeLabels: Record<string, string> = {
 
 const categoryLabels: Record<string, string> = {
   AMENITY: "Amenidad",
-  LOCATION_STYLE: "Ubicacion",
+  LOCATION_STYLE: "Ubicación",
   EXPERIENCE_STYLE: "Experiencia",
   TRAVEL_TYPE: "Tipo de viaje",
   SERVICE_LEVEL: "Nivel de servicio",
   INCLUDED: "Incluido",
   NOT_INCLUDED: "No incluido",
-  CONDITION: "Condicion",
+  CONDITION: "Condición",
   OTHER: "Otro",
 };
 

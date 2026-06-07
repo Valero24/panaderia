@@ -52,13 +52,13 @@ const appliesToOptions = [
 
 const categoryOptions = [
   { value: "AMENITY", label: "Amenidad" },
-  { value: "LOCATION_STYLE", label: "Ubicacion" },
+  { value: "LOCATION_STYLE", label: "Ubicación" },
   { value: "EXPERIENCE_STYLE", label: "Experiencia" },
   { value: "TRAVEL_TYPE", label: "Tipo de viaje" },
   { value: "SERVICE_LEVEL", label: "Nivel de servicio" },
   { value: "INCLUDED", label: "Incluido" },
   { value: "NOT_INCLUDED", label: "No incluido" },
-  { value: "CONDITION", label: "Condicion" },
+  { value: "CONDITION", label: "Condición" },
   { value: "OTHER", label: "Otro" },
 ];
 
@@ -112,12 +112,12 @@ function FeatureAdminContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.message || "No se pudieron cargar caracteristicas.");
+        throw new Error(data?.message || "No se pudieron cargar características.");
       }
 
       setFeatures(Array.isArray(data) ? data : []);
     } catch (loadError: any) {
-      setError(loadError?.message || "Error cargando caracteristicas.");
+      setError(loadError?.message || "Error cargando características.");
       setFeatures([]);
     } finally {
       setLoading(false);
@@ -142,7 +142,7 @@ function FeatureAdminContent() {
     if (feature) {
       startEdit(feature);
     } else if (!loading) {
-      setError("Caracteristica no encontrada.");
+      setError("Característica no encontrada.");
     }
   }, [formMode, isCreateRoute, isEditRoute, routeEditId, features, loading]);
 
@@ -192,12 +192,12 @@ function FeatureAdminContent() {
     }
 
     if (!form.appliesTo) {
-      setError("Elige en que tipo de producto puede usarse esta caracteristica.");
+      setError("Elige en qué tipo de producto puede usarse esta característica.");
       return;
     }
 
     if (!form.category) {
-      setError("La categoria es requerida.");
+      setError("La categoría es requerida.");
       return;
     }
 
@@ -229,13 +229,13 @@ function FeatureAdminContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.message || "No se pudo guardar la caracteristica.");
+        throw new Error(data?.message || "No se pudo guardar la característica.");
       }
 
       setMessage(
         editingId
-          ? "Caracteristica actualizada correctamente."
-          : "Caracteristica creada correctamente."
+          ? "Característica actualizada correctamente."
+          : "Característica creada correctamente."
       );
       setEditingId(data.id);
       await fetchFeatures();
@@ -243,7 +243,7 @@ function FeatureAdminContent() {
         router.push("/admin/caracteristicas");
       }
     } catch (saveError: any) {
-      setError(saveError?.message || "Error guardando caracteristica.");
+      setError(saveError?.message || "Error guardando característica.");
     } finally {
       setSaving(false);
     }
@@ -269,7 +269,7 @@ function FeatureAdminContent() {
         throw new Error(data?.message || "No se pudo cambiar el estado.");
       }
 
-      setMessage(feature.active ? "Caracteristica desactivada." : "Caracteristica activada.");
+      setMessage(feature.active ? "Característica desactivada." : "Característica activada.");
       await fetchFeatures();
     } catch (toggleError: any) {
       setError(toggleError?.message || "Error cambiando estado.");
@@ -278,7 +278,7 @@ function FeatureAdminContent() {
 
   async function removeFeature(feature: ProductFeature) {
     const confirmed = window.confirm(
-      `Esta accion desactivara "${feature.name}" y conservara su historial.`
+      `Esta acción desactivará "${feature.name}" y conservará su historial.`
     );
 
     if (!confirmed) return;
@@ -295,13 +295,13 @@ function FeatureAdminContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.message || "No se pudo eliminar la caracteristica.");
+        throw new Error(data?.message || "No se pudo eliminar la característica.");
       }
 
-      setMessage("Caracteristica eliminada de la vista publica.");
+      setMessage("Característica eliminada de la vista pública.");
       await fetchFeatures();
     } catch (removeError: any) {
-      setError(removeError?.message || "Error eliminando caracteristica.");
+      setError(removeError?.message || "Error eliminando característica.");
     }
   }
 
@@ -311,10 +311,10 @@ function FeatureAdminContent() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.25em] text-[#B48A5A]">
-              Catalogo filtrable
+              Catálogo filtrable
             </p>
             <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52] lg:text-4xl">
-              Caracteristicas
+              Características
             </h1>
             <p className="mt-2 max-w-2xl text-slate-500">
               Gestiona los filtros reutilizables para alojamientos, experiencias
@@ -328,7 +328,7 @@ function FeatureAdminContent() {
           >
             <Link href="/admin/caracteristicas/crear">
               <Plus size={18} className="mr-2" />
-              Nueva caracteristica
+              Nueva característica
             </Link>
           </Button>
         </div>
@@ -385,7 +385,7 @@ function FeatureAdminContent() {
                   onChange={(event) => setCategoryFilter(event.target.value)}
                   className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  <option value="ALL_CATEGORIES">Todas las categorias</option>
+                  <option value="ALL_CATEGORIES">Todas las categorías</option>
                   {categoryOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -397,11 +397,11 @@ function FeatureAdminContent() {
 
             {loading ? (
               <div className="rounded-2xl border border-[#D4AF37]/15 bg-white p-6 text-slate-500 shadow-sm">
-                Cargando caracteristicas...
+                Cargando características...
               </div>
             ) : filteredFeatures.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-[#D4AF37]/35 bg-white p-8 text-center text-slate-500">
-                No hay caracteristicas para los filtros seleccionados.
+                No hay características para los filtros seleccionados.
               </div>
             ) : (
               <div className="grid gap-4 lg:grid-cols-2">
@@ -479,12 +479,12 @@ function FeatureAdminContent() {
             <CardContent className="space-y-5 p-5">
               <div>
                 <h2 className="text-2xl font-semibold text-[#0D2B52]">
-                  {editingId ? "Editar caracteristica" : "Crear nueva caracteristica"}
+                  {editingId ? "Editar característica" : "Crear nueva característica"}
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-slate-500">
                   {editingId
-                    ? "Actualiza la informacion de esta caracteristica filtrable."
-                    : "Define una caracteristica filtrable para alojamientos, experiencias o paquetes."}
+                    ? "Actualiza la información de esta característica filtrable."
+                    : "Define una característica filtrable para alojamientos, experiencias o paquetes."}
                 </p>
               </div>
 
@@ -497,7 +497,7 @@ function FeatureAdminContent() {
                 <Textarea
                   value={form.description}
                   onChange={(event) => updateForm("description", event.target.value)}
-                  placeholder="Descripcion"
+                  placeholder="Descripción"
                   className="min-h-24"
                 />
                 <Input
@@ -510,7 +510,7 @@ function FeatureAdminContent() {
                     { key: "name", label: "Nombre", baseValue: form.name },
                     {
                       key: "description",
-                      label: "Descripcion",
+                      label: "Descripción",
                       type: "textarea",
                       baseValue: form.description,
                     },
@@ -541,7 +541,7 @@ function FeatureAdminContent() {
                   onChange={(event) => updateForm("category", event.target.value)}
                   className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  <option value="">Selecciona categoria</option>
+                  <option value="">Selecciona categoría</option>
                   {categoryOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -555,13 +555,13 @@ function FeatureAdminContent() {
                     checked={form.active}
                     onChange={(event) => updateForm("active", event.target.checked)}
                   />
-                  Caracteristica activa
+                  Característica activa
                 </label>
 
                 <div className="rounded-xl bg-[#F8F6F2] p-4 text-sm leading-6 text-slate-500">
                   <strong className="text-[#0D2B52]">Vista previa:</strong>{" "}
                   {form.appliesTo ? productTypeLabel(form.appliesTo) : "Sin tipo"} ·{" "}
-                  {form.category ? featureCategoryLabel(form.category) : "Sin categoria"}
+                  {form.category ? featureCategoryLabel(form.category) : "Sin categoría"}
                 </div>
               </div>
 
@@ -604,11 +604,11 @@ export default function AdminCaracteristicasPage() {
               Acceso restringido
             </p>
             <h1 className="mt-3 text-2xl font-bold text-[#0D2B52]">
-              Esta seccion es solo para Super Admin
+              Esta sección es solo para Superadmin
             </h1>
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              Las caracteristicas filtrables afectan la navegacion publica y
-              solo pueden ser administradas por Super Admin.
+              Las características filtrables afectan la navegación pública y
+              solo pueden ser administradas por Superadmin.
             </p>
           </div>
         </div>

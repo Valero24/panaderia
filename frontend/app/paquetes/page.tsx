@@ -11,6 +11,7 @@ import { useTranslation } from "@/context/LanguageContext";
 import { apiUrl } from "@/lib/api";
 import { formatMoneyByLanguage } from "@/lib/currency";
 import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
+import { packagePublicPath } from "@/lib/product-url";
 import {
   buildFeaturedCollections,
   type PublicFeature,
@@ -18,6 +19,7 @@ import {
 
 type PackageItem = {
   id: number;
+  slug?: string | null;
   title: string;
   shortDescription: string;
   duration: string;
@@ -276,7 +278,7 @@ export default function PaquetesPage() {
             {packages.map((item) => (
               <PublicProductCard
                 key={item.id}
-                href={`/paquetes/${item.id}`}
+                href={packagePublicPath(item)}
                 reserveHref={`/checkout/${item.id}?type=PACKAGE`}
                 image={imageFor(item)}
                 fallbackImage={fallbackImage}

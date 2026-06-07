@@ -17,10 +17,10 @@ export default function PackageTranslationsStep({
   return (
     <TranslationEditor
       fields={[
-        { key: "title", label: "Titulo", baseValue: form.title },
+        { key: "title", label: "Título", baseValue: form.title },
         {
           key: "shortDescription",
-          label: "Descripcion corta",
+          label: "Descripción corta",
           type: "textarea",
           baseValue: form.shortDescription,
         },
@@ -30,18 +30,18 @@ export default function PackageTranslationsStep({
           type: "textarea",
           baseValue: form.description,
         },
-        { key: "duration", label: "Duracion", baseValue: form.duration },
-        { key: "location", label: "Ubicacion", baseValue: form.location },
-        { key: "category", label: "Categoria", baseValue: form.category },
+        { key: "duration", label: "Duración", baseValue: form.duration },
+        { key: "location", label: "Ubicación", baseValue: form.location },
+        { key: "category", label: "Categoría", baseValue: form.category },
         {
           key: "includes",
-          label: "Que incluye",
+          label: "Qué incluye",
           type: "textarea",
           baseValue: form.includes,
         },
         {
           key: "notIncludes",
-          label: "Que no incluye",
+          label: "Qué no incluye",
           type: "textarea",
           baseValue: form.notIncludes,
         },
@@ -53,7 +53,7 @@ export default function PackageTranslationsStep({
         },
         {
           key: "policies",
-          label: "Politicas",
+          label: "Políticas",
           type: "textarea",
           baseValue: form.policies,
         },

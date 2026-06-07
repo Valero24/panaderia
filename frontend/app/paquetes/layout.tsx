@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Paquetes turísticos premium en Cartagena",
+  title: {
+    absolute: "Luxury Travel Packages in Cartagena",
+  },
   description:
-    "Descubre paquetes de lujo en Cartagena con alojamientos, experiencias, islas y atención personalizada.",
+    "Personalized luxury travel packages combining accommodation, tours and premium experiences.",
   openGraph: {
-    title: "Paquetes turísticos premium en Cartagena",
+    title: "Luxury Travel Packages in Cartagena",
     description:
-      "Viajes a medida, escapadas románticas y paquetes privados para Cartagena.",
+      "Personalized luxury travel packages combining accommodation, tours and premium experiences.",
     images: [
       {
         url: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=1200",
@@ -19,9 +21,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Paquetes turísticos premium en Cartagena",
+    title: "Luxury Travel Packages in Cartagena",
     description:
-      "Viajes a medida, escapadas románticas y paquetes privados para Cartagena.",
+      "Personalized luxury travel packages combining accommodation, tours and premium experiences.",
     images: [
       "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=1200",
     ],

@@ -100,7 +100,7 @@ export default function AdminRouteGuard({
             Acceso restringido
           </p>
           <h1 className="mt-3 text-2xl font-bold text-[#0D2B52]">
-            Esta seccion es solo para Super Admin
+            Esta sección es solo para Superadmin
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-500">
             Tu usuario puede gestionar solicitudes asignadas desde el panel de

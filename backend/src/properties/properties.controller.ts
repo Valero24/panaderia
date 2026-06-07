@@ -41,7 +41,7 @@ export class PropertiesController {
   @Public()
   @Get(":id")
   findOne(
-    @Param("id", ParseIntPipe) id: number
+    @Param("id") id: string
   ) {
     return this.propertiesService.findOne(id);
   }

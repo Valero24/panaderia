@@ -136,7 +136,7 @@ export default function ConfiguracionPage() {
       setRole(storedRole);
 
       if (storedRole !== "SUPERADMIN") {
-        setMessage("Acceso reservado para Super Admin.");
+        setMessage("Acceso reservado para Superadministrador.");
         return;
       }
 
@@ -146,14 +146,14 @@ export default function ConfiguracionPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.message || "No se pudo cargar la configuracion.");
+        setMessage(data.message || "No se pudo cargar la configuración.");
         return;
       }
 
       setSettings({ ...initialSettings, ...data });
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion cargando configuracion.");
+      setMessage("Error de conexión cargando configuración.");
     } finally {
       setLoading(false);
     }
@@ -167,7 +167,7 @@ export default function ConfiguracionPage() {
       const token = localStorage.getItem("token");
 
       if (role !== "SUPERADMIN") {
-        setMessage("Tu rol no permite modificar configuracion general.");
+        setMessage("Tu rol no permite modificar configuración general.");
         return;
       }
 
@@ -182,15 +182,15 @@ export default function ConfiguracionPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.message || "No se pudo guardar la configuracion.");
+        setMessage(data.message || "No se pudo guardar la configuración.");
         return;
       }
 
       setSettings({ ...initialSettings, ...data });
-      setMessage("Configuracion general actualizada.");
+      setMessage("Configuración general actualizada.");
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion guardando configuracion.");
+      setMessage("Error de conexión guardando configuración.");
     } finally {
       setSaving(false);
     }
@@ -236,7 +236,7 @@ export default function ConfiguracionPage() {
         <CardContent className="p-6">
           <ShieldAlert className="h-8 w-8 text-red-700" />
           <h1 className="mt-4 text-2xl font-semibold text-red-900">
-            Configuracion restringida
+            Configuración restringida
           </h1>
           <p className="mt-2 text-sm text-red-700">
             Los datos generales del negocio solo pueden ser administrados por SUPERADMIN.
@@ -254,10 +254,10 @@ export default function ConfiguracionPage() {
             Sistema
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52]">
-            Configuracion general
+            Configuración del sistema
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
-            Administra informacion del negocio, marca, redes, operacion demo y textos legales.
+            Administra información del negocio, marca, redes, operación demo y textos legales.
           </p>
         </div>
         <Button
@@ -283,13 +283,13 @@ export default function ConfiguracionPage() {
         <>
           <Section
             icon={Building2}
-            title="Informacion del negocio"
+            title="Información del negocio"
             description="Datos comerciales visibles en documentos y futuras plantillas."
           >
             <Field label="Nombre comercial">
               <Input value={settings.businessName || ""} onChange={(e) => update("businessName", e.target.value)} />
             </Field>
-            <Field label="Razon social">
+            <Field label="Razón social">
               <Input value={settings.legalName || ""} onChange={(e) => update("legalName", e.target.value)} />
             </Field>
             <Field label="NIT">
@@ -298,19 +298,19 @@ export default function ConfiguracionPage() {
             <Field label="Correo">
               <Input type="email" value={settings.email || ""} onChange={(e) => update("email", e.target.value)} />
             </Field>
-            <Field label="Telefono">
+            <Field label="Teléfono">
               <Input value={settings.phone || ""} onChange={(e) => update("phone", e.target.value)} />
             </Field>
             <Field label="WhatsApp">
               <Input value={settings.whatsappNumber || ""} onChange={(e) => update("whatsappNumber", e.target.value)} />
             </Field>
-            <Field label="Direccion">
+            <Field label="Dirección">
               <Input value={settings.address || ""} onChange={(e) => update("address", e.target.value)} />
             </Field>
             <Field label="Ciudad">
               <Input value={settings.city || ""} onChange={(e) => update("city", e.target.value)} />
             </Field>
-            <Field label="Pais">
+            <Field label="País">
               <Input value={settings.country || ""} onChange={(e) => update("country", e.target.value)} />
             </Field>
             <Field label="Sitio web">
@@ -321,7 +321,7 @@ export default function ConfiguracionPage() {
           <Section
             icon={Palette}
             title="Marca"
-            description="Recursos visuales preparados para uso publico y documentos."
+            description="Recursos visuales preparados para uso público y documentos."
           >
             <Field label="Logo URL">
               <Input value={settings.logoUrl || ""} onChange={(e) => update("logoUrl", e.target.value)} />
@@ -340,7 +340,7 @@ export default function ConfiguracionPage() {
           <Section
             icon={Share2}
             title="Redes sociales"
-            description="Enlaces comerciales para footer, campanas y canales publicos."
+            description="Enlaces comerciales para footer, campañas y canales públicos."
           >
             <Field label="Instagram">
               <Input value={settings.instagramUrl || ""} onChange={(e) => update("instagramUrl", e.target.value)} />
@@ -355,8 +355,8 @@ export default function ConfiguracionPage() {
 
           <Section
             icon={Settings2}
-            title="Operacion"
-            description="Parametros generales. En demo se mantienen pagos y disponibilidad real desactivados."
+            title="Operación"
+            description="Parámetros generales. En demo se mantienen pagos y disponibilidad real desactivados."
           >
             <Field label="Moneda base fiscal">
               <Input value="COP" disabled className="bg-slate-50 text-slate-500" />
@@ -413,7 +413,7 @@ export default function ConfiguracionPage() {
                 onChange={(e) => update("exchangeRateDate", e.target.value)}
               />
             </Field>
-            <Toggle label="Conversion visual activa" checked={settings.currencyConversionEnabled} onChange={(value) => update("currencyConversionEnabled", value)} />
+            <Toggle label="Conversión visual activa" checked={settings.currencyConversionEnabled} onChange={(value) => update("currencyConversionEnabled", value)} />
             <Field label="Tasa COP → USD">
               <Input
                 type="number"
@@ -463,11 +463,11 @@ export default function ConfiguracionPage() {
           <Section
             icon={FileText}
             title="Factus / DIAN futuro"
-            description="Preparacion para facturacion electronica. No guardar secretos ni credenciales aqui."
+            description="Preparación para facturación electrónica. No guardar secretos ni credenciales aquí."
           >
             <Toggle label="Factus habilitado" checked={settings.factusEnabled} onChange={(value) => update("factusEnabled", value)} />
             <Field label="Modo Factus">
-              <Input value={settings.factusMode || "mock"} onChange={(e) => update("factusMode", e.target.value)} placeholder="mock | sandbox | production" />
+              <Input value={settings.factusMode || "mock"} onChange={(e) => update("factusMode", e.target.value)} placeholder="mock | sandbox | producción" />
             </Field>
             <Field label="Numbering range ID">
               <Input value={settings.factusNumberingRangeId || ""} onChange={(e) => update("factusNumberingRangeId", e.target.value)} />
@@ -478,13 +478,13 @@ export default function ConfiguracionPage() {
             <Field label="Forma de pago">
               <Input value={settings.factusDefaultPaymentForm || ""} onChange={(e) => update("factusDefaultPaymentForm", e.target.value)} />
             </Field>
-            <Field label="Metodo de pago">
+            <Field label="Método de pago">
               <Input value={settings.factusDefaultPaymentMethodCode || ""} onChange={(e) => update("factusDefaultPaymentMethodCode", e.target.value)} />
             </Field>
             <Field label="Unidad de medida">
               <Input value={settings.factusDefaultUnitMeasureId || ""} onChange={(e) => update("factusDefaultUnitMeasureId", e.target.value)} />
             </Field>
-            <Field label="Codigo estandar">
+            <Field label="Código estándar">
               <Input value={settings.factusDefaultStandardCodeId || ""} onChange={(e) => update("factusDefaultStandardCodeId", e.target.value)} />
             </Field>
             <Field label="Tributo por defecto">
@@ -498,7 +498,7 @@ export default function ConfiguracionPage() {
           <Section
             icon={FileText}
             title="Textos legales y comerciales"
-            description="Textos reutilizables para footer, comprobantes y politicas."
+            description="Textos reutilizables para footer, comprobantes y políticas."
             wide
           >
             <Field label="Footer">
@@ -507,10 +507,10 @@ export default function ConfiguracionPage() {
             <Field label="Notas de factura/comprobante">
               <Textarea value={settings.invoiceNotes || ""} rows={3} onChange={(e) => update("invoiceNotes", e.target.value)} />
             </Field>
-            <Field label="Terminos de reserva">
+            <Field label="Términos de reserva">
               <Textarea value={settings.bookingTerms || ""} rows={5} onChange={(e) => update("bookingTerms", e.target.value)} />
             </Field>
-            <Field label="Politica de privacidad">
+            <Field label="Política de privacidad">
               <Textarea value={settings.privacyPolicyText || ""} rows={5} onChange={(e) => update("privacyPolicyText", e.target.value)} />
             </Field>
           </Section>

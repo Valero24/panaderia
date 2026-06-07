@@ -99,34 +99,49 @@ export default function StaffLoginForm() {
               </p>
             </div>
 
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Correo del equipo"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <label className="block space-y-2 text-sm font-semibold text-[#0D2B52]">
+              <span>Correo</span>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Correo"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
 
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Contrasena"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <label className="block space-y-2 text-sm font-semibold text-[#0D2B52]">
+              <span>Contraseña</span>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Contraseña"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+
+            <label className="flex items-center gap-3 text-sm font-medium text-slate-600">
+              <input
+                type="checkbox"
+                name="remember"
+                className="h-4 w-4 rounded border-[#D4AF37]/40 text-[#0D2B52] focus:ring-[#D4AF37]"
+              />
+              <span>Recordarme</span>
+            </label>
 
             <Button
               type="submit"
               disabled={loading}
               className="h-12 w-full rounded-xl bg-[#0D2B52] hover:bg-[#12396d]"
             >
-              {loading ? "Ingresando..." : "Entrar al panel"}
+              {loading ? "Ingresando..." : "Iniciar sesión"}
             </Button>
           </form>
         </CardContent>

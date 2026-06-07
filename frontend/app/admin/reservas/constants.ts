@@ -14,9 +14,25 @@ export const operationalStatuses = [
 
 export const confirmedStatuses = ["CONFIRMED", "PAID"];
 
+export const reservationStatusLabels: Record<string, string> = {
+  PENDING_ADVISOR: "Pendiente de asesor",
+  ASSIGNED: "Asignada",
+  VALIDATING: "En validación",
+  AVAILABLE: "Disponible",
+  UNAVAILABLE: "No disponible",
+  PAYMENT_PENDING: "Pendiente de pago",
+  PAID: "Pagada",
+  CONFIRMED: "Confirmada",
+  CANCELLED: "Cancelada",
+};
+
+export function getReservationStatusLabel(status?: string | null) {
+  return status ? reservationStatusLabels[status] || status : "Pendiente";
+}
+
 export const statusActions = [
   {
-    label: "Validando",
+    label: "En validación",
     buttonLabel: "Marcar en validación",
     endpoint: "validating",
     nextStatus: "VALIDATING",
@@ -34,7 +50,7 @@ export const statusActions = [
     nextStatus: "UNAVAILABLE",
   },
   {
-    label: "Pendiente pago",
+    label: "Pendiente de pago",
     buttonLabel: "Pasar a pago coordinado",
     endpoint: "payment-pending",
     nextStatus: "PAYMENT_PENDING",
@@ -54,10 +70,12 @@ export const allowedStatusTransitions: Record<string, string[]> = {
 
 const nextStatusLabel: Record<string, string> = {
   PENDING_ADVISOR: "Primero toma la solicitud.",
-  ASSIGNED: "Siguiente acción recomendada: pasar a VALIDATING.",
-  VALIDATING: "Siguiente acción recomendada: marcar AVAILABLE o UNAVAILABLE.",
-  AVAILABLE: "Siguiente acción recomendada: pasar a PAYMENT_PENDING.",
-  UNAVAILABLE: "Revisa fechas/producto y vuelve a VALIDATING si aplica.",
+  ASSIGNED: "Siguiente acción recomendada: pasar a En validación.",
+  VALIDATING:
+    "Siguiente acción recomendada: marcar Disponible o No disponible.",
+  AVAILABLE: "Siguiente acción recomendada: pasar a Pendiente de pago.",
+  UNAVAILABLE:
+    "Revisa fechas/producto y vuelve a En validación si aplica.",
   PAYMENT_PENDING: "Ya puedes generar el link de pago Wompi.",
   PAID: "Pago aprobado. Esperando confirmación final.",
   CONFIRMED: "Reserva confirmada.",
@@ -67,11 +85,12 @@ const nextStatusLabel: Record<string, string> = {
 const manualNextStatusLabel: Record<string, string> = {
   PENDING_ADVISOR: "Primero toma la solicitud.",
   ASSIGNED:
-    "Marca disponibilidad manualmente o pasa a validación si necesitas revisar detalles.",
+    "Marca disponibilidad manualmente o pasa a En validación si necesitas revisar detalles.",
   VALIDATING:
-    "Marca disponible o no disponible según la revisión del asesor.",
+    "Marca Disponible o No disponible según la revisión del asesor.",
   AVAILABLE: "Solicitud disponible. Ya puedes generar la reserva manual.",
-  UNAVAILABLE: "Revisa fechas/producto y vuelve a VALIDATING si aplica.",
+  UNAVAILABLE:
+    "Revisa fechas/producto y vuelve a En validación si aplica.",
   PAYMENT_PENDING:
     "Pago coordinado por asesor. También puedes generar la reserva manual.",
   PAID: "Pago aprobado. Esperando confirmación final.",

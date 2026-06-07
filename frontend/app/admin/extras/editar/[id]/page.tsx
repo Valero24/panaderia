@@ -108,10 +108,10 @@ export default function EditExtraPage({ params }: PageProps) {
           Permisos
         </p>
         <h1 className="mt-2 text-3xl font-bold text-[#0D2B52]">
-          Edicion restringida
+          Edición restringida
         </h1>
         <p className="mt-3 max-w-xl text-slate-500">
-          La edicion de servicios premium esta reservada para Super Admin.
+          La edición de servicios premium está reservada para Superadmin.
         </p>
       </div>
     );
@@ -155,7 +155,7 @@ export default function EditExtraPage({ params }: PageProps) {
 
           <div>
             <label className="text-sm font-medium text-[#0D2B52]">
-              Descripcion
+              Descripción
             </label>
 
             <textarea
@@ -189,7 +189,7 @@ export default function EditExtraPage({ params }: PageProps) {
               { key: "name", label: "Nombre", baseValue: extra.name },
               {
                 key: "description",
-                label: "Descripcion",
+                label: "Descripción",
                 type: "textarea",
                 baseValue: extra.description,
               },

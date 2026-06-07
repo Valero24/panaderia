@@ -25,17 +25,17 @@ export default function PropertyBasicInfoStep({
         <CardContent className="p-10 space-y-10">
           <div>
             <p className="uppercase tracking-[0.3em] text-[#B68D40] text-sm">
-              Overview
+              Resumen
             </p>
             <h2 className="text-4xl font-bold text-[#0F2A44] mt-3">
-              Commercial Information
+              Información comercial
             </h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <label className="text-sm font-medium text-[#0F2A44]">
-                Property Name
+                Nombre del alojamiento
               </label>
               <Input
                 value={form.title}
@@ -59,7 +59,7 @@ export default function PropertyBasicInfoStep({
 
             <div className="space-y-3">
               <label className="text-sm font-medium text-[#0F2A44]">
-                City
+                Ciudad
               </label>
               <Input
                 value={form.city}
@@ -71,7 +71,7 @@ export default function PropertyBasicInfoStep({
 
             <div className="space-y-3">
               <label className="text-sm font-medium text-[#0F2A44]">
-                Area
+                Zona
               </label>
               <Input
                 value={form.area}
@@ -83,42 +83,42 @@ export default function PropertyBasicInfoStep({
 
             <div className="md:col-span-2 space-y-3">
               <label className="text-sm font-medium text-[#0F2A44]">
-                Address
+                Dirección
               </label>
               <Input
                 value={form.address}
                 onChange={(e) => updateField("address", e.target.value)}
-                placeholder="Private property address"
+                placeholder="Dirección privada del alojamiento"
                 className="h-14 rounded-2xl border-[#D4AF37]/20"
               />
             </div>
 
             <div className="md:col-span-2 space-y-3">
               <label className="text-sm font-medium text-[#0F2A44]">
-                Description
+                Descripción
               </label>
               <Textarea
                 value={form.description}
                 onChange={(e) => updateField("description", e.target.value)}
-                placeholder="Describe the luxury experience..."
+                placeholder="Describe la experiencia premium del alojamiento..."
                 className="min-h-[180px] rounded-3xl border-[#D4AF37]/20"
               />
             </div>
 
             <div className="space-y-3">
               <label className="text-sm font-medium text-[#0F2A44]">
-                Status
+                Estado
               </label>
               <select
                 value={form.status}
                 onChange={(e) => updateField("status", e.target.value)}
                 className="w-full h-14 rounded-2xl border border-[#D4AF37]/20 px-4 bg-white"
               >
-                <option value="DRAFT">Draft</option>
-                <option value="ACTIVE">Active</option>
-                <option value="FEATURED">Featured</option>
-                <option value="MAINTENANCE">Maintenance</option>
-                <option value="ARCHIVED">Archived</option>
+                <option value="DRAFT">Borrador</option>
+                <option value="ACTIVE">Activo</option>
+                <option value="FEATURED">Destacado</option>
+                <option value="MAINTENANCE">Mantenimiento</option>
+                <option value="ARCHIVED">Archivado</option>
               </select>
             </div>
           </div>
@@ -129,45 +129,45 @@ export default function PropertyBasicInfoStep({
         <CardContent className="p-10">
           <div className="mb-10">
             <p className="uppercase tracking-[0.3em] text-[#B68D40] text-sm">
-              Capacity
+              Capacidad
             </p>
             <h2 className="text-4xl font-bold text-[#0F2A44] mt-3">
-              Guest Configuration
+              Configuración de huéspedes
             </h2>
           </div>
 
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
             <Input
               type="number"
-              placeholder="Max guests"
+              placeholder="Máximo de huéspedes"
               value={form.maxGuests}
               onChange={(e) => updateField("maxGuests", e.target.value)}
               className="h-14 rounded-2xl"
             />
             <Input
               type="number"
-              placeholder="Max capacity"
+              placeholder="Capacidad máxima"
               value={form.maxCapacity}
               onChange={(e) => updateField("maxCapacity", e.target.value)}
               className="h-14 rounded-2xl"
             />
             <Input
               type="number"
-              placeholder="Minimum nights"
+              placeholder="Noches mínimas"
               value={form.minimumNights}
               onChange={(e) => updateField("minimumNights", e.target.value)}
               className="h-14 rounded-2xl"
             />
             <Input
               type="number"
-              placeholder="Bedrooms"
+              placeholder="Habitaciones"
               value={form.bedrooms}
               onChange={(e) => updateField("bedrooms", e.target.value)}
               className="h-14 rounded-2xl"
             />
             <Input
               type="number"
-              placeholder="Bathrooms"
+              placeholder="Baños"
               value={form.bathrooms}
               onChange={(e) => updateField("bathrooms", e.target.value)}
               className="h-14 rounded-2xl"

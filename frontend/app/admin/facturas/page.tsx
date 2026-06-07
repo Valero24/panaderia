@@ -107,8 +107,8 @@ const paymentStatusOptions = [
   { value: "", label: "Todos" },
   { value: "UNPAID", label: "Sin pagar" },
   { value: "PARTIALLY_PAID", label: "Pago parcial" },
-  { value: "PAID", label: "Pagada" },
-  { value: "REFUNDED", label: "Reembolsada" },
+  { value: "PAID", label: "Pagado" },
+  { value: "REFUNDED", label: "Reembolsado" },
 ];
 
 function readRole() {
@@ -194,7 +194,7 @@ export default function FacturasPage() {
 
       if (storedRole !== "SUPERADMIN") {
         setInvoices([]);
-        setMessage("Acceso reservado para Super Admin.");
+        setMessage("Acceso reservado para Superadministrador.");
         return;
       }
 
@@ -215,7 +215,7 @@ export default function FacturasPage() {
       setInvoices(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion cargando facturas.");
+      setMessage("Error de conexión cargando facturas.");
     } finally {
       setLoading(false);
     }
@@ -254,7 +254,7 @@ export default function FacturasPage() {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Error de conexion actualizando factura."
+          : "Error de conexión actualizando factura."
       );
     } finally {
       setActionLoading("");
@@ -329,7 +329,7 @@ export default function FacturasPage() {
     } catch (error) {
       console.error(error);
       targetWindow?.close();
-      setMessage("Error de conexion abriendo PDF interno.");
+      setMessage("Error de conexión abriendo PDF interno.");
     } finally {
       setActionLoading("");
     }
@@ -361,7 +361,7 @@ export default function FacturasPage() {
             Acceso restringido
           </h1>
           <p className="mt-2 text-sm text-red-700">
-            El modulo de facturas internas solo esta disponible para SUPERADMIN.
+            El módulo de facturas internas solo está disponible para Superadmin.
           </p>
         </CardContent>
       </Card>
@@ -407,7 +407,7 @@ export default function FacturasPage() {
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
               <label className="space-y-1 xl:col-span-2">
                 <span className="text-xs font-medium text-slate-500">
-                  Numero factura
+                  Número factura
                 </span>
                 <Input
                   value={filters.invoiceNumber}
@@ -420,14 +420,14 @@ export default function FacturasPage() {
               </label>
               <label className="space-y-1 xl:col-span-2">
                 <span className="text-xs font-medium text-slate-500">
-                  Cedula/NIT
+                  Cédula/NIT
                 </span>
                 <Input
                   value={filters.customerIdentification}
                   onChange={(event) =>
                     updateFilter("customerIdentification", event.target.value)
                   }
-                  placeholder="Identificacion"
+                  placeholder="Identificación"
                   className="rounded-xl"
                 />
               </label>
@@ -521,15 +521,15 @@ export default function FacturasPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Numero</TableHead>
+                  <TableHead>Número</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Cedula/NIT</TableHead>
+                  <TableHead>Cédula/NIT</TableHead>
                   <TableHead>Correo</TableHead>
-                  <TableHead>Fecha generacion</TableHead>
+                  <TableHead>Fecha generación</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Pago</TableHead>
                   <TableHead>Total</TableHead>
-                  <TableHead>Ultimo cambio</TableHead>
+                  <TableHead>Último cambio</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -749,7 +749,7 @@ function InvoiceCard({
         <div className="grid gap-2 text-sm">
           <Info label="Cliente" value={invoice.billingCustomerName || invoice.customerName} />
           <Info
-            label="Cedula/NIT"
+            label="Cédula/NIT"
             value={
               invoice.billingIdentificationNumber ||
               invoice.customerIdentification ||
@@ -766,7 +766,7 @@ function InvoiceCard({
               value={money(invoice.displayTotal || 0, invoice.displayCurrency)}
             />
           ) : null}
-          <Info label="Ultimo cambio" value={formatDate(invoice.lastStatusChangeAt)} />
+          <Info label="Último cambio" value={formatDate(invoice.lastStatusChangeAt)} />
         </div>
 
         <InvoiceActions

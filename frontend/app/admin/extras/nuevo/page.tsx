@@ -99,10 +99,10 @@ function NewExtraForm() {
           Permisos
         </p>
         <h1 className="mt-2 text-3xl font-bold text-[#0D2B52]">
-          Creacion restringida
+          Creación restringida
         </h1>
         <p className="mt-3 max-w-xl text-slate-500">
-          La creacion de servicios premium esta reservada para Super Admin.
+          La creación de servicios premium está reservada para Superadmin.
         </p>
       </div>
     );
@@ -112,7 +112,7 @@ function NewExtraForm() {
     <div className="space-y-8">
       <div>
         <p className="text-sm tracking-[0.3em] uppercase text-[#B68D40]">
-          PREMIUM SERVICES
+          SERVICIOS PREMIUM
         </p>
 
         <h1 className="text-4xl font-bold text-[#0D2B52] mt-2">
@@ -197,7 +197,7 @@ function NewExtraForm() {
               { key: "name", label: "Nombre", baseValue: form.name },
               {
                 key: "description",
-                label: "Descripcion",
+                label: "Descripción",
                 type: "textarea",
                 baseValue: form.description,
               },

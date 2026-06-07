@@ -24,7 +24,7 @@ import {
 
 const menuItems = [
   {
-    title: "Dashboard",
+    title: "Panel",
     href: "/admin",
     icon: Home,
     roles: ["SUPERADMIN", "ADMIN"],
@@ -66,13 +66,13 @@ const menuItems = [
     roles: ["SUPERADMIN"],
   },
   {
-    title: "Servicios Premium",
+    title: "Servicios premium",
     href: "/admin/extras",
     icon: Gem,
     roles: ["SUPERADMIN", "ADMIN"],
   },
   {
-    title: "Caracteristicas",
+    title: "Características",
     href: "/admin/caracteristicas",
     icon: Tags,
     roles: ["SUPERADMIN"],
@@ -96,19 +96,19 @@ const menuItems = [
     roles: ["SUPERADMIN"],
   },
   {
-    title: "Historial",
+    title: "Registros",
     href: "/admin/logs",
     icon: History,
     roles: ["SUPERADMIN"],
   },
   {
-    title: "Sistema",
+    title: "Estado del sistema",
     href: "/admin/sistema",
     icon: ServerCog,
     roles: ["SUPERADMIN"],
   },
   {
-    title: "Configuracion",
+    title: "Configuración",
     href: "/admin/configuracion",
     icon: Settings,
     roles: ["SUPERADMIN"],
@@ -153,7 +153,7 @@ export default function SidebarAdmin() {
           </p>
 
           <h1 className="mt-2 text-2xl font-bold text-[#0D2B52] lg:text-3xl">
-            Admin Panel
+            Panel administrativo
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
@@ -186,7 +186,7 @@ export default function SidebarAdmin() {
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:border-red-200 hover:bg-red-100 lg:justify-start lg:rounded-2xl lg:px-4 lg:py-3"
         >
           <LogOut size={18} />
-          Cerrar sesion
+          Cerrar sesión
         </button>
       </div>
     </div>

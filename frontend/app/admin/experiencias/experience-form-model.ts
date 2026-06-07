@@ -76,28 +76,28 @@ export type ExperienceWizardStep =
 export const experienceWizardSteps: ProductWizardStep<ExperienceWizardStep>[] = [
   {
     key: "basic",
-    label: "Informacion basica",
-    description: "Titulo, ubicacion, duracion y capacidad.",
+    label: "Información básica",
+    description: "Título, ubicación, duración y capacidad.",
   },
   {
     key: "media",
     label: "Multimedia",
-    description: "Imagen principal y galeria.",
+    description: "Imagen principal y galería.",
   },
   {
     key: "translations",
     label: "Traducciones",
-    description: "Versiones EN, FR, PT e IT con fallback a espanol.",
+    description: "Versiones EN, FR, PT e IT con fallback a español.",
   },
   {
     key: "features",
-    label: "Caracteristicas filtrables",
-    description: "Filtros publicos EXPERIENCE + ALL de experiencias.",
+    label: "Características filtrables",
+    description: "Filtros públicos EXPERIENCE + ALL de experiencias.",
   },
   {
     key: "pricing",
     label: "Precios y condiciones",
-    description: "Tarifa, politicas y recomendaciones.",
+    description: "Tarifa, políticas y recomendaciones.",
   },
   {
     key: "premium",
@@ -106,7 +106,7 @@ export const experienceWizardSteps: ProductWizardStep<ExperienceWizardStep>[] = 
   },
   {
     key: "review",
-    label: "Revision",
+    label: "Revisión",
     description: "Resumen antes de guardar.",
   },
 ];

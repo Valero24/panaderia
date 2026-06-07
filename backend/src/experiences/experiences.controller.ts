@@ -33,16 +33,16 @@ export class ExperiencesController {
     return this.experiencesService.findAllAdmin();
   }
 
-  @Public()
-  @Get(":id")
-  findOnePublic(@Param("id", ParseIntPipe) id: number) {
-    return this.experiencesService.findOnePublic(id);
-  }
-
   @Roles("ADMIN", "SUPERADMIN", "ADVISOR")
   @Get("admin/:id")
   findOneAdmin(@Param("id", ParseIntPipe) id: number) {
     return this.experiencesService.findOneAdmin(id);
+  }
+
+  @Public()
+  @Get(":id")
+  findOnePublic(@Param("id") id: string) {
+    return this.experiencesService.findOnePublic(id);
   }
 
   @Roles("ADMIN", "SUPERADMIN")

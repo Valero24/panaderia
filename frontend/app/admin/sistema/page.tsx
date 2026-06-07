@@ -102,6 +102,46 @@ function formatUptime(seconds: number) {
   return `${minutes}m`;
 }
 
+const criticalActionLabels: Record<string, string> = {
+  ERROR: "Error",
+  FAILED: "Fallo",
+  INVOICE_COP_GENERATED: "Factura interna generada",
+  INVOICE_CREATED: "Factura interna creada",
+  INVOICE_DUPLICATE_ATTEMPT: "Intento de factura duplicada",
+  INVOICE_STATUS_UPDATED: "Estado de factura actualizado",
+  INVOICE_PAYMENT_STATUS_UPDATED: "Estado de pago actualizado",
+  SETTINGS_UPDATED: "Configuración actualizada",
+  SYSTEM_HEALTH_ERROR: "Error de monitoreo",
+};
+
+const entityTypeLabels: Record<string, string> = {
+  AUDIT_LOG: "Registro",
+  BOOKING: "Reserva",
+  CONTACT: "Contacto",
+  EXCHANGE_RATE: "Tasa de cambio",
+  INVOICE: "Factura",
+  PAYMENT: "Pago",
+  PRE_RESERVATION: "Solicitud",
+  PROPERTY: "Alojamiento",
+  SYSTEM_SETTINGS: "Configuración",
+  USER: "Usuario",
+};
+
+function readableTechnicalLabel(value: string) {
+  return value
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/^\w/, (letter) => letter.toUpperCase());
+}
+
+function criticalActionLabel(action: string) {
+  return criticalActionLabels[action] || readableTechnicalLabel(action);
+}
+
+function entityTypeLabel(entityType: string) {
+  return entityTypeLabels[entityType] || readableTechnicalLabel(entityType);
+}
+
 export default function SistemaPage() {
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,7 +157,7 @@ export default function SistemaPage() {
       setRole(storedRole);
 
       if (storedRole !== "SUPERADMIN") {
-        setMessage("Acceso reservado para Super Admin.");
+        setMessage("Acceso reservado para Superadministrador.");
         return;
       }
 
@@ -137,7 +177,7 @@ export default function SistemaPage() {
       setHealth(data);
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion consultando el estado del sistema.");
+      setMessage("Error de conexión consultando el estado del sistema.");
     } finally {
       setLoading(false);
     }
@@ -156,7 +196,7 @@ export default function SistemaPage() {
             Acceso restringido
           </h1>
           <p className="mt-2 text-sm text-red-700">
-            El monitoreo tecnico solo esta disponible para SUPERADMIN.
+            El monitoreo técnico solo está disponible para Superadmin.
           </p>
         </CardContent>
       </Card>
@@ -168,13 +208,13 @@ export default function SistemaPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.28em] text-[#B48A5A]">
-            Health & Monitoring
+            Monitoreo del sistema
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52]">
             Estado del sistema
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
-            Vista tecnica segura para revisar demo, base de datos, integraciones y actividad critica.
+            Vista técnica segura para revisar demo, base de datos, integraciones y actividad crítica.
           </p>
         </div>
         <Button
@@ -201,7 +241,7 @@ export default function SistemaPage() {
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatusCard
               icon={Server}
-              label="Backend"
+              label="Servidor backend"
               value="OK"
               status={health.backend.status}
               detail={`${health.backend.environment} - ${formatUptime(health.backend.uptime)}`}
@@ -267,7 +307,7 @@ export default function SistemaPage() {
             <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white">
               <CardContent className="p-5">
                 <h2 className="text-xl font-semibold text-[#0D2B52]">
-                  Metricas rapidas
+                  Métricas rápidas
                 </h2>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   <Metric label="Usuarios" value={health.counts.users} />
@@ -280,7 +320,7 @@ export default function SistemaPage() {
                   <Metric label="Solicitudes pendientes" value={health.counts.pendingPreReservations} />
                   <Metric label="Reservas confirmadas" value={health.counts.confirmedBookings} />
                   <Metric label="Contactos" value={health.counts.contacts} />
-                  <Metric label="Logs 24h" value={health.counts.auditLogsLast24h} />
+                  <Metric label="Registros 24h" value={health.counts.auditLogsLast24h} />
                   <Metric label="Notificaciones pendientes" value={health.counts.pendingOperationalNotifications} />
                 </div>
               </CardContent>
@@ -291,17 +331,17 @@ export default function SistemaPage() {
             <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white">
               <CardContent className="p-5">
                 <h2 className="text-xl font-semibold text-[#0D2B52]">
-                  Informacion tecnica segura
+                  Información técnica segura
                 </h2>
                 <div className="mt-5 space-y-3 text-sm">
                   <TechRow label="Ambiente" value={health.backend.environment} />
-                  <TechRow label="Uptime" value={formatUptime(health.backend.uptime)} />
-                  <TechRow label="Memoria RSS" value={`${health.backend.memory.rssMb} MB`} />
+                  <TechRow label="Tiempo activo" value={formatUptime(health.backend.uptime)} />
+                  <TechRow label="Uso de memoria RSS" value={`${health.backend.memory.rssMb} MB`} />
                   <TechRow label="Heap usado" value={`${health.backend.memory.heapUsedMb} MB`} />
-                  <TechRow label="Node" value={health.backend.nodeVersion} />
-                  <TechRow label="Version app" value={health.backend.appVersion} />
+                  <TechRow label="Versión de Node" value={health.backend.nodeVersion} />
+                  <TechRow label="Versión de la app" value={health.backend.appVersion} />
                   <TechRow
-                    label="Ultima migracion"
+                    label="Última migración"
                     value={
                       health.lastMigration
                         ? `${health.lastMigration.migration_name} - ${formatDate(health.lastMigration.finished_at)}`
@@ -316,7 +356,7 @@ export default function SistemaPage() {
               <CardContent className="p-5">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-semibold text-[#0D2B52]">
-                    Ultimos eventos criticos
+                    Últimos eventos críticos
                   </h2>
                   <Badge variant="outline" className="rounded-md">
                     {health.criticalLogs.length}
@@ -325,7 +365,7 @@ export default function SistemaPage() {
 
                 {health.criticalLogs.length === 0 ? (
                   <p className="mt-5 rounded-xl border border-dashed border-[#D4AF37]/30 bg-[#F8F6F2] px-4 py-5 text-center text-sm text-slate-500">
-                    No hay eventos criticos recientes.
+                    No hay eventos críticos recientes.
                   </p>
                 ) : (
                   <div className="mt-5 space-y-3">
@@ -336,17 +376,17 @@ export default function SistemaPage() {
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <Badge variant="outline" className="rounded-md bg-white">
-                            {log.action}
+                            {criticalActionLabel(log.action)}
                           </Badge>
                           <span className="text-xs text-amber-700">
                             {formatDate(log.createdAt)}
                           </span>
                         </div>
                         <p className="mt-2 font-medium text-[#0D2B52]">
-                          {log.message || "Evento critico registrado"}
+                          {log.message || "Evento crítico registrado"}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          {log.entityType} #{log.entityId} - {log.actorName || "Sistema"}
+                          {entityTypeLabel(log.entityType)} #{log.entityId} - {log.actorName || "Sistema"}
                         </p>
                       </div>
                     ))}

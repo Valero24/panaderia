@@ -21,8 +21,15 @@ type LanguageContextValue = {
   t: (key: TranslationKey | string) => string;
 };
 
-const LanguageContext =
+type LocaleScope = "public" | "admin";
+
+const PublicLocaleContext =
   createContext<LanguageContextValue | null>(null);
+
+const AdminLocaleContext =
+  createContext<LanguageContextValue | null>(null);
+
+const LocaleScopeContext = createContext<LocaleScope>("public");
 
 function normalizeLanguage(value: string | null): Language {
   return languages.some((language) => language.code === value)
@@ -56,7 +63,7 @@ function persistLanguage(language: Language) {
   }
 }
 
-export function LanguageProvider({
+function PublicLocaleProvider({
   children,
 }: {
   children: React.ReactNode;
@@ -87,14 +94,90 @@ export function LanguageProvider({
   );
 
   return (
-    <LanguageContext.Provider value={value}>
+    <PublicLocaleContext.Provider value={value}>
       {children}
-    </LanguageContext.Provider>
+    </PublicLocaleContext.Provider>
   );
 }
 
+function AdminLocaleProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    document.documentElement.lang = "es";
+  }, []);
+
+  const value = useMemo<LanguageContextValue>(
+    () => ({
+      language: "es",
+      setLanguage: () => {
+        document.documentElement.lang = "es";
+      },
+      t: (key: TranslationKey | string) => translate("es", key),
+    }),
+    []
+  );
+
+  return (
+    <AdminLocaleContext.Provider value={value}>
+      {children}
+    </AdminLocaleContext.Provider>
+  );
+}
+
+export function LanguageProvider({
+  children,
+  scope = "public",
+}: {
+  children: React.ReactNode;
+  scope?: LocaleScope;
+}) {
+  if (scope === "admin") {
+    return (
+      <LocaleScopeContext.Provider value="admin">
+        <AdminLocaleProvider>{children}</AdminLocaleProvider>
+      </LocaleScopeContext.Provider>
+    );
+  }
+
+  return (
+    <LocaleScopeContext.Provider value="public">
+      <PublicLocaleProvider>{children}</PublicLocaleProvider>
+    </LocaleScopeContext.Provider>
+  );
+}
+
+export function usePublicLocale() {
+  const context = useContext(PublicLocaleContext);
+
+  if (!context) {
+    throw new Error(
+      "usePublicLocale must be used inside a public LanguageProvider"
+    );
+  }
+
+  return context;
+}
+
+export function useAdminLocale() {
+  const context = useContext(AdminLocaleContext);
+
+  if (!context) {
+    throw new Error(
+      "useAdminLocale must be used inside an admin LanguageProvider"
+    );
+  }
+
+  return context;
+}
+
 export function useTranslation() {
-  const context = useContext(LanguageContext);
+  const scope = useContext(LocaleScopeContext);
+  const publicLocale = useContext(PublicLocaleContext);
+  const adminLocale = useContext(AdminLocaleContext);
+  const context = scope === "admin" ? adminLocale : publicLocale;
 
   if (!context) {
     throw new Error(

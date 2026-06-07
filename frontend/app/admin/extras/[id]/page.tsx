@@ -90,7 +90,7 @@ export default function ExtrasByPropertyPage({ params }: PageProps) {
           Servicios premium restringidos
         </h1>
         <p className="mt-3 max-w-xl text-slate-500">
-          La administracion de servicios premium esta reservada para Super Admin.
+          La administración de servicios premium está reservada para Superadmin.
         </p>
       </div>
     );

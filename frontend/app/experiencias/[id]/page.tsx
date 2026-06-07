@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowLeft, CalendarDays, Clock, MapPin, ShieldCheck, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
 import { cleanPublicCopy } from "@/lib/public-copy";
+import { absoluteTitle, pageTitle, productSeoDescription } from "@/lib/seo";
 import type { DynamicTranslations } from "@/lib/dynamic-translations";
 
 type PageProps = {
@@ -22,6 +24,7 @@ type PageProps = {
 
 type Experience = {
   id: number;
+  slug?: string | null;
   title: string;
   shortDescription: string;
   description: string;
@@ -57,6 +60,8 @@ type ExtraService = {
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=70&w=1200";
+const fallbackDescription =
+  "Private experience in Cartagena with personalized service, curated details and premium assistance.";
 
 async function getExperience(id: string): Promise<Experience | null> {
   try {
@@ -91,12 +96,68 @@ async function getExperienceExtras(id: string): Promise<ExtraService[]> {
   }
 }
 
+function primaryImage(experience: Experience | null) {
+  return (
+    experience?.images?.find((image) => image.isPrimary)?.url ||
+    experience?.images?.[0]?.url ||
+    experience?.mainImage ||
+    fallbackImage
+  );
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const experience = await getExperience(id);
+
+  if (!experience) {
+    return {
+      title: pageTitle("Experiencia no disponible"),
+      description: fallbackDescription,
+    };
+  }
+
+  const title = pageTitle(experience.title || "Experiencia premium");
+  const description = productSeoDescription({
+    description: experience.shortDescription || experience.description,
+    fallback: fallbackDescription,
+    location: experience.location,
+  });
+  const image = primaryImage(experience);
+
+  return {
+    title: absoluteTitle(title),
+    description,
+    alternates: {
+      canonical: experience.slug
+        ? `/experiencias/${experience.slug}`
+        : `/experiencias/${experience.id}`,
+    },
+    openGraph: {
+      title: absoluteTitle(title),
+      description,
+      type: "website",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 800,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: absoluteTitle(title),
+      description,
+      images: [image],
+    },
+  };
+}
+
 export default async function ExperienceDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [experience, extras] = await Promise.all([
-    getExperience(id),
-    getExperienceExtras(id),
-  ]);
+  const experience = await getExperience(id);
+  const extras = experience ? await getExperienceExtras(String(experience.id)) : [];
 
   if (!experience) {
     return (

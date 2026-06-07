@@ -105,7 +105,7 @@ export default function AdminCurrenciesPage() {
       fetchRates();
     } else {
       setLoading(false);
-      setMessage("Acceso reservado para Super Admin.");
+      setMessage("Acceso reservado para Superadmin.");
     }
   }, []);
 
@@ -190,10 +190,10 @@ export default function AdminCurrenciesPage() {
           <CardContent className="p-8">
             <ShieldAlert className="h-8 w-8 text-[#B48A5A]" />
             <h1 className="mt-4 text-3xl font-semibold text-[#0D2B52]">
-              Modulo restringido
+              Módulo restringido
             </h1>
             <p className="mt-2 text-slate-500">
-              Solo SUPERADMIN puede administrar tasas de cambio.
+              Solo Superadmin puede administrar tasas de cambio.
             </p>
           </CardContent>
         </Card>
@@ -207,13 +207,13 @@ export default function AdminCurrenciesPage() {
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#B48A5A]">
-              Configuracion monetaria
+              Configuración monetaria
             </p>
             <h1 className="mt-2 text-3xl font-semibold lg:text-4xl">
               Monedas y tasas
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-500">
-              La moneda base fiscal es COP. Las demas monedas son referencias
+              La moneda base fiscal es COP. Las demás monedas son referencias
               visuales para clientes internacionales.
             </p>
           </div>
@@ -237,7 +237,7 @@ export default function AdminCurrenciesPage() {
             value={String(activeRates.length)}
           />
           <Metric
-            label="Ultima actualizacion"
+            label="Última actualización"
             value={lastUpdated ? formatDate(new Date(lastUpdated).toISOString()) : "Sin tasa"}
           />
         </section>

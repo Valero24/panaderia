@@ -149,7 +149,7 @@ export default function ReservationTimeline({
     },
     {
       key: "confirmed",
-      label: "Booking confirmado",
+      label: "Reserva confirmada",
       description: "Reserva final creada en el sistema.",
       icon: CalendarCheck,
     },

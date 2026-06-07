@@ -49,7 +49,7 @@ export default function PackagePremiumServicesStep({
           {canManage && (
             <div className="space-y-3 rounded-xl bg-[#F8F6F2] p-4">
               <Input placeholder="Nombre del servicio" value={extraForm.name} onChange={(event) => setExtraForm((current) => ({ ...current, name: event.target.value }))} />
-              <Textarea placeholder="Descripcion" value={extraForm.description} onChange={(event) => setExtraForm((current) => ({ ...current, description: event.target.value }))} />
+              <Textarea placeholder="Descripción" value={extraForm.description} onChange={(event) => setExtraForm((current) => ({ ...current, description: event.target.value }))} />
               <Input type="number" min={0} placeholder="Precio" value={extraForm.price} onChange={(event) => setExtraForm((current) => ({ ...current, price: event.target.value }))} />
               <TranslationEditor
                 title="Traducciones del servicio"
@@ -57,7 +57,7 @@ export default function PackagePremiumServicesStep({
                   { key: "name", label: "Nombre", baseValue: extraForm.name },
                   {
                     key: "description",
-                    label: "Descripcion",
+                    label: "Descripción",
                     type: "textarea",
                     baseValue: extraForm.description,
                   },

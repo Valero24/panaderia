@@ -16,17 +16,24 @@ import TranslatedText from "@/components/TranslatedText";
 import TrackedLink from "@/components/TrackedLink";
 import { apiUrl } from "@/lib/api";
 import type { DynamicTranslations } from "@/lib/dynamic-translations";
+import {
+  experiencePublicPath,
+  packagePublicPath,
+  propertyPublicPath,
+} from "@/lib/product-url";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Cartagena Tailored Travel",
+  title: {
+    absolute: "Cartagena Tailored Travel | Luxury Travel in Cartagena",
+  },
   description:
-    "Plan a premium trip to Cartagena with luxury villas, verified stays, private experiences and personalized travel assistance.",
+    "Private tours, luxury accommodations and unique experiences in Cartagena, Colombia.",
   openGraph: {
-    title: "Cartagena Tailored Travel",
+    title: "Cartagena Tailored Travel | Luxury Travel in Cartagena",
     description:
-      "Premium villas, private experiences and tailored packages in Cartagena, Colombia.",
+      "Private tours, luxury accommodations and unique experiences in Cartagena, Colombia.",
     images: [
       {
         url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600",
@@ -38,9 +45,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cartagena Tailored Travel",
+    title: "Cartagena Tailored Travel | Luxury Travel in Cartagena",
     description:
-      "Premium villas, private experiences and tailored packages in Cartagena, Colombia.",
+      "Private tours, luxury accommodations and unique experiences in Cartagena, Colombia.",
     images: [
       "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=70&w=1600",
     ],
@@ -49,6 +56,7 @@ export const metadata: Metadata = {
 
 type Property = {
   id: number;
+  slug?: string | null;
   title: string;
   city?: string | null;
   area?: string | null;
@@ -66,6 +74,7 @@ type Property = {
 
 type Experience = {
   id: number;
+  slug?: string | null;
   title: string;
   shortDescription?: string | null;
   location?: string | null;
@@ -84,6 +93,7 @@ type Experience = {
 
 type PackageItem = {
   id: number;
+  slug?: string | null;
   title: string;
   shortDescription?: string | null;
   location?: string | null;
@@ -248,7 +258,7 @@ export default async function HomePage() {
           <TranslatedHomeProductCard
             key={property.id}
             item={property}
-            href={`/alojamientos/${property.id}`}
+            href={propertyPublicPath(property)}
             reserveHref={`/checkout/${property.id}?type=PROPERTY`}
             image={primaryImage(property, stayFallback)}
             fallbackImage={stayFallback}
@@ -281,7 +291,7 @@ export default async function HomePage() {
           <TranslatedHomeProductCard
             key={experience.id}
             item={experience}
-            href={`/experiencias/${experience.id}`}
+            href={experiencePublicPath(experience)}
             reserveHref={`/checkout/${experience.id}?type=EXPERIENCE`}
             image={primaryImage(experience, experienceFallback)}
             fallbackImage={experienceFallback}
@@ -313,7 +323,7 @@ export default async function HomePage() {
           <TranslatedHomeProductCard
             key={item.id}
             item={item}
-            href={`/paquetes/${item.id}`}
+            href={packagePublicPath(item)}
             reserveHref={`/checkout/${item.id}?type=PACKAGE`}
             image={primaryImage(item, packageFallback)}
             fallbackImage={packageFallback}

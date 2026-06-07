@@ -20,25 +20,25 @@ export default function ExperienceTranslationsStep({
   return (
     <TranslationEditor
       fields={[
-        { key: "title", label: "Titulo", baseValue: form.title },
+        { key: "title", label: "Título", baseValue: form.title },
         {
           key: "shortDescription",
-          label: "Descripcion corta",
+          label: "Descripción corta",
           type: "textarea",
           baseValue: form.shortDescription,
         },
         {
           key: "description",
-          label: "Descripcion completa",
+          label: "Descripción completa",
           type: "textarea",
           baseValue: form.description,
         },
-        { key: "location", label: "Ubicacion", baseValue: form.location },
-        { key: "duration", label: "Duracion", baseValue: form.duration },
-        { key: "category", label: "Categoria", baseValue: form.category },
+        { key: "location", label: "Ubicación", baseValue: form.location },
+        { key: "duration", label: "Duración", baseValue: form.duration },
+        { key: "category", label: "Categoría", baseValue: form.category },
         {
           key: "policies",
-          label: "Politicas",
+          label: "Políticas",
           type: "textarea",
           baseValue: form.policies,
         },

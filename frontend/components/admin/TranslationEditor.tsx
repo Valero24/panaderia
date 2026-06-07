@@ -33,7 +33,7 @@ const tabs: Array<{ key: "es" | TranslationLanguage; label: string }> = [
 
 export default function TranslationEditor({
   title = "Traducciones",
-  description = "El espanol es obligatorio y se edita en los campos principales. Los demas idiomas son opcionales.",
+  description = "El español es obligatorio y se edita en los campos principales. Los demás idiomas son opcionales.",
   fields,
   value,
   onChange,
@@ -78,7 +78,7 @@ export default function TranslationEditor({
       {activeTab === "es" ? (
         <div className="mt-4 space-y-3 rounded-xl border border-[#D4AF37]/15 bg-[#F8F6F2] p-4">
           <div className="text-sm font-semibold text-[#0D2B52]">
-            Espanol principal
+            Español principal
           </div>
           <p className="text-sm leading-6 text-slate-500">
             Estos textos se guardan en los campos principales del producto. Usa
@@ -101,7 +101,7 @@ export default function TranslationEditor({
         <div className="mt-4 space-y-4">
           <div className="rounded-xl border border-[#D4AF37]/15 bg-[#F8F6F2] p-3 text-sm text-slate-500">
             Traduccion opcional para {languageLabels[activeTab]}. Si un campo
-            queda vacio, el sitio usara el texto en espanol.
+            queda vacío, el sitio usará el texto en español.
           </div>
 
           <div className="grid gap-4">

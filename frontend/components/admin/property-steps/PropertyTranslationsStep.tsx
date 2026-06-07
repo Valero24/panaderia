@@ -26,7 +26,7 @@ export default function PropertyTranslationsStep({
         { key: "address", label: "Direccion", baseValue: form.address },
         {
           key: "description",
-          label: "Descripcion",
+          label: "Descripción",
           type: "textarea",
           baseValue: form.description,
         },

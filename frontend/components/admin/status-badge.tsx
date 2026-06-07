@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 
 export const reservationStatusMeta = {
   PENDING_ADVISOR: {
-    label: "Pendiente asesor",
+    label: "Pendiente de asesor",
     description: "Solicitud recibida, esperando atención del equipo.",
     className: "border-amber-200 bg-amber-50 text-amber-700",
     icon: Clock,
@@ -26,7 +26,7 @@ export const reservationStatusMeta = {
     icon: UserCheck,
   },
   VALIDATING: {
-    label: "Validando",
+    label: "En validación",
     description: "Disponibilidad y detalles comerciales en revisión.",
     className: "border-indigo-200 bg-indigo-50 text-indigo-700",
     icon: SearchCheck,
@@ -44,8 +44,8 @@ export const reservationStatusMeta = {
     icon: AlertTriangle,
   },
   PAYMENT_PENDING: {
-    label: "Pendiente pago",
-    description: "Link de pago listo o por generar.",
+    label: "Pendiente de pago",
+    description: "Pago coordinado, listo o por gestionar.",
     className: "border-[#D4AF37]/40 bg-[#FFF8E1] text-[#8A651F]",
     icon: CreditCard,
   },
@@ -76,6 +76,10 @@ export function getReservationStatusMeta(status?: string | null) {
     reservationStatusMeta[status as ReservationStatus] ||
     reservationStatusMeta.PENDING_ADVISOR
   );
+}
+
+export function getReservationStatusLabel(status?: string | null) {
+  return getReservationStatusMeta(status).label;
 }
 
 export default function StatusBadge({

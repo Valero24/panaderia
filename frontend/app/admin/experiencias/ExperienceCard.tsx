@@ -6,6 +6,7 @@ import { Clock, Edit3, Eye, MapPin, ToggleLeft, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { experiencePublicPath } from "@/lib/product-url";
 import {
   money,
   previewImage,
@@ -105,7 +106,7 @@ export function ExperienceCard({
                 </>
               )}
               <a
-                href={`/experiencias/${experience.id}`}
+                href={experiencePublicPath(experience)}
                 target="_blank"
                 rel="noreferrer"
               >

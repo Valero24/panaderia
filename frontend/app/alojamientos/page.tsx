@@ -10,6 +10,7 @@ import PublicJourneyHeader from "@/components/public/PublicJourneyHeader";
 import { apiUrl } from "@/lib/api";
 import { formatMoneyByLanguage } from "@/lib/currency";
 import { getDynamicText, type DynamicTranslations } from "@/lib/dynamic-translations";
+import { propertyPublicPath } from "@/lib/product-url";
 import {
   buildFeaturedCollections,
   type PublicFeature,
@@ -26,6 +27,7 @@ type PropertyImage = {
 
 type Property = {
   id: number;
+  slug?: string | null;
   title: string;
   city?: string | null;
   area?: string | null;
@@ -306,7 +308,7 @@ export default function PublicPropertiesPage() {
               return (
                 <PublicProductCard
                   key={property.id}
-                  href={`/alojamientos/${property.id}`}
+                  href={propertyPublicPath(property)}
                   reserveHref={`/checkout/${property.id}?type=PROPERTY`}
                   image={primaryImage(property)}
                   fallbackImage={fallbackImage}

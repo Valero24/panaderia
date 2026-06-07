@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { packagePublicPath } from "@/lib/product-url";
 import {
   money,
   previewImage,
@@ -111,7 +112,7 @@ export function PackageCard({
                   </Button>
                 </>
               )}
-              <a href={`/paquetes/${item.id}`} target="_blank" rel="noreferrer">
+              <a href={packagePublicPath(item)} target="_blank" rel="noreferrer">
                 <Button type="button" variant="outline" className="rounded-xl">
                   <Eye className="mr-2 h-4 w-4" />
                   Ver

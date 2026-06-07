@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiUrl } from "@/lib/api";
+import { auditActionLabel, roleLabel } from "@/lib/admin-log-labels";
 
 type InvoiceDetail = {
   id: number;
@@ -126,14 +127,26 @@ const statusLabels: Record<string, string> = {
 const paymentLabels: Record<string, string> = {
   UNPAID: "Sin pagar",
   PARTIALLY_PAID: "Pago parcial",
-  PAID: "Pagada",
-  REFUNDED: "Reembolsada",
+  PAID: "Pagado",
+  REFUNDED: "Reembolsado",
 };
 
 const productTypeLabels: Record<string, string> = {
   PROPERTY: "Alojamiento",
   EXPERIENCE: "Experiencia",
   PACKAGE: "Paquete",
+};
+
+const bookingStatusLabels: Record<string, string> = {
+  PENDING_ADVISOR: "Pendiente de asesor",
+  ASSIGNED: "Asignada",
+  VALIDATING: "En validación",
+  AVAILABLE: "Disponible",
+  UNAVAILABLE: "No disponible",
+  PAYMENT_PENDING: "Pendiente de pago",
+  PAID: "Pagada",
+  CONFIRMED: "Confirmada",
+  CANCELLED: "Cancelada",
 };
 
 function readRole() {
@@ -166,9 +179,15 @@ function statusClass(status: string) {
   return "border-[#D4AF37]/25 bg-[#F8F6F2] text-[#0D2B52]";
 }
 
+function bookingStatusLabel(status?: string | null) {
+  return status ? bookingStatusLabels[status] || status : "Sin dato";
+}
+
 function actionLabel(action: string) {
   const labels: Record<string, string> = {
     INVOICE_GENERATED: "Factura creada",
+    INVOICE_COP_GENERATED: "Factura interna generada",
+    INVOICE_CREATED: "Factura interna creada",
     INVOICE_DETAIL_VIEWED: "Detalle consultado",
     INVOICE_DUPLICATE_ATTEMPT: "Intento duplicado",
     INVOICE_STATUS_UPDATED: "Estado actualizado",
@@ -177,7 +196,7 @@ function actionLabel(action: string) {
     INVOICE_CANCELLED: "Cancelada",
   };
 
-  return labels[action] || action.replace(/_/g, " ").toLowerCase();
+  return labels[action] || auditActionLabel(action);
 }
 
 function readLogObject(value: unknown) {
@@ -229,14 +248,14 @@ export default function FacturaDetallePage() {
     const rows: [string, string | number | boolean | null | undefined][] = [
       ["Tipo persona", booking?.billingLegalOrganizationType],
       ["Tipo documento", booking?.billingIdentificationDocumentType],
-      ["Identificacion", booking?.billingIdentificationNumber],
-      ["Digito verificacion", booking?.billingVerificationDigit],
-      ["Nombre/Razon social", booking?.billingCustomerName],
-      ["Correo facturacion", booking?.billingEmail],
-      ["Telefono facturacion", booking?.billingPhone],
+      ["Identificación", booking?.billingIdentificationNumber],
+      ["Dígito verificación", booking?.billingVerificationDigit],
+      ["Nombre/Razón social", booking?.billingCustomerName],
+      ["Correo facturación", booking?.billingEmail],
+      ["Teléfono facturación", booking?.billingPhone],
       ["Departamento", booking?.billingDepartment],
       ["Municipio", booking?.billingMunicipalityName],
-      ["Direccion fiscal", booking?.billingAddress],
+      ["Dirección fiscal", booking?.billingAddress],
       ["Responsabilidad tributaria", booking?.billingTaxResponsibility],
       ["Tributo", booking?.billingTributeId],
     ];
@@ -253,7 +272,7 @@ export default function FacturaDetallePage() {
       setRole(storedRole);
 
       if (storedRole !== "SUPERADMIN") {
-        setMessage("Acceso reservado para Super Admin.");
+        setMessage("Acceso reservado para Superadministrador.");
         return;
       }
 
@@ -274,7 +293,7 @@ export default function FacturaDetallePage() {
       setInvoice(data);
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion cargando la factura.");
+      setMessage("Error de conexión cargando la factura.");
     } finally {
       setLoading(false);
     }
@@ -316,7 +335,7 @@ export default function FacturaDetallePage() {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Error de conexion actualizando la factura."
+          : "Error de conexión actualizando la factura."
       );
     } finally {
       setActionLoading("");
@@ -388,7 +407,7 @@ export default function FacturaDetallePage() {
     } catch (error) {
       console.error(error);
       targetWindow?.close();
-      setMessage("Error de conexion abriendo PDF interno.");
+      setMessage("Error de conexión abriendo PDF interno.");
     } finally {
       setActionLoading("");
     }
@@ -408,7 +427,7 @@ export default function FacturaDetallePage() {
             Acceso restringido
           </h1>
           <p className="mt-2 text-sm text-red-700">
-            El detalle de facturas solo esta disponible para SUPERADMIN.
+            El detalle de facturas solo está disponible para Superadmin.
           </p>
         </CardContent>
       </Card>
@@ -462,7 +481,7 @@ export default function FacturaDetallePage() {
                   </h1>
                   <p className="mt-2 text-sm text-slate-500">
                     Factura operativa asociada a una reserva confirmada. No es
-                    factura electronica DIAN.
+                    factura electrónica DIAN.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -488,7 +507,7 @@ export default function FacturaDetallePage() {
                     ["Estado", statusLabels[invoice.status] || invoice.status],
                     ["Estado de pago", paymentLabels[invoice.paymentStatus] || invoice.paymentStatus],
                     ["Fecha generacion", formatDate(invoice.issueDate)],
-                    ["Ultimo cambio", formatDate(invoice.lastStatusChangeAt)],
+                    ["Último cambio", formatDate(invoice.lastStatusChangeAt)],
                     ["Proveedor", invoice.provider],
                     ["Modo", invoice.mode],
                   ]}
@@ -500,9 +519,9 @@ export default function FacturaDetallePage() {
                   rows={[
                     ["Nombre", invoice.booking?.billingCustomerName || invoice.customerName],
                     ["Correo", invoice.booking?.billingEmail || invoice.customerEmail || "Sin correo"],
-                    ["Telefono", invoice.booking?.billingPhone || invoice.customerPhone || "Sin telefono"],
+                    ["Teléfono", invoice.booking?.billingPhone || invoice.customerPhone || "Sin teléfono"],
                     [
-                      "Cedula/NIT",
+                      "Cédula/NIT",
                       invoice.booking?.billingIdentificationNumber ||
                         invoice.customerIdentification ||
                         "Sin dato",
@@ -522,7 +541,7 @@ export default function FacturaDetallePage() {
                     ["Fechas", `${formatDate(invoice.booking?.checkIn || invoice.preReservation?.checkIn)} - ${formatDate(invoice.booking?.checkOut || invoice.preReservation?.checkOut)}`],
                     ["Huespedes", String(invoice.booking?.guests || reservationItem?.guests || "Sin dato")],
                     ["Asesor", advisorName],
-                    ["Estado booking", invoice.booking?.status || "Sin dato"],
+                    ["Estado reserva", bookingStatusLabel(invoice.booking?.status)],
                   ]}
                 />
               </div>
@@ -618,9 +637,9 @@ export default function FacturaDetallePage() {
                       </div>
                     </div>
                     <p className="mt-4 text-sm text-slate-500">
-                      Factura electronica DIAN pendiente de integracion. Esta
-                      vista no llama Factus, no envia datos a DIAN y no activa
-                      facturacion real.
+                      Factura electrónica DIAN pendiente de integración. Esta
+                      vista no llama Factus, no envía datos a DIAN y no activa
+                      facturación real.
                     </p>
                   </CardContent>
                 </Card>
@@ -668,7 +687,7 @@ export default function FacturaDetallePage() {
                           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
                             <HistoryInfo
                               label="Usuario"
-                              value={log.actorName || log.actorRole || "Sistema"}
+                              value={log.actorName || roleLabel(log.actorRole) || "Sistema"}
                             />
                             <HistoryInfo
                               label="Estado anterior"
@@ -736,7 +755,7 @@ function InfoSection({
 
         {visibleRows.length === 0 ? (
           <p className="mt-4 rounded-2xl bg-[#F8F6F2] px-4 py-4 text-sm text-slate-500">
-            {emptyText || "Sin informacion registrada."}
+            {emptyText || "Sin información registrada."}
           </p>
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">

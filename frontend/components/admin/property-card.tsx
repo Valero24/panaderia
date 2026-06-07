@@ -17,9 +17,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiUrl } from "@/lib/api";
+import { propertyPublicPath } from "@/lib/product-url";
 
 type Property = {
   id: number;
+  slug?: string | null;
   title: string;
   city: string;
   area: string;
@@ -163,7 +165,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 </Badge>
               )}
 
-              <Link href={`/alojamientos/${property.id}`}>
+              <Link href={propertyPublicPath(property)}>
                 <Button variant="outline" className="rounded-xl">
                   <Eye size={16} className="mr-2" />
                   Ver

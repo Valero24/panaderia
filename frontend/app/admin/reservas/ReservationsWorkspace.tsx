@@ -2,13 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { CheckCircle2, Clock, Eye, RefreshCw, Trash2, UserCheck } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { OperationMetricCard } from "./components";
 import { ConfirmedReservationsTable } from "./ConfirmedReservationsTable";
 import { OperationalNotificationsPanel } from "./ReservationNotificationPanel";
 import { RequestsTable } from "./ReservationList";
+import StatusBadge from "@/components/admin/status-badge";
 import type {
   AdvisorOption,
   OperationalLog,
@@ -104,13 +104,13 @@ export default function ReservationsWorkspace({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm tracking-[0.25em] uppercase text-[#B48A5A] font-medium">
-                Gestion de reservas
+                Gestión de reservas
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52] sm:text-4xl">
                 Solicitudes asistidas
               </h1>
               <p className="mt-2 max-w-2xl text-slate-500">
-                Toma solicitudes pendientes y gestiona la validacion comercial
+                Toma solicitudes pendientes y gestiona la validación comercial
                 antes de cualquier pago.
               </p>
             </div>
@@ -139,7 +139,7 @@ export default function ReservationsWorkspace({
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <OperationMetricCard icon={Clock} label="Pendientes" value={pendingRequests.length} loading={loading} tone="amber" />
-          <OperationMetricCard icon={UserCheck} label={user?.role === "SUPERADMIN" ? "En gestion" : "Mis solicitudes"} value={myRequests.length} loading={loading} tone="blue" />
+          <OperationMetricCard icon={UserCheck} label={user?.role === "SUPERADMIN" ? "En gestión" : "Mis solicitudes"} value={myRequests.length} loading={loading} tone="blue" />
           <OperationMetricCard icon={CheckCircle2} label="Confirmadas" value={confirmedRequests.length} loading={loading} tone="green" />
         </div>
 
@@ -162,9 +162,7 @@ export default function ReservationsWorkspace({
                   Solicitudes sin asesor asignado.
                 </p>
               </div>
-              <Badge variant="outline" className="rounded-md">
-                PENDING_ADVISOR
-              </Badge>
+              <StatusBadge status="PENDING_ADVISOR" />
             </div>
 
             <RequestsTable
@@ -206,10 +204,10 @@ export default function ReservationsWorkspace({
           <CardContent className="space-y-6 p-6">
             <div>
               <h2 className="text-2xl font-semibold text-[#0D2B52]">
-                {user?.role === "SUPERADMIN" ? "Solicitudes en gestion" : "Mis solicitudes"}
+                {user?.role === "SUPERADMIN" ? "Solicitudes en gestión" : "Mis solicitudes"}
               </h2>
               <p className="mt-1 text-sm text-slate-500">
-                Gestion operativa antes de generar cualquier link de pago.
+                Gestión operativa antes de generar cualquier link de pago.
               </p>
             </div>
 
@@ -259,12 +257,10 @@ export default function ReservationsWorkspace({
                   Reservas confirmadas / Historial
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Seguimiento de reservas generadas, codigos RES y comprobantes PDF.
+                  Seguimiento de reservas generadas, códigos RES y comprobantes PDF.
                 </p>
               </div>
-              <Badge variant="outline" className="w-fit rounded-md">
-                CONFIRMED
-              </Badge>
+              <StatusBadge status="CONFIRMED" />
             </div>
 
             <ConfirmedReservationsTable

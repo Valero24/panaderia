@@ -33,7 +33,7 @@ export default function PropertyPremiumServicesStep({
 
         {!isEditMode ? (
           <div className="rounded-2xl border border-dashed border-[#D4AF37]/30 bg-[#F8F6F1] p-6 text-sm leading-6 text-slate-600">
-            Primero publica el alojamiento. Luego podras agregar chef,
+            Primero publica el alojamiento. Luego podrás agregar chef,
             transporte, decoracion, limpieza adicional u otros servicios premium
             desde el panel de servicios.
           </div>

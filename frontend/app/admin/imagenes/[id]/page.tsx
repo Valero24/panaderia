@@ -21,11 +21,11 @@ export default function ImagenesPage({
             Permisos
           </p>
           <h1 className="mt-2 text-3xl font-bold text-[#0D2B52]">
-            Galeria restringida
+            Galería restringida
           </h1>
           <p className="mt-3 max-w-xl text-slate-500">
-            La administracion visual de alojamientos esta reservada para Super
-            Admin.
+            La administración visual de alojamientos está reservada para
+            Superadmin.
           </p>
         </div>
       }

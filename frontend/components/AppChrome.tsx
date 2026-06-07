@@ -62,6 +62,7 @@ export default function AppChrome({
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin");
   const isStaffRoute = pathname === "/login" || pathname === "/staff-login";
+  const isInternalRoute = Boolean(isAdminRoute || isStaffRoute);
   const showPublicChrome = !isAdminRoute && !isStaffRoute;
   const enableGuidedScroll = Boolean(pathname && scrollSnapRoutes.has(pathname));
 
@@ -77,7 +78,7 @@ export default function AppChrome({
   }, [enableGuidedScroll]);
 
   return (
-    <LanguageProvider>
+    <LanguageProvider scope={isInternalRoute ? "admin" : "public"}>
       {showPublicChrome && <MarketingScripts />}
       {showPublicChrome && <Navbar />}
 

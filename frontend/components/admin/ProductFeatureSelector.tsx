@@ -81,7 +81,7 @@ export async function saveFeatureAssignments(
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data?.message || "No se pudieron guardar caracteristicas.");
+    throw new Error(data?.message || "No se pudieron guardar características.");
   }
 
   return data;
@@ -114,7 +114,7 @@ export default function ProductFeatureSelector({
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data?.message || "No se pudieron cargar caracteristicas.");
+          throw new Error(data?.message || "No se pudieron cargar características.");
         }
 
         if (!cancelled) {
@@ -122,7 +122,7 @@ export default function ProductFeatureSelector({
         }
       } catch (loadError: any) {
         if (!cancelled) {
-          setError(loadError?.message || "No se pudieron cargar caracteristicas.");
+          setError(loadError?.message || "No se pudieron cargar características.");
           setFeatures([]);
         }
       } finally {
@@ -226,14 +226,14 @@ export default function ProductFeatureSelector({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.25em] text-[#B68D40]">
-            Caracteristicas filtrables
+            Características filtrables
           </p>
           <h3 className="mt-2 text-2xl font-bold text-[#0D2B52]">
             Filtros para {productTypeLabel(productType).toLowerCase()}
           </h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-            Selecciona solo las caracteristicas que aplican a este producto. No
-            se muestran filtros de otros tipos para evitar cruces en el catalogo.
+            Selecciona solo las características que aplican a este producto. No
+            se muestran filtros de otros tipos para evitar cruces en el catálogo.
             Disponibles para este paso: {productTypeLabel(productType)} + Globales.
           </p>
         </div>
@@ -245,7 +245,7 @@ export default function ProductFeatureSelector({
       {loading ? (
         <div className="mt-5 flex items-center gap-2 rounded-xl border border-dashed border-[#D4AF37]/30 bg-[#F8F6F2] p-4 text-sm text-slate-500">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Cargando caracteristicas...
+          Cargando características...
         </div>
       ) : error ? (
         <div className="mt-5 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
@@ -253,8 +253,8 @@ export default function ProductFeatureSelector({
         </div>
       ) : applicableFeatures.length === 0 ? (
         <div className="mt-5 rounded-xl border border-dashed border-[#D4AF37]/30 bg-[#F8F6F2] p-5 text-sm leading-6 text-slate-500">
-          No hay caracteristicas activas para este tipo. Crea filtros desde
-          Caracteristicas antes de asignarlos.
+          No hay características activas para este tipo. Crea filtros desde
+          Características antes de asignarlos.
         </div>
       ) : (
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">

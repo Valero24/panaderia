@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import {
   ArrowLeft,
@@ -27,6 +28,7 @@ import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
 import { cleanPublicCopy } from "@/lib/public-copy";
+import { absoluteTitle, pageTitle, productSeoDescription } from "@/lib/seo";
 import type { DynamicTranslations, TranslatableEntity } from "@/lib/dynamic-translations";
 
 type PageProps = {
@@ -37,6 +39,7 @@ type PageProps = {
 
 type PackageItem = {
   id: number;
+  slug?: string | null;
   title: string;
   shortDescription: string;
   description: string;
@@ -92,6 +95,8 @@ type ExtraService = {
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=1200";
+const fallbackDescription =
+  "Premium travel package in Cartagena combining curated stays, private experiences and personalized assistance.";
 
 function hasText(value?: string | null) {
   return Boolean(value && cleanPublicCopy(value).trim());
@@ -124,6 +129,62 @@ async function getPackageExtras(id: string): Promise<ExtraService[]> {
   } catch {
     return [];
   }
+}
+
+function primaryImage(item: PackageItem | null) {
+  return (
+    item?.images?.find((image) => image.isPrimary)?.url ||
+    item?.images?.[0]?.url ||
+    item?.mainImage ||
+    fallbackImage
+  );
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const item = await getPackage(id);
+
+  if (!item) {
+    return {
+      title: pageTitle("Paquete no disponible"),
+      description: fallbackDescription,
+    };
+  }
+
+  const title = pageTitle(item.title || "Paquete premium");
+  const description = productSeoDescription({
+    description: item.shortDescription || item.description,
+    fallback: fallbackDescription,
+    location: item.location,
+  });
+  const image = primaryImage(item);
+
+  return {
+    title: absoluteTitle(title),
+    description,
+    alternates: {
+      canonical: item.slug ? `/paquetes/${item.slug}` : `/paquetes/${item.id}`,
+    },
+    openGraph: {
+      title: absoluteTitle(title),
+      description,
+      type: "website",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 800,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: absoluteTitle(title),
+      description,
+      images: [image],
+    },
+  };
 }
 
 function TextBlock({
@@ -198,10 +259,8 @@ function DetailLine({
 
 export default async function PackageDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [item, extras] = await Promise.all([
-    getPackage(id),
-    getPackageExtras(id),
-  ]);
+  const item = await getPackage(id);
+  const extras = item ? await getPackageExtras(String(item.id)) : [];
 
   if (!item) {
     return (

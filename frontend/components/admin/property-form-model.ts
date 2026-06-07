@@ -68,8 +68,8 @@ export type PropertyFormUpdate = (
 export const propertyWizardSteps: ProductWizardStep<PropertyFormStep>[] = [
   {
     key: "basic",
-    label: "Informacion basica",
-    description: "Nombre, ubicacion, capacidad y estado.",
+    label: "Información básica",
+    description: "Nombre, ubicación, capacidad y estado.",
   },
   {
     key: "media",
@@ -79,12 +79,12 @@ export const propertyWizardSteps: ProductWizardStep<PropertyFormStep>[] = [
   {
     key: "translations",
     label: "Traducciones",
-    description: "Versiones EN, FR, PT e IT con fallback a espanol.",
+    description: "Versiones EN, FR, PT e IT con fallback a español.",
   },
   {
     key: "features",
-    label: "Caracteristicas filtrables",
-    description: "Filtros publicos PROPERTY + ALL aplicables al alojamiento.",
+    label: "Características filtrables",
+    description: "Filtros públicos PROPERTY + ALL aplicables al alojamiento.",
   },
   {
     key: "pricing",
@@ -98,7 +98,7 @@ export const propertyWizardSteps: ProductWizardStep<PropertyFormStep>[] = [
   },
   {
     key: "review",
-    label: "Revision",
+    label: "Revisión",
     description: "Vista final antes de publicar.",
   },
 ];

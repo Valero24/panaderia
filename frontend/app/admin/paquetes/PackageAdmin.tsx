@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { apiUrl } from "@/lib/api";
+import { normalizeSeoSlug } from "@/lib/slug";
 import {
   fetchFeatureAssignments,
   saveFeatureAssignments,
@@ -148,10 +149,31 @@ export default function AdminPaquetesPage() {
   }, [formMode, isCreateRoute, isEditRoute, routeEditId]);
 
   const updateForm: PackageFormUpdate = (key, value) => {
-    setForm((current) => ({
-      ...current,
-      [key]: value,
-    }));
+    setForm((current) => {
+      if (key === "slug") {
+        return {
+          ...current,
+          slug: normalizeSeoSlug(String(value)),
+        };
+      }
+
+      if (key === "title" && typeof value === "string") {
+        const currentAutoSlug = normalizeSeoSlug(current.title);
+        const shouldSyncSlug =
+          !current.slug.trim() || current.slug.trim() === currentAutoSlug;
+
+        return {
+          ...current,
+          title: value,
+          ...(shouldSyncSlug ? { slug: normalizeSeoSlug(value) } : {}),
+        };
+      }
+
+      return {
+        ...current,
+        [key]: value,
+      };
+    });
   };
 
   function validateStep(step = activeStep) {
@@ -383,7 +405,7 @@ export default function AdminPaquetesPage() {
         await saveFeatureAssignments("PACKAGE", data.id, featureIds);
       } catch (featureError: any) {
         setMessage(
-          `Paquete guardado, pero no se pudieron guardar sus caracteristicas: ${
+          `Paquete guardado, pero no se pudieron guardar sus características: ${
             featureError?.message || "error desconocido"
           }`
         );

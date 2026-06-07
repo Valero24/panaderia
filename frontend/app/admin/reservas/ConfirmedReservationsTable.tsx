@@ -34,7 +34,7 @@ export function ConfirmedReservationsTable({
             <TableHead className="text-xs">Fechas</TableHead>
             <TableHead className="text-xs">Total</TableHead>
             <TableHead className="text-xs">Estado</TableHead>
-            <TableHead className="text-xs">Codigo RES</TableHead>
+            <TableHead className="text-xs">Código RES</TableHead>
             <TableHead className="text-xs">Asesor</TableHead>
             <TableHead className="text-xs text-right">Acciones</TableHead>
           </TableRow>
@@ -67,7 +67,7 @@ export function ConfirmedReservationsTable({
                   <FileText className="h-10 w-10 text-[#B48A5A]" />
                   <p className="mt-3 font-medium text-[#0D2B52]">{emptyText}</p>
                   <p className="mt-1 text-sm text-slate-500">
-                    Cuando un asesor genere una reserva, quedara aqui para
+                    Cuando un asesor genere una reserva, quedará aquí para
                     seguimiento y consulta del comprobante.
                   </p>
                 </div>

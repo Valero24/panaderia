@@ -15,8 +15,8 @@ export type TranslationField = {
 
 export const languageLabels: Record<TranslationLanguage, string> = {
   en: "English",
-  fr: "Francais",
-  pt: "Portugues",
+  fr: "Francés",
+  pt: "Portugués",
   it: "Italiano",
 };
 
