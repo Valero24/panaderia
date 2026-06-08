@@ -63,6 +63,10 @@ function updateFeatureUrl(slugs: string[]) {
   window.history.pushState({}, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
 }
 
+function sameSlugs(a: string[], b: string[]) {
+  return a.length === b.length && a.every((slug, index) => slug === b[index]);
+}
+
 async function getPackages(features: string[] = []): Promise<PackageItem[]> {
   const query = features.length > 0 ? `?features=${features.join(",")}` : "";
   const res = await fetch(apiUrl(`/packages${query}`));
@@ -143,7 +147,10 @@ export default function PaquetesPage({
   useEffect(() => {
     function syncFromUrl() {
       const nextSlugs = readFeaturesFromUrl();
-      setSelectedSlugs(nextSlugs.length > 0 ? nextSlugs : initialSelectedSlugs);
+      const normalizedSlugs = nextSlugs.length > 0 ? nextSlugs : initialSelectedSlugs;
+      setSelectedSlugs((current) =>
+        sameSlugs(current, normalizedSlugs) ? current : normalizedSlugs
+      );
     }
 
     syncFromUrl();
@@ -297,7 +304,7 @@ export default function PaquetesPage({
             {packages.map((item) => (
               <PublicProductCard
                 key={item.id}
-                href={packagePublicPath(item)}
+                href={packagePublicPath(item, language)}
                 reserveHref={`/checkout/${item.id}?type=PACKAGE`}
                 image={imageFor(item)}
                 fallbackImage={fallbackImage}

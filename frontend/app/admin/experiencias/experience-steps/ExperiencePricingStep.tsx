@@ -1,8 +1,10 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import FaqEditor from "@/components/admin/FaqEditor";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import SeoChecklist from "@/components/admin/SeoChecklist";
 import type {
   ExperienceForm,
   ExperienceFormUpdate,
@@ -19,6 +21,13 @@ export default function ExperiencePricingStep({
   updateForm,
   canManage,
 }: ExperiencePricingStepProps) {
+  const primaryImage =
+    form.mainImage ||
+    form.images.find((image) => image.active !== false && image.isPrimary)
+      ?.url ||
+    form.images.find((image) => image.active !== false)?.url ||
+    "";
+
   return (
     <div className="space-y-8">
       <Card className="rounded-[28px] border border-[#D4AF37]/20 bg-white">
@@ -53,6 +62,17 @@ export default function ExperiencePricingStep({
             </p>
           </div>
 
+          <SeoChecklist
+            slug={form.slug}
+            seoTitle={form.seoTitle}
+            seoDescription={form.seoDescription}
+            seoContent={form.seoContent}
+            faq={form.faq}
+            image={primaryImage}
+            translations={form.translations}
+            minimumWords={500}
+          />
+
           <div className="grid gap-5 md:grid-cols-2">
             <Input placeholder="Titulo SEO" value={form.seoTitle} onChange={(event) => updateForm("seoTitle", event.target.value)} disabled={!canManage} />
             <Input placeholder="Categoria SEO de experiencia" value={form.experienceCategory} onChange={(event) => updateForm("experienceCategory", event.target.value)} disabled={!canManage} />
@@ -74,7 +94,12 @@ export default function ExperiencePricingStep({
 
           <Textarea placeholder="Horario disponible o ventanas sugeridas" value={form.schedule} onChange={(event) => updateForm("schedule", event.target.value)} disabled={!canManage} />
           <Textarea placeholder="Condiciones: clima, edad minima, restricciones, politicas especiales..." value={form.conditions} onChange={(event) => updateForm("conditions", event.target.value)} disabled={!canManage} />
-          <Textarea placeholder={'Preguntas frecuentes en JSON. Ejemplo: [{"question":"Que debo llevar?","answer":"Ropa comoda, protector solar y documento de identidad."}]'} value={form.faq} onChange={(event) => updateForm("faq", event.target.value)} disabled={!canManage} className="font-mono text-sm" />
+          <FaqEditor
+            value={form.faq}
+            onChange={(value) => updateForm("faq", value)}
+            disabled={!canManage}
+            title="Preguntas frecuentes de la experiencia"
+          />
         </CardContent>
       </Card>
     </div>

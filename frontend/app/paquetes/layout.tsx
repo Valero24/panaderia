@@ -10,7 +10,7 @@ const description =
 const social = socialMetadata({
   title,
   description,
-  url: canonicalUrl("/paquetes"),
+  url: canonicalUrl("/es/paquetes"),
   image: {
     url: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&q=70&w=1200",
     width: 1200,
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   description,
   alternates: {
-    canonical: canonicalUrl("/paquetes"),
+    canonical: canonicalUrl("/es/paquetes"),
   },
   openGraph: social.openGraph,
   twitter: social.twitter,

@@ -58,6 +58,10 @@ function locationLabel(property: Property) {
   return [property.area, property.city].filter(Boolean).join(", ") || "Cartagena";
 }
 
+function sameSlugs(a: string[], b: string[]) {
+  return a.length === b.length && a.every((slug, index) => slug === b[index]);
+}
+
 type PublicPropertiesPageProps = {
   initialProperties?: Property[];
   initialAvailableFeatures?: PublicFeature[];
@@ -148,7 +152,10 @@ export default function PublicPropertiesPage({
   useEffect(() => {
     function syncFromUrl() {
       const nextSlugs = readFeaturesFromUrl();
-      setSelectedSlugs(nextSlugs.length > 0 ? nextSlugs : initialSelectedSlugs);
+      const normalizedSlugs = nextSlugs.length > 0 ? nextSlugs : initialSelectedSlugs;
+      setSelectedSlugs((current) =>
+        sameSlugs(current, normalizedSlugs) ? current : normalizedSlugs
+      );
     }
 
     syncFromUrl();
@@ -327,7 +334,7 @@ export default function PublicPropertiesPage({
               return (
                 <PublicProductCard
                   key={property.id}
-                  href={propertyPublicPath(property)}
+                  href={propertyPublicPath(property, language)}
                   reserveHref={`/checkout/${property.id}?type=PROPERTY`}
                   image={primaryImage(property)}
                   fallbackImage={fallbackImage}

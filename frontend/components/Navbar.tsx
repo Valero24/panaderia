@@ -9,13 +9,16 @@ import { Button } from "@/components/ui/button";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackCtaClick } from "@/lib/analytics";
+import { localizedRoutePath } from "@/lib/i18n-routes";
 
 export default function Navbar() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const scrolledRef = useRef(false);
+  const scrollRafRef = useRef<number | null>(null);
 
   const isInternalRoute =
     pathname?.startsWith("/admin") ||
@@ -23,21 +26,45 @@ export default function Navbar() {
     pathname === "/login";
 
   const navItems = [
-    { href: "/alojamientos", label: t("nav.stays") },
-    { href: "/experiencias", label: t("nav.experiences") },
-    { href: "/paquetes", label: t("nav.packages") },
-    { href: "/nosotros", label: t("nav.about") },
+    { href: localizedRoutePath("property", language), label: t("nav.stays") },
+    {
+      href: localizedRoutePath("experience", language),
+      label: t("nav.experiences"),
+    },
+    { href: localizedRoutePath("package", language), label: t("nav.packages") },
+    {
+      href: localizedRoutePath("destination", language),
+      label: t("nav.destinations"),
+    },
+    { href: localizedRoutePath("blog", language), label: t("nav.blog") },
+    { href: localizedRoutePath("about", language), label: t("nav.about") },
   ];
 
   useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 12);
+    function updateScrolled() {
+      scrollRafRef.current = null;
+      const nextScrolled = window.scrollY > 12;
+
+      if (scrolledRef.current === nextScrolled) return;
+
+      scrolledRef.current = nextScrolled;
+      setScrolled(nextScrolled);
     }
 
-    onScroll();
+    function onScroll() {
+      if (scrollRafRef.current !== null) return;
+      scrollRafRef.current = window.requestAnimationFrame(updateScrolled);
+    }
+
+    updateScrolled();
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+      }
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -94,7 +121,7 @@ export default function Navbar() {
         <div className="flex w-full items-center justify-between gap-3 lg:w-auto">
           {/* Logo */}
           <Link
-            href="/"
+            href={localizedRoutePath("home", language)}
             className="relative flex h-11 w-[138px] shrink-0 items-center min-[390px]:w-[150px] sm:h-12 sm:w-[170px] lg:w-[190px]"
             aria-label="Cartagena Tailored Travel"
           >

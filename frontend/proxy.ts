@@ -2,11 +2,16 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+// Legacy public routes remain reachable for compatibility. SEO duplication is
+// controlled with canonical tags pointing to the /es URLs instead of forcing
+// broad redirects that could break shared links or current campaigns.
+
 const productRoutes = {
   alojamientos: "properties",
   experiencias: "experiences",
   paquetes: "packages",
   stays: "properties",
+  tours: "experiences",
   experiences: "experiences",
   packages: "packages",
   hebergements: "properties",
@@ -84,6 +89,7 @@ export const config = {
     "/:locale/experiencias/:path*",
     "/:locale/paquetes/:path*",
     "/:locale/stays/:path*",
+    "/:locale/tours/:path*",
     "/:locale/experiences/:path*",
     "/:locale/packages/:path*",
     "/:locale/hebergements/:path*",

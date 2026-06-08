@@ -8,7 +8,7 @@ const description =
 const social = socialMetadata({
   title,
   description,
-  url: canonicalUrl("/contacto"),
+  url: canonicalUrl("/es/contacto"),
 });
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   description,
   alternates: {
-    canonical: canonicalUrl("/contacto"),
+    canonical: canonicalUrl("/es/contacto"),
   },
   openGraph: social.openGraph,
   twitter: social.twitter,

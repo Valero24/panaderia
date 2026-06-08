@@ -31,6 +31,8 @@ import { InvoicesModule } from "./invoices/invoices.module";
 import { ExchangeRatesModule } from "./exchange-rates/exchange-rates.module";
 import { CurrencyModule } from "./currency/currency.module";
 import { ReviewsModule } from "./reviews/reviews.module";
+import { DestinationsModule } from "./destinations/destinations.module";
+import { BlogModule } from "./blog/blog.module";
 
 @Module({
   imports: [
@@ -72,6 +74,8 @@ import { ReviewsModule } from "./reviews/reviews.module";
     ExchangeRatesModule,
     CurrencyModule,
     ReviewsModule,
+    DestinationsModule,
+    BlogModule,
   ],
 
   controllers: [AppController],

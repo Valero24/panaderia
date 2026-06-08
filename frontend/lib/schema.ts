@@ -42,6 +42,7 @@ type PublicReviewSchemaInput = {
 type PublicProductSchemaInput = {
   id?: string | number | null;
   slug?: string | null;
+  url?: string | null;
   title?: string | null;
   name?: string | null;
   seoDescription?: string | null;
@@ -64,9 +65,13 @@ type PublicProductSchemaInput = {
   duration?: string | null;
   durationDescription?: string | null;
   itinerary?: string | null;
+  includes?: string | null;
+  notIncludes?: string | null;
   included?: string | null;
   meetingPoint?: string | null;
   schedule?: string | null;
+  policies?: string | null;
+  recommendations?: string | null;
   experienceCategory?: string | null;
   category?: string | null;
   averageRating?: number | string | null;
@@ -84,6 +89,22 @@ type PublicProductSchemaInput = {
   }[] | null;
 };
 
+type PublicDestinationSchemaInput = {
+  id?: string | number | null;
+  slug?: string | null;
+  url?: string | null;
+  name?: string | null;
+  seoDescription?: string | null;
+  shortDescription?: string | null;
+  description?: string | null;
+  location?: string | null;
+  heroImage?: string | null;
+  gallery?: unknown;
+  properties?: PublicProductSchemaInput[] | null;
+  experiences?: PublicProductSchemaInput[] | null;
+  packages?: PublicProductSchemaInput[] | null;
+};
+
 type BreadcrumbItem = {
   name: string;
   url: string;
@@ -94,6 +115,20 @@ type CollectionPageOptions = {
   description: string;
   url: string;
   image?: string | null;
+};
+
+type BlogPostSchemaInput = {
+  id?: string | number | null;
+  title?: string | null;
+  slug?: string | null;
+  url?: string | null;
+  excerpt?: string | null;
+  content?: string | null;
+  seoDescription?: string | null;
+  coverImage?: string | null;
+  authorName?: string | null;
+  publishedAt?: string | Date | null;
+  updatedAt?: string | Date | null;
 };
 
 export function canUseAggregateRating(target: {
@@ -198,7 +233,7 @@ function productPath(
   item: PublicProductSchemaInput
 ) {
   const identifier = item.slug || item.id;
-  return identifier ? `/${basePath}/${identifier}` : `/${basePath}`;
+  return item.url || (identifier ? `/${basePath}/${identifier}` : `/${basePath}`);
 }
 
 function addressSchema(item?: PublicProductSchemaInput | null) {
@@ -437,6 +472,25 @@ function touristItinerarySchema(item: PublicProductSchemaInput) {
   return item.durationDescription || item.schedule || item.duration;
 }
 
+function packageAdditionalProperties(item: PublicProductSchemaInput) {
+  const properties = [
+    { name: "Includes", value: item.includes || item.included },
+    { name: "Not included", value: item.notIncludes },
+    { name: "Recommendations", value: item.recommendations },
+    { name: "Policies", value: item.policies },
+  ]
+    .filter((property) => sanitizeSeoText(property.value))
+    .map((property) =>
+      schemaObject({
+        "@type": "PropertyValue",
+        name: property.name,
+        value: property.value,
+      })
+    );
+
+  return properties.length ? properties : undefined;
+}
+
 export function buildWebsiteSchema() {
   return schemaObject({
     "@context": "https://schema.org",
@@ -542,6 +596,7 @@ export function buildTouristTripSchema(
         }
       : undefined,
     itinerary: touristItinerarySchema(item),
+    additionalProperty: packageAdditionalProperties(item),
     aggregateRating: includeReviewMarkup ? buildAggregateRating(item) : undefined,
     review: includeReviewMarkup ? buildReviewSchema(approvedReviews) : undefined,
     provider: {
@@ -550,6 +605,123 @@ export function buildTouristTripSchema(
       url: siteUrl,
     },
     offers: offerSchema(item),
+  });
+}
+
+function destinationPath(item: PublicDestinationSchemaInput) {
+  const identifier = item.slug || item.id;
+  return identifier ? `/destinos/${identifier}` : "/destinos";
+}
+
+function destinationImages(item?: PublicDestinationSchemaInput | null) {
+  const galleryImages = Array.isArray(item?.gallery)
+    ? item.gallery
+        .map((image) => {
+          if (typeof image === "string") return image;
+          if (image && typeof image === "object") {
+            return (image as { url?: string | null }).url;
+          }
+          return null;
+        })
+        .filter((url): url is string => Boolean(sanitizeSeoText(url)))
+    : [];
+
+  const images = [item?.heroImage, ...galleryImages, defaultOgImage.url]
+    .filter((url): url is string => Boolean(sanitizeSeoText(url)))
+    .map((url) => absoluteUrl(url));
+
+  return Array.from(new Set(images)).slice(0, 8);
+}
+
+function relatedDestinationProductSchema(
+  item: PublicProductSchemaInput,
+  basePath: "alojamientos" | "experiencias" | "paquetes",
+  schemaType: "LodgingBusiness" | "TouristTrip"
+) {
+  const identifier = item.slug || item.id;
+  const name = sanitizeSeoText(item.title || item.name || "");
+
+  if (!identifier || !name) return undefined;
+
+  const url = canonicalUrl(`/${basePath}/${identifier}`);
+  const description = sanitizeSeoText(
+    item.seoDescription || item.shortDescription || item.description || ""
+  );
+
+  return schemaObject({
+    "@type": "WebPage",
+    name,
+    url,
+    description,
+    about: {
+      "@type": schemaType,
+      name,
+      url,
+    },
+  });
+}
+
+function destinationHasPartSchema(destination: PublicDestinationSchemaInput) {
+  const relatedItems = [
+    ...(destination.properties || [])
+      .slice(0, 12)
+      .map((item) =>
+        relatedDestinationProductSchema(item, "alojamientos", "LodgingBusiness")
+      ),
+    ...(destination.experiences || [])
+      .slice(0, 12)
+      .map((item) =>
+        relatedDestinationProductSchema(item, "experiencias", "TouristTrip")
+      ),
+    ...(destination.packages || [])
+      .slice(0, 12)
+      .map((item) =>
+        relatedDestinationProductSchema(item, "paquetes", "TouristTrip")
+      ),
+  ].filter(Boolean);
+
+  return relatedItems.length ? relatedItems : undefined;
+}
+
+export function buildTouristDestinationSchema(
+  destination: PublicDestinationSchemaInput
+) {
+  const name = pageTitle(destination.name || "Destino turistico en Cartagena");
+  const description = metaDescription(
+    destination.seoDescription ||
+      destination.shortDescription ||
+      destination.description ||
+      "",
+    "Curated tourist destination in Cartagena with luxury travel assistance."
+  );
+
+  return schemaObject({
+    "@context": "https://schema.org",
+    "@type": "TouristDestination",
+    name,
+    description,
+    url: canonicalUrl(destination.url || destinationPath(destination)),
+    image: destinationImages(destination),
+    touristType: "Luxury travel destination",
+    address: destination.location
+      ? {
+          "@type": "PostalAddress",
+          addressLocality: destination.location,
+          addressCountry: "CO",
+        }
+      : undefined,
+    containsPlace: destination.location
+      ? {
+          "@type": "Place",
+          name: destination.location,
+        }
+      : undefined,
+    hasPart: destinationHasPartSchema(destination),
+    provider: {
+      "@type": "TravelAgency",
+      name: brandName,
+      url: siteUrl,
+    },
   });
 }
 
@@ -592,6 +764,40 @@ export function buildCollectionPageSchema({
       "@type": "TravelAgency",
       name: brandName,
       url: siteUrl,
+    },
+  });
+}
+
+export function buildBlogPostingSchema(post: BlogPostSchemaInput) {
+  const identifier = post.slug || post.id;
+  const title = pageTitle(post.title || "Blog Cartagena Tailored Travel");
+  const description = metaDescription(
+    post.seoDescription || post.excerpt || post.content || "",
+    defaultDescription
+  );
+
+  return schemaObject({
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: title,
+    description,
+    url: canonicalUrl(post.url || (identifier ? `/blog/${identifier}` : "/blog")),
+    image: absoluteUrl(post.coverImage || defaultOgImage.url),
+    datePublished: schemaDate(post.publishedAt),
+    dateModified: schemaDate(post.updatedAt || post.publishedAt),
+    author: {
+      "@type": "Person",
+      name: post.authorName || brandName,
+    },
+    publisher: {
+      "@type": "TravelAgency",
+      name: brandName,
+      url: siteUrl,
+      logo: defaultOgImage.url,
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonicalUrl(identifier ? `/blog/${identifier}` : "/blog"),
     },
   });
 }

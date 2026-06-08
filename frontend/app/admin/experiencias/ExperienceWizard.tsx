@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import ProductDestinationSelector from "@/components/admin/ProductDestinationSelector";
 import ProductWizardProgress from "@/components/admin/ProductWizardProgress";
 import type {
   ExperienceForm,
@@ -54,6 +55,8 @@ type ExperienceWizardProps = {
   wizardError: string;
   featureIds: number[];
   setFeatureIds: (featureIds: number[]) => void;
+  destinationIds: number[];
+  setDestinationIds: (destinationIds: number[]) => void;
   extras: ExtraService[];
   extraForm: ExtraForm;
   setExtraForm: React.Dispatch<React.SetStateAction<ExtraForm>>;
@@ -80,6 +83,8 @@ export default function ExperienceWizard({
   wizardError,
   featureIds,
   setFeatureIds,
+  destinationIds,
+  setDestinationIds,
   extras,
   extraForm,
   setExtraForm,
@@ -123,7 +128,18 @@ export default function ExperienceWizard({
         {activeStep === "basic" && <ExperienceBasicInfoStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "media" && <ExperienceMediaStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "translations" && <ExperienceTranslationsStep form={form} updateForm={updateForm} canManage={canManage} />}
-        {activeStep === "features" && <ExperienceFeaturesStep editingId={editingId} featureIds={featureIds} setFeatureIds={setFeatureIds} canManage={canManage} />}
+        {activeStep === "features" && (
+          <div className="space-y-5">
+            <ExperienceFeaturesStep editingId={editingId} featureIds={featureIds} setFeatureIds={setFeatureIds} canManage={canManage} />
+            <ProductDestinationSelector
+              productType="EXPERIENCE"
+              productId={editingId}
+              selectedIds={destinationIds}
+              onChange={setDestinationIds}
+              disabled={!canManage}
+            />
+          </div>
+        )}
         {activeStep === "pricing" && <ExperiencePricingStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "premium" && (
           <ExperiencePremiumServicesStep

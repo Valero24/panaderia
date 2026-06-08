@@ -1,8 +1,10 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import FaqEditor from "@/components/admin/FaqEditor";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import SeoChecklist from "@/components/admin/SeoChecklist";
 import type {
   PropertyFormState,
   PropertyFormUpdate,
@@ -24,6 +26,12 @@ export default function PropertyPricingStep({
   form,
   updateField,
 }: PropertyPricingStepProps) {
+  const primaryImage =
+    form.images.find((image) => image.active !== false && image.isPrimary)
+      ?.url ||
+    form.images.find((image) => image.active !== false)?.url ||
+    "";
+
   return (
     <div className="space-y-8">
       <Card className="rounded-[32px] border border-[#D4AF37]/20 bg-white">
@@ -136,6 +144,17 @@ export default function PropertyPricingStep({
             </p>
           </div>
 
+          <SeoChecklist
+            slug={form.slug}
+            seoTitle={form.seoTitle}
+            seoDescription={form.seoDescription}
+            seoContent={form.seoContent}
+            faq={form.faq}
+            image={primaryImage}
+            translations={form.translations}
+            minimumWords={700}
+          />
+
           <Input placeholder="Titulo SEO" value={form.seoTitle} onChange={(e) => updateField("seoTitle", e.target.value)} className="h-14 rounded-2xl" />
           <Textarea placeholder="Meta descripcion" value={form.seoDescription} onChange={(e) => updateField("seoDescription", e.target.value)} className="min-h-[160px] rounded-3xl" />
           <Input placeholder="Palabras clave SEO separadas por coma" value={form.seoKeywords} onChange={(e) => updateField("seoKeywords", e.target.value)} className="h-14 rounded-2xl" />
@@ -143,7 +162,11 @@ export default function PropertyPricingStep({
           <Textarea placeholder="Descripcion de ubicacion y zona" value={form.locationDescription} onChange={(e) => updateField("locationDescription", e.target.value)} className="min-h-[160px] rounded-3xl" />
           <Textarea placeholder="Atracciones cercanas, una por linea o texto descriptivo" value={form.nearbyAttractions} onChange={(e) => updateField("nearbyAttractions", e.target.value)} className="min-h-[160px] rounded-3xl" />
           <Textarea placeholder="Recomendaciones: temporada alta, tipo de viaje ideal, consejos antes de reservar..." value={form.guestRecommendations} onChange={(e) => updateField("guestRecommendations", e.target.value)} className="min-h-[160px] rounded-3xl" />
-          <Textarea placeholder={'Preguntas frecuentes en JSON. Ejemplo: [{"question":"Esta cerca del centro historico?","answer":"Si, esta ubicado en una zona estrategica."}]'} value={form.faq} onChange={(e) => updateField("faq", e.target.value)} className="min-h-[180px] rounded-3xl font-mono text-sm" />
+          <FaqEditor
+            value={form.faq}
+            onChange={(value) => updateField("faq", value)}
+            title="Preguntas frecuentes del alojamiento"
+          />
         </CardContent>
       </Card>
 

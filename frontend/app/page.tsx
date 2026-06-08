@@ -23,8 +23,17 @@ import {
   packagePublicPath,
   propertyPublicPath,
 } from "@/lib/product-url";
-import { canonicalUrl, socialMetadata, siteUrl } from "@/lib/seo";
+import { localizedRoutePath } from "@/lib/i18n-routes";
+import { canonicalUrl, socialMetadata } from "@/lib/seo";
 import { buildLocalBusinessSchema, buildWebsiteSchema } from "@/lib/schema";
+import type { Language } from "@/i18n";
+
+function localizedRouteForHomeSection(
+  kind: "property" | "experience" | "package",
+  locale: Language
+) {
+  return localizedRoutePath(kind, locale);
+}
 
 export const revalidate = 300;
 
@@ -34,7 +43,7 @@ const homeDescription =
 const homeSocial = socialMetadata({
   title: homeTitle,
   description: homeDescription,
-  url: siteUrl,
+  url: canonicalUrl("/es"),
 });
 
 export const metadata: Metadata = {
@@ -43,7 +52,7 @@ export const metadata: Metadata = {
   },
   description: homeDescription,
   alternates: {
-    canonical: canonicalUrl("/"),
+    canonical: canonicalUrl("/es"),
   },
   openGraph: homeSocial.openGraph,
   twitter: homeSocial.twitter,
@@ -142,6 +151,7 @@ async function fetchList<T>(path: string): Promise<T[]> {
   try {
     const res = await fetch(apiUrl(path), {
       next: { revalidate },
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!res.ok) return [];
@@ -153,7 +163,11 @@ async function fetchList<T>(path: string): Promise<T[]> {
   }
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  locale = "es",
+}: {
+  locale?: Language;
+} = {}) {
   const [properties, experiences, packages] = await Promise.all([
     fetchList<Property>("/properties"),
     fetchList<Experience>("/experiences"),
@@ -230,7 +244,7 @@ export default async function HomePage() {
               </TrackedLink>
 
               <TrackedLink
-                href="/contacto"
+                href={localizedRoutePath("contact", locale)}
                 trackingLabel="planear_mi_viaje"
                 trackingLocation="home_hero"
                 className="premium-soft-button inline-flex h-14 w-full max-w-full items-center justify-center rounded-full border border-[#D4AF37]/60 bg-white/10 px-6 text-center text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/20 sm:w-auto sm:px-8"
@@ -247,7 +261,7 @@ export default async function HomePage() {
         eyebrowKey="home.staysEyebrow"
         titleKey="properties.available"
         subtitleKey="properties.availableSubtitle"
-        ctaHref="/alojamientos"
+        ctaHref={localizedRouteForHomeSection("property", locale)}
         ctaKey="home.viewAllProperties"
         trackingLabel="ver_todos_alojamientos"
       >
@@ -255,7 +269,7 @@ export default async function HomePage() {
           <TranslatedHomeProductCard
             key={property.id}
             item={property}
-            href={propertyPublicPath(property)}
+            href={propertyPublicPath(property, locale)}
             reserveHref={`/checkout/${property.id}?type=PROPERTY`}
             image={primaryImage(property, stayFallback)}
             fallbackImage={stayFallback}
@@ -280,7 +294,7 @@ export default async function HomePage() {
         eyebrowKey="experiences.eyebrow"
         titleKey="experiences.title"
         subtitleKey="experiences.subtitle"
-        ctaHref="/experiencias"
+        ctaHref={localizedRouteForHomeSection("experience", locale)}
         ctaKey="home.viewAllExperiences"
         trackingLabel="ver_todas_experiencias"
       >
@@ -288,7 +302,7 @@ export default async function HomePage() {
           <TranslatedHomeProductCard
             key={experience.id}
             item={experience}
-            href={experiencePublicPath(experience)}
+            href={experiencePublicPath(experience, locale)}
             reserveHref={`/checkout/${experience.id}?type=EXPERIENCE`}
             image={primaryImage(experience, experienceFallback)}
             fallbackImage={experienceFallback}
@@ -312,7 +326,7 @@ export default async function HomePage() {
         eyebrowKey="packages.eyebrow"
         titleKey="packages.title"
         subtitleKey="packages.subtitle"
-        ctaHref="/paquetes"
+        ctaHref={localizedRouteForHomeSection("package", locale)}
         ctaKey="home.viewAllPackages"
         trackingLabel="ver_todos_paquetes"
       >
@@ -320,7 +334,7 @@ export default async function HomePage() {
           <TranslatedHomeProductCard
             key={item.id}
             item={item}
-            href={packagePublicPath(item)}
+            href={packagePublicPath(item, locale)}
             reserveHref={`/checkout/${item.id}?type=PACKAGE`}
             image={primaryImage(item, packageFallback)}
             fallbackImage={packageFallback}
@@ -396,7 +410,7 @@ export default async function HomePage() {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
               <TrackedLink
-                href="/contacto"
+                href={localizedRoutePath("contact", locale)}
                 trackingLabel="hablar_con_asesor"
                 trackingLocation="home_final_cta"
                 className="premium-soft-button inline-flex h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[#0D2B52] transition hover:bg-[#F8F6F1]"
@@ -404,7 +418,7 @@ export default async function HomePage() {
                 <TranslatedText k="home.talkAdvisor" />
               </TrackedLink>
               <TrackedLink
-                href="/contacto"
+                href={localizedRoutePath("contact", locale)}
                 trackingLabel="whatsapp_contacto"
                 trackingLocation="home_final_cta"
                 className="premium-soft-button inline-flex h-12 items-center justify-center rounded-xl border border-white/25 px-6 text-sm font-semibold text-white transition hover:bg-white/10"

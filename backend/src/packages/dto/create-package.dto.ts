@@ -171,6 +171,21 @@ export class CreatePackageDto {
   recommendations?: string;
 
   @IsOptional()
+  @IsString()
+  seoTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  seoDescription?: string;
+
+  @IsOptional()
+  @IsString()
+  seoContent?: string;
+
+  @IsOptional()
+  faq?: unknown;
+
+  @IsOptional()
   @IsBoolean()
   active?: boolean;
 

@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import TranslatedText from "@/components/TranslatedText";
+import type { Language } from "@/i18n";
+import { localizedRoutePath } from "@/lib/i18n-routes";
 
 export const revalidate = 3600;
 
@@ -42,7 +44,11 @@ const steps = [
   "about.step4",
 ];
 
-export default function NosotrosPage() {
+export default function NosotrosPage({
+  locale = "es",
+}: {
+  locale?: Language;
+} = {}) {
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
       <section id="nosotros-hero" data-scroll-section className="premium-reveal mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
@@ -58,13 +64,13 @@ export default function NosotrosPage() {
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/paquetes">
+            <Link href={localizedRoutePath("package", locale)}>
               <Button className="h-12 rounded-xl bg-[#0D2B52] px-6 hover:bg-[#12396d]">
                 <TranslatedText k="home.viewAllPackages" />
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/contacto">
+            <Link href={localizedRoutePath("contact", locale)}>
               <Button
                 variant="outline"
                 className="h-12 rounded-xl border-[#D4AF37]/40 bg-white px-6"

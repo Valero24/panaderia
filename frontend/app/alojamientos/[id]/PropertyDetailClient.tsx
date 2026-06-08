@@ -26,13 +26,14 @@ import { apiUrl } from "@/lib/api";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout, trackViewContent } from "@/lib/analytics";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import ProductDestinationsLinks from "@/components/destinations/ProductDestinationsLinks";
 import PublicReviewsSection from "@/components/reviews/PublicReviewsSection";
 import { formatMoneyByLanguage } from "@/lib/currency";
 import {
   getDynamicText,
-  getDynamicValue,
   type DynamicTranslations,
 } from "@/lib/dynamic-translations";
+import { getTranslatedFaq } from "@/lib/faq";
 
 type PropertyImage = {
   id: number;
@@ -48,6 +49,14 @@ type PropertyImage = {
 type PropertyFeature = {
   id: number;
   name: string;
+  translations?: DynamicTranslations | null;
+};
+
+type RelatedDestination = {
+  id: number;
+  name: string;
+  slug: string;
+  location?: string | null;
   translations?: DynamicTranslations | null;
 };
 
@@ -87,6 +96,7 @@ type Property = {
   longitude?: number | null;
   images?: PropertyImage[];
   features?: PropertyFeature[];
+  destinations?: RelatedDestination[];
   translations?: DynamicTranslations | null;
 };
 
@@ -110,6 +120,7 @@ type PageProps = {
   params: Promise<{
     id: string;
   }>;
+  initialProperty?: Property | null;
 };
 
 const fallbackImage =
@@ -133,34 +144,6 @@ function splitTextLines(value?: string | null) {
     .filter(Boolean);
 }
 
-type FaqItem = {
-  question?: string | null;
-  answer?: string | null;
-};
-
-function normalizeFaq(value: unknown): FaqItem[] {
-  if (typeof value === "string") {
-    try {
-      return normalizeFaq(JSON.parse(value));
-    } catch {
-      return [];
-    }
-  }
-
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .map((item) =>
-      typeof item === "object" && item !== null
-        ? (item as FaqItem)
-        : null
-    )
-    .filter(
-      (item): item is FaqItem =>
-        Boolean(item?.question?.trim() && item?.answer?.trim())
-    );
-}
-
 function formatReadableList(items: string[], locale: string) {
   if (items.length === 0) return "";
 
@@ -174,32 +157,38 @@ function formatReadableList(items: string[], locale: string) {
   }
 }
 
-export default function PropertyDetailPage({ params }: PageProps) {
+export default function PropertyDetailPage({ params, initialProperty = null }: PageProps) {
   const { language, t } = useTranslation();
   const money = (value?: number | null) => formatMoneyByLanguage(value, language);
   const { id } = use(params);
   const identifier = id;
 
-  const [property, setProperty] = useState<Property | null>(null);
+  const [property, setProperty] = useState<Property | null>(initialProperty);
   const [extras, setExtras] = useState<ExtraService[]>([]);
   const [selectedExtras, setSelectedExtras] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialProperty);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        setLoading(true);
+        setLoading(!initialProperty);
         setError(null);
 
-        const propertyRes = await fetch(apiUrl(`/properties/${identifier}`));
+        let propertyData = initialProperty;
 
-        if (!propertyRes.ok) {
-          throw new Error(t("properties.loadErrorTitle"));
+        if (!propertyData) {
+          const propertyRes = await fetch(apiUrl(`/properties/${identifier}`));
+
+          if (!propertyRes.ok) {
+            throw new Error(t("properties.loadErrorTitle"));
+          }
+
+          propertyData = await propertyRes.json();
+          setProperty(propertyData);
         }
 
-        const propertyData = await propertyRes.json();
-        setProperty(propertyData);
+        if (!propertyData?.id) return;
 
         const extrasRes = await fetch(apiUrl(`/extras/property/${propertyData.id}`));
 
@@ -217,7 +206,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
     if (identifier) {
       fetchData();
     }
-  }, [identifier, t]);
+  }, [identifier, initialProperty, t]);
 
   useEffect(() => {
     if (property) {
@@ -331,9 +320,7 @@ export default function PropertyDetailPage({ params }: PageProps) {
     language,
     property.guestRecommendations
   );
-  const faqItems = normalizeFaq(
-    getDynamicValue(property, "faq", language, property.faq)
-  );
+  const faqItems = getTranslatedFaq(property, language, property.faq);
   const nearbyItems = splitTextLines(nearbyAttractions);
   const locationContext =
     locationDescription ||
@@ -589,6 +576,8 @@ export default function PropertyDetailPage({ params }: PageProps) {
                 </div>
               </section>
             )}
+
+            <ProductDestinationsLinks destinations={property.destinations} />
 
             <PublicReviewsSection
               targetType="PROPERTY"

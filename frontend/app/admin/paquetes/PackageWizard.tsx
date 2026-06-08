@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import ProductDestinationSelector from "@/components/admin/ProductDestinationSelector";
 import ProductWizardProgress from "@/components/admin/ProductWizardProgress";
 import type { ProductWizardStep } from "@/components/admin/ProductWizardProgress";
 import type {
@@ -59,6 +60,8 @@ type PackageWizardProps = {
   wizardError: string;
   featureIds: number[];
   setFeatureIds: (featureIds: number[]) => void;
+  destinationIds: number[];
+  setDestinationIds: (destinationIds: number[]) => void;
   addComponent: () => void;
   updateComponent: (index: number, patch: Partial<PackageComponent>) => void;
   removeComponent: (index: number) => void;
@@ -89,6 +92,8 @@ export default function PackageWizard({
   wizardError,
   featureIds,
   setFeatureIds,
+  destinationIds,
+  setDestinationIds,
   addComponent,
   updateComponent,
   removeComponent,
@@ -136,7 +141,18 @@ export default function PackageWizard({
         {activeStep === "basic" && <PackageBasicInfoStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "media" && <PackageMediaStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "translations" && <PackageTranslationsStep form={form} updateForm={updateForm} canManage={canManage} />}
-        {activeStep === "features" && <PackageFeaturesStep editingId={editingId} featureIds={featureIds} setFeatureIds={setFeatureIds} canManage={canManage} />}
+        {activeStep === "features" && (
+          <div className="space-y-5">
+            <PackageFeaturesStep editingId={editingId} featureIds={featureIds} setFeatureIds={setFeatureIds} canManage={canManage} />
+            <ProductDestinationSelector
+              productType="PACKAGE"
+              productId={editingId}
+              selectedIds={destinationIds}
+              onChange={setDestinationIds}
+              disabled={!canManage}
+            />
+          </div>
+        )}
         {activeStep === "pricing" && <PackagePricingStep form={form} updateForm={updateForm} canManage={canManage} />}
         {activeStep === "components" && (
           <PackageComponentsStep

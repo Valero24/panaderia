@@ -11,6 +11,7 @@ const superAdminOnlyPrefixes = [
   "/admin/pagos",
   "/admin/extras",
   "/admin/caracteristicas",
+  "/admin/destinos",
   "/admin/sistema",
   "/admin/logs",
   "/admin/registros",
@@ -40,7 +41,9 @@ function tokenIsExpired(token: string) {
 }
 
 function isRestrictedPath(pathname: string, role: string) {
-  if (role === "SUPERADMIN" || role === "ADMIN") return false;
+  if (role === "SUPERADMIN") return false;
+
+  if (role === "ADMIN") return false;
 
   if (pathname === "/admin") return true;
 

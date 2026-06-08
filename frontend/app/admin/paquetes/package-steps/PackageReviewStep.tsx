@@ -20,6 +20,7 @@ export default function PackageReviewStep({ form }: PackageReviewStepProps) {
         <p><strong>Precio:</strong> {money(Number(form.basePrice || 0))}</p>
         <p><strong>Capacidad:</strong> {form.maxGuests || "1"} personas</p>
         <p><strong>Componentes:</strong> {form.components.filter((component) => component.title?.trim()).length}</p>
+        <p><strong>SEO:</strong> {form.seoTitle || form.seoDescription ? "Configurado" : "Pendiente"}</p>
       </div>
     </div>
   );

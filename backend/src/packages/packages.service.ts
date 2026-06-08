@@ -10,6 +10,7 @@ import { UpdatePackageDto } from "./dto/update-package.dto";
 import { AuditService } from "../common/audit.service";
 import { normalizeSeoSlug } from "../common/slug";
 import { normalizeTranslations } from "../common/translations";
+import { normalizeFaq } from "../common/faq";
 import { ProductFeaturesService } from "../product-features/product-features.service";
 import { BookingType } from "@prisma/client";
 
@@ -190,6 +191,15 @@ export class PackagesService {
           where: { active: true },
           orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
         },
+        destinations: {
+          where: { destination: { isActive: true } },
+          include: { destination: true },
+          orderBy: [
+            { isFeatured: "desc" },
+            { sortOrder: "asc" },
+            { createdAt: "desc" },
+          ],
+        },
       },
     });
 
@@ -197,9 +207,15 @@ export class PackagesService {
       throw new NotFoundException("Paquete no encontrado");
     }
 
-    const [withFeatures] = await this.attachPublicFeatures([item]);
+    const { destinations, ...packageData } = item as any;
+    const [withFeatures] = await this.attachPublicFeatures([packageData]);
 
-    return withFeatures;
+    return {
+      ...withFeatures,
+      destinations: Array.isArray(destinations)
+        ? destinations.map((relation) => relation.destination)
+        : [],
+    };
   }
 
   async findOneAdmin(id: number) {
@@ -279,6 +295,10 @@ export class PackagesService {
         itinerary: data.itinerary?.trim() || null,
         policies: data.policies?.trim() || null,
         recommendations: data.recommendations?.trim() || null,
+        seoTitle: data.seoTitle?.trim() || null,
+        seoDescription: data.seoDescription?.trim() || null,
+        seoContent: data.seoContent?.trim() || null,
+        faq: normalizeFaq(data.faq),
         active: data.active ?? true,
         images: this.mapImages(data.images),
         components: this.mapComponents(data.components),
@@ -339,6 +359,9 @@ export class PackagesService {
       "itinerary",
       "policies",
       "recommendations",
+      "seoTitle",
+      "seoDescription",
+      "seoContent",
     ] as const) {
       if (data[key] !== undefined) {
         nextData[key] =
@@ -354,6 +377,10 @@ export class PackagesService {
 
     if (data.translations !== undefined) {
       nextData.translations = normalizeTranslations(data.translations);
+    }
+
+    if (data.faq !== undefined) {
+      nextData.faq = normalizeFaq(data.faq);
     }
 
     if (data.maxGuests !== undefined) {

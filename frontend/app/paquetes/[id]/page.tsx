@@ -21,7 +21,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import JsonLd from "@/components/JsonLd";
+import ProductDestinationsLinks from "@/components/destinations/ProductDestinationsLinks";
 import PackageBookingCard from "@/components/packages/package-booking-card";
+import PackageFaqSection from "@/components/packages/PackageFaqSection";
 import BookingMoney from "@/components/BookingMoney";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
 import PublicReviewsSection from "@/components/reviews/PublicReviewsSection";
@@ -29,6 +31,7 @@ import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
+import { getTranslatedFaq } from "@/lib/faq";
 import { cleanPublicCopy } from "@/lib/public-copy";
 import {
   absoluteTitle,
@@ -40,10 +43,21 @@ import {
 } from "@/lib/seo";
 import {
   buildBreadcrumbSchema,
+  buildFaqPageSchema,
   buildTouristTripSchema,
   canUseAggregateRating,
 } from "@/lib/schema";
-import type { DynamicTranslations, TranslatableEntity } from "@/lib/dynamic-translations";
+import {
+  getDynamicText,
+  type DynamicTranslations,
+  type TranslatableEntity,
+} from "@/lib/dynamic-translations";
+import type { Language } from "@/i18n";
+import {
+  localizedAlternates,
+  localizedEntityForSeo,
+} from "@/lib/i18n-seo";
+import { localizedRoutePath } from "@/lib/i18n-routes";
 
 export const revalidate = 600;
 
@@ -51,13 +65,16 @@ type PageProps = {
   params: Promise<{
     id: string;
   }>;
+  locale?: Language;
 };
 
 type PackageItem = {
   id: number;
   slug?: string | null;
+  seoTitle?: string | null;
   title: string;
   seoDescription?: string | null;
+  seoContent?: string | null;
   shortDescription: string;
   description: string;
   duration: string;
@@ -71,6 +88,7 @@ type PackageItem = {
   itinerary?: string | null;
   policies?: string | null;
   recommendations?: string | null;
+  faq?: unknown;
   averageRating?: number | string | null;
   reviewCount?: number | null;
   images?: {
@@ -85,6 +103,13 @@ type PackageItem = {
   }[];
   components?: PackageComponent[];
   translations?: DynamicTranslations | null;
+  destinations?: {
+    id: number;
+    name: string;
+    slug: string;
+    location?: string | null;
+    translations?: DynamicTranslations | null;
+  }[];
 };
 
 type PublicReviewSeo = {
@@ -198,7 +223,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = pageTitle(item.title || "Paquete premium");
+  const title = pageTitle(item.seoTitle || item.title || "Paquete premium");
   const description = productSeoDescription({
     description:
       item.seoDescription ||
@@ -209,7 +234,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
   const image = primaryImage(item);
   const identifier = item.slug || item.id;
-  const path = `/paquetes/${identifier}`;
+  const path = `/es/paquetes/${identifier}`;
   const canonical = canonicalUrl(path);
   const social = socialMetadata({
     title: absoluteTitle(title),
@@ -228,6 +253,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     alternates: {
       canonical,
+      languages: localizedAlternates("package", item as TranslatableEntity)
+        .languages,
     },
     openGraph: social.openGraph,
     twitter: social.twitter,
@@ -304,9 +331,15 @@ function DetailLine({
   );
 }
 
-export default async function PackageDetailPage({ params }: PageProps) {
+export default async function PackageDetailPage({
+  params,
+  locale = "es",
+}: PageProps) {
   const { id } = await params;
   const item = await getPackage(id);
+  const localizedPackage = item
+    ? localizedEntityForSeo(item as any, locale, "package")
+    : null;
   const extras = item ? await getPackageExtras(String(item.id)) : [];
   const approvedReviews = item ? await getApprovedReviews(item) : [];
 
@@ -320,7 +353,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
           <p className="mt-3 text-slate-600">
             <TranslatedText k="package.unavailableText" />
           </p>
-          <Link href="/paquetes">
+          <Link href={localizedRoutePath("package", locale)}>
             <Button className="mt-6 rounded-xl bg-[#0D2B52] hover:bg-[#12396d]">
               <TranslatedText k="package.back" />
             </Button>
@@ -333,20 +366,31 @@ export default async function PackageDetailPage({ params }: PageProps) {
   const activeComponents = (item.components || []).filter(
     (component) => component.active !== false
   );
+  const faqSchema = buildFaqPageSchema(getTranslatedFaq(item, locale, item.faq));
 
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
       <JsonLd
         data={[
-          buildTouristTripSchema(item, approvedReviews, "paquetes"),
+          buildTouristTripSchema(
+            localizedPackage || item,
+            approvedReviews,
+            "paquetes"
+          ),
           buildBreadcrumbSchema([
-            { name: "Home", url: "/" },
-            { name: "Paquetes", url: "/paquetes" },
+            { name: "Home", url: localizedRoutePath("home", locale) },
+            { name: "Paquetes", url: localizedRoutePath("package", locale) },
             {
-              name: item.title || "Paquete premium",
-              url: `/paquetes/${item.slug || item.id}`,
+              name:
+                getDynamicText(item, "title", locale) ||
+                item.title ||
+                "Paquete premium",
+              url:
+                localizedPackage?.url ||
+                `/es/paquetes/${item.slug || item.id}`,
             },
           ]),
+          ...(faqSchema ? [faqSchema] : []),
         ]}
       />
       <ViewContentTracker
@@ -357,7 +401,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
       <section className="premium-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <Link
-          href="/paquetes"
+          href={localizedRoutePath("package", locale)}
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[#0D2B52]"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -627,10 +671,22 @@ export default async function PackageDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
+            <TextBlock
+              title={<TranslatedText k="packageDetail.seoContentTitle" />}
+              body={item.seoContent}
+              entity={item}
+              field="seoContent"
+              icon={<Info className="h-5 w-5 text-[#B48A5A]" />}
+            />
+
+            <ProductDestinationsLinks destinations={item.destinations} />
+
             <PublicReviewsSection
               targetType="PACKAGE"
               targetId={item.id}
             />
+
+            <PackageFaqSection item={item} fallback={item.faq} />
           </div>
 
           <aside className="sticky top-24 lg:min-w-[360px] lg:max-w-[430px]">

@@ -16,6 +16,7 @@ import {
 import { AuditService } from "../common/audit.service";
 import { normalizeSeoSlug } from "../common/slug";
 import { normalizeTranslations } from "../common/translations";
+import { normalizeFaq } from "../common/faq";
 import { ProductFeaturesService } from "../product-features/product-features.service";
 
 type AuditActor = {
@@ -193,6 +194,15 @@ export class PropertiesService {
           },
           extras: true,
           features: true,
+          destinations: {
+            where: { destination: { isActive: true } },
+            include: { destination: true },
+            orderBy: [
+              { isFeatured: "desc" },
+              { sortOrder: "asc" },
+              { createdAt: "desc" },
+            ],
+          },
         },
       });
 
@@ -202,9 +212,15 @@ export class PropertiesService {
       );
     }
 
-    const [withFeatures] = await this.attachPublicFeatures([property]);
+    const { destinations, ...propertyData } = property as any;
+    const [withFeatures] = await this.attachPublicFeatures([propertyData]);
 
-    return withFeatures;
+    return {
+      ...withFeatures,
+      destinations: Array.isArray(destinations)
+        ? destinations.map((relation) => relation.destination)
+        : [],
+    };
   }
 
   // =====================================================
@@ -393,7 +409,7 @@ export class PropertiesService {
           data.guestRecommendations || null,
 
         faq:
-          data.faq || undefined,
+          normalizeFaq(data.faq),
 
         // INTERNAL
         internalNotes:
@@ -681,7 +697,7 @@ export class PropertiesService {
         data.guestRecommendations;
 
     if (data.faq !== undefined)
-      payload.faq = data.faq;
+      payload.faq = normalizeFaq(data.faq);
 
     if (
       data.internalNotes !==

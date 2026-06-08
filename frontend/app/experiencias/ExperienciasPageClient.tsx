@@ -63,6 +63,10 @@ function updateFeatureUrl(slugs: string[]) {
   window.history.pushState({}, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
 }
 
+function sameSlugs(a: string[], b: string[]) {
+  return a.length === b.length && a.every((slug, index) => slug === b[index]);
+}
+
 async function getExperiences(features: string[] = []): Promise<Experience[]> {
   const query = features.length > 0 ? `?features=${features.join(",")}` : "";
   const res = await fetch(apiUrl(`/experiences${query}`));
@@ -143,7 +147,10 @@ export default function ExperienciasPage({
   useEffect(() => {
     function syncFromUrl() {
       const nextSlugs = readFeaturesFromUrl();
-      setSelectedSlugs(nextSlugs.length > 0 ? nextSlugs : initialSelectedSlugs);
+      const normalizedSlugs = nextSlugs.length > 0 ? nextSlugs : initialSelectedSlugs;
+      setSelectedSlugs((current) =>
+        sameSlugs(current, normalizedSlugs) ? current : normalizedSlugs
+      );
     }
 
     syncFromUrl();
@@ -298,7 +305,7 @@ export default function ExperienciasPage({
             {experiences.map((item) => (
               <PublicProductCard
                 key={item.id}
-                href={experiencePublicPath(item)}
+                href={experiencePublicPath(item, language)}
                 reserveHref={`/checkout/${item.id}?type=EXPERIENCE`}
                 image={imageFor(item)}
                 fallbackImage={fallbackImage}

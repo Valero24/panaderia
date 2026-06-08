@@ -1,6 +1,11 @@
 import type { MetadataRoute } from "next";
 
 import { apiUrl } from "@/lib/api";
+import {
+  localizedRoutePath,
+  publicLocales,
+  type PublicRouteKind,
+} from "@/lib/i18n-routes";
 import { siteUrl } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -9,6 +14,7 @@ type PublicProduct = {
   id?: number | string | null;
   slug?: string | null;
   active?: boolean | null;
+  isActive?: boolean | null;
   status?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -16,7 +22,7 @@ type PublicProduct = {
 
 type DynamicRouteConfig = {
   endpoint: string;
-  segment: "alojamientos" | "experiencias" | "paquetes";
+  kind: Exclude<PublicRouteKind, "home"> | "blog";
   priority: number;
 };
 
@@ -24,9 +30,7 @@ type SitemapEntry = MetadataRoute.Sitemap[number];
 
 const staticRoutes = [
   { path: "", changeFrequency: "daily", priority: 1 },
-  { path: "/alojamientos", changeFrequency: "daily", priority: 0.9 },
-  { path: "/experiencias", changeFrequency: "daily", priority: 0.9 },
-  { path: "/paquetes", changeFrequency: "daily", priority: 0.9 },
+  { path: "/blog", changeFrequency: "weekly", priority: 0.75 },
   { path: "/nosotros", changeFrequency: "monthly", priority: 0.6 },
   { path: "/contacto", changeFrequency: "monthly", priority: 0.6 },
 ] satisfies {
@@ -36,26 +40,42 @@ const staticRoutes = [
 }[];
 
 const dynamicRoutes: DynamicRouteConfig[] = [
-  { endpoint: "/properties", segment: "alojamientos", priority: 0.8 },
-  { endpoint: "/experiences", segment: "experiencias", priority: 0.8 },
-  { endpoint: "/packages", segment: "paquetes", priority: 0.8 },
+  { endpoint: "/properties", kind: "property", priority: 0.8 },
+  { endpoint: "/experiences", kind: "experience", priority: 0.8 },
+  { endpoint: "/packages", kind: "package", priority: 0.8 },
+  { endpoint: "/destinations", kind: "destination", priority: 0.75 },
+  { endpoint: "/blog", kind: "blog", priority: 0.7 },
 ];
 
 function publicUrl(path: string) {
   return path ? `${siteUrl}${path}` : `${siteUrl}/`;
 }
 
-function productPath(segment: DynamicRouteConfig["segment"], item: PublicProduct) {
+function productPath(kind: DynamicRouteConfig["kind"], item: PublicProduct) {
   const identifier = item.slug?.trim() || item.id;
 
-  return identifier ? `/${segment}/${identifier}` : null;
+  if (!identifier) return null;
+
+  if (kind === "blog") {
+    return publicLocales.map((locale) =>
+      localizedRoutePath("blog", locale, identifier)
+    );
+  }
+
+  return publicLocales.map((locale) =>
+    localizedRoutePath(kind, locale, identifier)
+  );
 }
 
-function isPublicProduct(item: PublicProduct, segment: DynamicRouteConfig["segment"]) {
+function isPublicProduct(item: PublicProduct, kind: DynamicRouteConfig["kind"]) {
   if (!item?.id && !item?.slug) return false;
 
-  if (segment === "alojamientos") {
+  if (kind === "property") {
     return !item.status || item.status === "ACTIVE" || item.status === "FEATURED";
+  }
+
+  if (kind === "destination") {
+    return item.isActive !== false;
   }
 
   return item.active !== false;
@@ -72,6 +92,7 @@ async function fetchPublicProducts(endpoint: string) {
   try {
     const response = await fetch(apiUrl(endpoint), {
       next: { revalidate },
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) return [];
@@ -93,6 +114,56 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
+  const localizedStaticEntries = publicLocales.flatMap((locale) => [
+    {
+      url: publicUrl(localizedRoutePath("home", locale)),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 1,
+    },
+    {
+      url: publicUrl(localizedRoutePath("property", locale)),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.9,
+    },
+    {
+      url: publicUrl(localizedRoutePath("experience", locale)),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.9,
+    },
+    {
+      url: publicUrl(localizedRoutePath("package", locale)),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.9,
+    },
+    {
+      url: publicUrl(localizedRoutePath("destination", locale)),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.85,
+    },
+    {
+      url: publicUrl(localizedRoutePath("blog", locale)),
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+    },
+    {
+      url: publicUrl(localizedRoutePath("about", locale)),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    },
+    {
+      url: publicUrl(localizedRoutePath("contact", locale)),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    },
+  ]);
 
   const productGroups = await Promise.all(
     dynamicRoutes.map(async (route) => {
@@ -101,17 +172,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const entries: SitemapEntry[] = [];
 
       products
-        .filter((item) => isPublicProduct(item, route.segment))
+        .filter((item) => isPublicProduct(item, route.kind))
         .forEach((item) => {
-          const path = productPath(route.segment, item);
+          const paths = productPath(route.kind, item);
 
-          if (!path) return;
+          if (!paths) return;
 
-          entries.push({
-            url: publicUrl(path),
-            lastModified: routeDate(item, now),
-            changeFrequency: "weekly" as const,
-            priority: route.priority,
+          paths.forEach((path) => {
+            entries.push({
+              url: publicUrl(path),
+              lastModified: routeDate(item, now),
+              changeFrequency: "weekly" as const,
+              priority: route.priority,
+            });
           });
         });
 
@@ -119,5 +192,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   );
 
-  return [...staticEntries, ...productGroups.flat()];
+  return [...staticEntries, ...localizedStaticEntries, ...productGroups.flat()];
 }

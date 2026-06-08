@@ -1,38 +1,12 @@
+import type { Language } from "@/i18n";
+import { localizedRoutePath } from "@/lib/i18n-routes";
+
 type ProductLike = {
   id: number | string;
   slug?: string | null;
 };
 
-type PublicLocale = "es" | "en" | "fr" | "pt" | "it";
 type ProductKind = "property" | "experience" | "package";
-
-const localizedProductSegments: Record<PublicLocale, Record<ProductKind, string>> = {
-  es: {
-    property: "alojamientos",
-    experience: "experiencias",
-    package: "paquetes",
-  },
-  en: {
-    property: "stays",
-    experience: "experiences",
-    package: "packages",
-  },
-  fr: {
-    property: "hebergements",
-    experience: "experiences",
-    package: "forfaits",
-  },
-  pt: {
-    property: "acomodacoes",
-    experience: "experiencias",
-    package: "pacotes",
-  },
-  it: {
-    property: "alloggi",
-    experience: "esperienze",
-    package: "pacchetti",
-  },
-};
 
 function productIdentifier(item: ProductLike) {
   return item.slug?.trim() || String(item.id);
@@ -41,25 +15,22 @@ function productIdentifier(item: ProductLike) {
 export function localizedProductPath(
   kind: ProductKind,
   item: ProductLike,
-  locale?: PublicLocale
+  locale: Language = "es"
 ) {
-  const identifier = productIdentifier(item);
-
-  if (!locale || locale === "es") {
-    return `/${localizedProductSegments.es[kind]}/${identifier}`;
-  }
-
-  return `/${locale}/${localizedProductSegments[locale][kind]}/${identifier}`;
+  return localizedRoutePath(kind, locale, productIdentifier(item));
 }
 
-export function propertyPublicPath(item: ProductLike) {
-  return localizedProductPath("property", item);
+export function propertyPublicPath(item: ProductLike, locale: Language = "es") {
+  return localizedProductPath("property", item, locale);
 }
 
-export function experiencePublicPath(item: ProductLike) {
-  return localizedProductPath("experience", item);
+export function experiencePublicPath(
+  item: ProductLike,
+  locale: Language = "es"
+) {
+  return localizedProductPath("experience", item, locale);
 }
 
-export function packagePublicPath(item: ProductLike) {
-  return localizedProductPath("package", item);
+export function packagePublicPath(item: ProductLike, locale: Language = "es") {
+  return localizedProductPath("package", item, locale);
 }

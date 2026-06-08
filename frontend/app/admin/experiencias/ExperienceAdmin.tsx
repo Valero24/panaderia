@@ -12,6 +12,7 @@ import {
   fetchFeatureAssignments,
   saveFeatureAssignments,
 } from "@/components/admin/ProductFeatureSelector";
+import { saveProductDestinations } from "@/components/admin/ProductDestinationSelector";
 import {
   emptyExtraForm,
   emptyForm,
@@ -53,6 +54,7 @@ export default function AdminExperienciasPage() {
     useState<ExperienceWizardStep>("basic");
   const [wizardError, setWizardError] = useState("");
   const [featureIds, setFeatureIds] = useState<number[]>([]);
+  const [destinationIds, setDestinationIds] = useState<number[]>([]);
   const isCreateRoute = pathname?.endsWith("/crear");
   const isEditRoute = pathname?.endsWith("/editar");
   const formMode = Boolean(isCreateRoute || isEditRoute);
@@ -234,6 +236,7 @@ export default function AdminExperienciasPage() {
     setExtras([]);
     setExtraForm(emptyExtraForm);
     setFeatureIds([]);
+    setDestinationIds([]);
     setActiveStep("basic");
     setWizardError("");
     setMessage("");
@@ -255,6 +258,7 @@ export default function AdminExperienciasPage() {
     setEditingId(experience.id);
     setForm(toForm(experience));
     setFeatureIds([]);
+    setDestinationIds([]);
     fetchFeatureAssignments("EXPERIENCE", experience.id)
       .then((assignments) =>
         setFeatureIds(assignments.map((item: any) => Number(item.featureId)))
@@ -363,6 +367,7 @@ export default function AdminExperienciasPage() {
       setEditingId(data.id);
       try {
         await saveFeatureAssignments("EXPERIENCE", data.id, featureIds);
+        await saveProductDestinations("EXPERIENCE", data.id, destinationIds);
       } catch (featureError: any) {
         setMessage(
           `Experiencia guardada, pero no se pudieron guardar sus características: ${
@@ -563,6 +568,8 @@ export default function AdminExperienciasPage() {
               wizardError={wizardError}
               featureIds={featureIds}
               setFeatureIds={setFeatureIds}
+              destinationIds={destinationIds}
+              setDestinationIds={setDestinationIds}
               extras={extras}
               extraForm={extraForm}
               setExtraForm={setExtraForm}

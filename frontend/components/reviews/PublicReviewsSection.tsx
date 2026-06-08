@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Quote, ShieldCheck, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -87,19 +87,53 @@ export default function PublicReviewsSection({
 }: Props) {
   const { language, t } = useTranslation();
   const activeLocale = locale || language || "es";
-  const [loading, setLoading] = useState(true);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [shouldFetch, setShouldFetch] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<ReviewSummary>(emptySummary);
   const [reviews, setReviews] = useState<PublicReview[]>([]);
 
   useEffect(() => {
+    const section = sectionRef.current;
+
+    if (!section || !("IntersectionObserver" in window)) {
+      setShouldFetch(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldFetch(true);
+        observer.disconnect();
+      },
+      {
+        rootMargin: "480px 0px",
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(section);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!shouldFetch || !targetType || !targetId) return;
+
     let mounted = true;
+    const abortController = new AbortController();
 
     async function fetchReviews() {
       try {
         setLoading(true);
         const [summaryResponse, reviewsResponse] = await Promise.all([
-          fetch(apiUrl(`/reviews/public/${targetType}/${targetId}/summary`)),
-          fetch(apiUrl(`/reviews/public/${targetType}/${targetId}`)),
+          fetch(apiUrl(`/reviews/public/${targetType}/${targetId}/summary`), {
+            signal: abortController.signal,
+          }),
+          fetch(apiUrl(`/reviews/public/${targetType}/${targetId}`), {
+            signal: abortController.signal,
+          }),
         ]);
 
         const summaryData = summaryResponse.ok
@@ -120,7 +154,8 @@ export default function PublicReviewsSection({
               : emptySummary.distribution,
         });
         setReviews(Array.isArray(reviewsData) ? reviewsData : []);
-      } catch {
+      } catch (error) {
+        if (abortController.signal.aborted) return;
         if (!mounted) return;
         setSummary(emptySummary);
         setReviews([]);
@@ -129,14 +164,13 @@ export default function PublicReviewsSection({
       }
     }
 
-    if (targetType && targetId) {
-      fetchReviews();
-    }
+    fetchReviews();
 
     return () => {
       mounted = false;
+      abortController.abort();
     };
-  }, [targetId, targetType]);
+  }, [shouldFetch, targetId, targetType]);
 
   const average = Number(summary.averageRating || 0);
   const count = Number(summary.reviewCount || 0);
@@ -150,7 +184,10 @@ export default function PublicReviewsSection({
   );
 
   return (
-    <section className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm sm:p-6 lg:p-8">
+    <section
+      ref={sectionRef}
+      className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm sm:p-6 lg:p-8"
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#B48A5A]">
@@ -168,7 +205,7 @@ export default function PublicReviewsSection({
         )}
       </div>
 
-      {loading ? (
+      {!shouldFetch || loading ? (
         <div className="mt-6 h-44 rounded-2xl premium-skeleton" />
       ) : count === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-[#D4AF37]/30 bg-[#F8F6F1] p-6 text-center text-sm text-slate-600">

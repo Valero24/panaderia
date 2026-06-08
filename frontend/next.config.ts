@@ -4,7 +4,7 @@ import bundleAnalyzer from "@next/bundle-analyzer";
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
-    qualities: [60, 70, 72, 74, 75],
+    qualities: [60, 62, 68, 70, 72, 74, 75],
     minimumCacheTTL: 86400,
     remotePatterns: [
       {

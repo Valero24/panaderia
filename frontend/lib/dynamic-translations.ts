@@ -31,6 +31,40 @@ function toSafeText(value: unknown) {
   return "";
 }
 
+function hasUsableValue(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+
+  if (typeof value === "string") {
+    return toSafeText(value).trim().length > 0;
+  }
+
+  if (typeof value === "number") {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return false;
+
+    return value.some((item) => {
+      if (typeof item === "string" || typeof item === "number") {
+        return toSafeText(item).trim().length > 0;
+      }
+
+      if (item && typeof item === "object") {
+        return Object.values(item).some(hasUsableValue);
+      }
+
+      return false;
+    });
+  }
+
+  if (typeof value === "object") {
+    return Object.values(value).some(hasUsableValue);
+  }
+
+  return false;
+}
+
 export function getDynamicText(
   entity: TranslatableEntity | null | undefined,
   field: string,
@@ -41,7 +75,7 @@ export function getDynamicText(
 
   if (language !== "es") {
     const translated = entity?.translations?.[language]?.[field];
-    if (translated !== null && translated !== undefined) {
+    if (hasUsableValue(translated)) {
       const translatedText = toSafeText(translated);
       if (translatedText.trim()) {
         return translatedText;
@@ -62,7 +96,7 @@ export function getDynamicValue(
 
   if (language !== "es") {
     const translated = entity?.translations?.[language]?.[field];
-    if (translated !== null && translated !== undefined) {
+    if (hasUsableValue(translated)) {
       return translated;
     }
   }

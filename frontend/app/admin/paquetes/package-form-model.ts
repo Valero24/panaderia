@@ -38,6 +38,10 @@ export type PackageItem = {
   itinerary?: string | null;
   policies?: string | null;
   recommendations?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoContent?: string | null;
+  faq?: unknown;
   active: boolean;
   images?: AdminMediaItem[];
   components?: PackageComponent[];
@@ -70,6 +74,10 @@ export type PackageForm = {
   itinerary: string;
   policies: string;
   recommendations: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoContent: string;
+  faq: string;
   active: boolean;
   images: AdminMediaItem[];
   components: PackageComponent[];
@@ -157,6 +165,10 @@ export const emptyForm: PackageForm = {
   itinerary: "",
   policies: "",
   recommendations: "",
+  seoTitle: "",
+  seoDescription: "",
+  seoContent: "",
+  faq: "",
   active: true,
   images: [],
   components: [],
@@ -219,6 +231,10 @@ export function toForm(item: PackageItem): PackageForm {
     itinerary: item.itinerary || "",
     policies: item.policies || "",
     recommendations: item.recommendations || "",
+    seoTitle: item.seoTitle || "",
+    seoDescription: item.seoDescription || "",
+    seoContent: item.seoContent || "",
+    faq: item.faq ? JSON.stringify(item.faq, null, 2) : "",
     active: Boolean(item.active),
     images: item.images || [],
     components: (item.components || []).map((component) => ({

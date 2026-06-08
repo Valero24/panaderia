@@ -309,9 +309,24 @@
     animation: none;
   }
 
+  .premium-reveal,
+  .premium-reveal-slow,
+  .premium-enter {
+    animation: none;
+  }
+
+  .premium-skeleton {
+    animation: none;
+    background: rgba(226, 232, 240, 0.72);
+  }
+
   .premium-hover-lift:hover,
   .premium-soft-button:hover {
     transform: none;
+  }
+
+  .premium-media:hover {
+    filter: none;
   }
 }
 

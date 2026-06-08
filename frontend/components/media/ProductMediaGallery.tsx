@@ -55,10 +55,12 @@ function MediaPreview({
   item,
   title,
   className,
+  priority = false,
 }: {
   item: ProductMediaItem;
   title: string;
   className?: string;
+  priority?: boolean;
 }) {
   const video = isVideo(item);
 
@@ -76,6 +78,8 @@ function MediaPreview({
           sizes="(min-width: 1280px) 580px, (min-width: 1024px) 50vw, 100vw"
           quality={74}
           optimizeWidth={1100}
+          priority={priority}
+          fetchPriority={priority ? "high" : undefined}
           className="premium-media object-cover transition duration-500 group-hover:scale-[1.03]"
         />
       )}
@@ -173,7 +177,7 @@ export default function ProductMediaGallery({
               className="premium-hover-lift group block aspect-[16/9] w-full overflow-hidden rounded-2xl bg-white shadow-sm"
               data-experience-media-tile
             >
-              <MediaPreview item={items[0]} title={displayTitle} />
+              <MediaPreview item={items[0]} title={displayTitle} priority />
             </button>
           )}
 
@@ -187,7 +191,11 @@ export default function ProductMediaGallery({
                   className="premium-hover-lift group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
                   data-experience-media-tile
                 >
-                  <MediaPreview item={item} title={displayTitle} />
+                  <MediaPreview
+                    item={item}
+                    title={displayTitle}
+                    priority={index === 0}
+                  />
                 </button>
               ))}
             </div>
@@ -201,7 +209,7 @@ export default function ProductMediaGallery({
                 className="premium-hover-lift group aspect-[16/10] overflow-hidden rounded-2xl bg-white shadow-sm lg:aspect-auto lg:h-full"
                 data-experience-media-tile
               >
-                <MediaPreview item={items[0]} title={displayTitle} />
+                <MediaPreview item={items[0]} title={displayTitle} priority />
               </button>
 
               <div className={secondaryGridClass}>
@@ -252,7 +260,7 @@ export default function ProductMediaGallery({
             onClick={() => openAt(0)}
             className="premium-hover-lift group block aspect-[16/8] w-full overflow-hidden rounded-2xl bg-white shadow-sm"
           >
-            <MediaPreview item={items[0]} title={displayTitle} />
+            <MediaPreview item={items[0]} title={displayTitle} priority />
           </button>
         )}
 
@@ -265,7 +273,11 @@ export default function ProductMediaGallery({
                 onClick={() => openAt(index)}
                 className="premium-hover-lift group aspect-[4/3] overflow-hidden rounded-2xl bg-white shadow-sm"
               >
-                <MediaPreview item={item} title={displayTitle} />
+                <MediaPreview
+                  item={item}
+                  title={displayTitle}
+                  priority={index === 0}
+                />
               </button>
             ))}
           </div>
@@ -278,7 +290,7 @@ export default function ProductMediaGallery({
               onClick={() => openAt(0)}
               className="premium-hover-lift group aspect-[16/10] overflow-hidden rounded-2xl bg-white shadow-sm lg:aspect-auto lg:min-h-[460px]"
             >
-              <MediaPreview item={items[0]} title={displayTitle} />
+              <MediaPreview item={items[0]} title={displayTitle} priority />
             </button>
 
             <div className="grid grid-cols-2 gap-3">

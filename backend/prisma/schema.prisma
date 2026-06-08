@@ -257,6 +257,7 @@ model Property {
   extras             ExtraService[]
   features           PropertyFeature[]
   availabilityBlocks AvailabilityBlock[]
+  destinations       DestinationProperty[]
 
   //////////////////////////////////////////////////////
   // TIMESTAMPS
@@ -395,6 +396,7 @@ model Experience {
 
   images ExperienceImage[]
   extras ExtraService[]
+  destinations DestinationExperience[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -444,6 +446,10 @@ model Package {
   itinerary       String?
   policies        String?
   recommendations String?
+  seoTitle        String?
+  seoDescription  String?
+  seoContent      String?
+  faq             Json?
   active          Boolean @default(true)
 
   //////////////////////////////////////////////////////
@@ -457,6 +463,7 @@ model Package {
   images     PackageImage[]
   extras     ExtraService[]
   components PackageComponent[]
+  destinations DestinationPackage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -506,6 +513,125 @@ model PackageImage {
   package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+}
+
+model Destination {
+  id Int @id @default(autoincrement())
+
+  name             String
+  slug             String @unique
+  shortDescription String?
+  description      String?
+  seoTitle         String?
+  seoDescription   String?
+  seoContent       String?
+  faq              Json?
+  heroImage        String?
+  gallery          Json?
+  location         String?
+  isActive         Boolean @default(true)
+  isFeatured       Boolean @default(false)
+  sortOrder        Int     @default(0)
+  translations     Json?
+
+  properties  DestinationProperty[]
+  experiences DestinationExperience[]
+  packages    DestinationPackage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([sortOrder])
+}
+
+model DestinationProperty {
+  id Int @id @default(autoincrement())
+
+  destinationId Int
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  propertyId Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  sortOrder  Int     @default(0)
+  isFeatured Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([destinationId, propertyId])
+  @@index([destinationId])
+  @@index([propertyId])
+  @@index([isFeatured])
+  @@index([sortOrder])
+}
+
+model DestinationExperience {
+  id Int @id @default(autoincrement())
+
+  destinationId Int
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  experienceId Int
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  sortOrder  Int     @default(0)
+  isFeatured Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([destinationId, experienceId])
+  @@index([destinationId])
+  @@index([experienceId])
+  @@index([isFeatured])
+  @@index([sortOrder])
+}
+
+model DestinationPackage {
+  id Int @id @default(autoincrement())
+
+  destinationId Int
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  packageId Int
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  sortOrder  Int     @default(0)
+  isFeatured Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([destinationId, packageId])
+  @@index([destinationId])
+  @@index([packageId])
+  @@index([isFeatured])
+  @@index([sortOrder])
+}
+
+model BlogPost {
+  id Int @id @default(autoincrement())
+
+  title          String
+  slug           String   @unique
+  excerpt        String?
+  content        String
+  coverImage     String?
+  category       String?
+  tags           Json?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    Json?
+  authorName     String?
+  isPublished    Boolean  @default(false)
+  publishedAt    DateTime?
+  isFeatured     Boolean  @default(false)
+  translations   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([isPublished])
+  @@index([isFeatured])
+  @@index([publishedAt])
+  @@index([category])
 }
 
 //////////////////////////////////////////////////////

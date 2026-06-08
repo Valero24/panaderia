@@ -65,18 +65,20 @@ function persistLanguage(language: Language) {
 
 function PublicLocaleProvider({
   children,
+  initialLanguage,
 }: {
   children: React.ReactNode;
+  initialLanguage?: Language | null;
 }) {
   const [language, setLanguageState] =
-    useState<Language>("es");
+    useState<Language>(initialLanguage || "es");
 
   useEffect(() => {
-    const storedLanguage = getStoredLanguage();
+    const storedLanguage = initialLanguage || getStoredLanguage();
 
     setLanguageState(storedLanguage);
     document.documentElement.lang = storedLanguage;
-  }, []);
+  }, [initialLanguage]);
 
   function setLanguage(nextLanguage: Language) {
     setLanguageState(nextLanguage);
@@ -130,9 +132,11 @@ function AdminLocaleProvider({
 export function LanguageProvider({
   children,
   scope = "public",
+  initialLanguage,
 }: {
   children: React.ReactNode;
   scope?: LocaleScope;
+  initialLanguage?: Language | null;
 }) {
   if (scope === "admin") {
     return (
@@ -144,7 +148,9 @@ export function LanguageProvider({
 
   return (
     <LocaleScopeContext.Provider value="public">
-      <PublicLocaleProvider>{children}</PublicLocaleProvider>
+      <PublicLocaleProvider initialLanguage={initialLanguage}>
+        {children}
+      </PublicLocaleProvider>
     </LocaleScopeContext.Provider>
   );
 }

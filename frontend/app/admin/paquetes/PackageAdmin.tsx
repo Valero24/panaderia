@@ -12,6 +12,7 @@ import {
   fetchFeatureAssignments,
   saveFeatureAssignments,
 } from "@/components/admin/ProductFeatureSelector";
+import { saveProductDestinations } from "@/components/admin/ProductDestinationSelector";
 import {
   emptyComponent,
   emptyExtraForm,
@@ -47,6 +48,7 @@ export default function AdminPaquetesPage() {
     useState<PackageWizardStep>("basic");
   const [wizardError, setWizardError] = useState("");
   const [featureIds, setFeatureIds] = useState<number[]>([]);
+  const [destinationIds, setDestinationIds] = useState<number[]>([]);
   const isCreateRoute = pathname?.endsWith("/crear");
   const isEditRoute = pathname?.endsWith("/editar");
   const formMode = Boolean(isCreateRoute || isEditRoute);
@@ -60,6 +62,17 @@ export default function AdminPaquetesPage() {
     (step) => step.key === activeStep
   );
   const isLastStep = activeStepIndex === wizardSteps.length - 1;
+
+  function parseOptionalJson(value: string) {
+    const cleanValue = value.trim();
+    if (!cleanValue) return undefined;
+
+    try {
+      return JSON.parse(cleanValue);
+    } catch {
+      throw new Error("Las preguntas frecuentes deben tener formato JSON valido.");
+    }
+  }
 
   async function fetchPackages() {
     try {
@@ -283,6 +296,7 @@ export default function AdminPaquetesPage() {
     setExtras([]);
     setExtraForm(emptyExtraForm);
     setFeatureIds([]);
+    setDestinationIds([]);
     setActiveStep("basic");
     setWizardError("");
     setMessage("");
@@ -304,6 +318,7 @@ export default function AdminPaquetesPage() {
     setEditingId(item.id);
     setForm(toForm(item));
     setFeatureIds([]);
+    setDestinationIds([]);
     fetchFeatureAssignments("PACKAGE", item.id)
       .then((assignments) =>
         setFeatureIds(assignments.map((assignment: any) => Number(assignment.featureId)))
@@ -334,6 +349,17 @@ export default function AdminPaquetesPage() {
       setMessage("");
 
       const token = localStorage.getItem("token");
+      let parsedFaq: unknown;
+
+      try {
+        parsedFaq = parseOptionalJson(form.faq);
+      } catch (error: any) {
+        setActiveStep("pricing");
+        setWizardError(error?.message || "FAQ invalida.");
+        setMessage(error?.message || "FAQ invalida.");
+        return;
+      }
+
       const payload = {
         title: form.title,
         slug: form.slug || undefined,
@@ -350,6 +376,10 @@ export default function AdminPaquetesPage() {
         itinerary: form.itinerary || undefined,
         policies: form.policies || undefined,
         recommendations: form.recommendations || undefined,
+        seoTitle: form.seoTitle || undefined,
+        seoDescription: form.seoDescription || undefined,
+        seoContent: form.seoContent || undefined,
+        faq: parsedFaq,
         translations: form.translations,
         images: form.images
           .filter((item) => item.url?.trim())
@@ -403,6 +433,7 @@ export default function AdminPaquetesPage() {
       setEditingId(data.id);
       try {
         await saveFeatureAssignments("PACKAGE", data.id, featureIds);
+        await saveProductDestinations("PACKAGE", data.id, destinationIds);
       } catch (featureError: any) {
         setMessage(
           `Paquete guardado, pero no se pudieron guardar sus características: ${
@@ -604,6 +635,8 @@ export default function AdminPaquetesPage() {
               wizardError={wizardError}
               featureIds={featureIds}
               setFeatureIds={setFeatureIds}
+              destinationIds={destinationIds}
+              setDestinationIds={setDestinationIds}
               addComponent={addComponent}
               updateComponent={updateComponent}
               removeComponent={removeComponent}

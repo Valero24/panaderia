@@ -12,6 +12,9 @@ import {
   fetchFeatureAssignments,
   saveFeatureAssignments,
 } from "@/components/admin/ProductFeatureSelector";
+import ProductDestinationSelector, {
+  saveProductDestinations,
+} from "@/components/admin/ProductDestinationSelector";
 import PropertyBasicInfoStep from "@/components/admin/property-steps/PropertyBasicInfoStep";
 import PropertyPricingStep from "@/components/admin/property-steps/PropertyPricingStep";
 import {
@@ -83,6 +86,7 @@ export default function PropertyForm({
   const [form, setForm] = useState<PropertyFormState>(
     emptyPropertyForm
   );
+  const [destinationIds, setDestinationIds] = useState<number[]>([]);
 
   const isEditMode = Boolean(propertyId);
   const canManage = useMemo(() => ["SUPERADMIN", "ADMIN"].includes(role), [
@@ -470,6 +474,11 @@ export default function PropertyForm({
             savedPropertyId,
             form.featureIds
           );
+          await saveProductDestinations(
+            "PROPERTY",
+            savedPropertyId,
+            destinationIds
+          );
         }
       } catch (featureError: any) {
         alert(
@@ -723,12 +732,21 @@ export default function PropertyForm({
             )}
 
             {activeTab === "features" && (
-              <PropertyFeaturesStep
-                form={form}
-                updateField={updateField}
-                propertyId={propertyId}
-                loading={loading}
-              />
+              <div className="space-y-8">
+                <PropertyFeaturesStep
+                  form={form}
+                  updateField={updateField}
+                  propertyId={propertyId}
+                  loading={loading}
+                />
+                <ProductDestinationSelector
+                  productType="PROPERTY"
+                  productId={propertyId}
+                  selectedIds={destinationIds}
+                  onChange={setDestinationIds}
+                  disabled={!canManage || loading}
+                />
+              </div>
             )}
 
             {activeTab === "pricing" && (

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import JsonLd from "@/components/JsonLd";
+import ProductDestinationsLinks from "@/components/destinations/ProductDestinationsLinks";
 import ExperienceBookingCard from "@/components/experiences/experience-booking-card";
 import ExperienceSeoSections from "@/components/experiences/ExperienceSeoSections";
 import BookingMoney from "@/components/BookingMoney";
@@ -15,6 +16,7 @@ import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
+import { getTranslatedFaq } from "@/lib/faq";
 import { cleanPublicCopy } from "@/lib/public-copy";
 import {
   absoluteTitle,
@@ -30,7 +32,17 @@ import {
   buildTouristTripSchema,
   canUseAggregateRating,
 } from "@/lib/schema";
-import type { DynamicTranslations } from "@/lib/dynamic-translations";
+import {
+  getDynamicText,
+  type DynamicTranslations,
+  type TranslatableEntity,
+} from "@/lib/dynamic-translations";
+import type { Language } from "@/i18n";
+import {
+  localizedAlternates,
+  localizedEntityForSeo,
+} from "@/lib/i18n-seo";
+import { localizedRoutePath } from "@/lib/i18n-routes";
 
 export const revalidate = 600;
 
@@ -38,6 +50,7 @@ type PageProps = {
   params: Promise<{
     id: string;
   }>;
+  locale?: Language;
 };
 
 type Experience = {
@@ -79,6 +92,13 @@ type Experience = {
     sortOrder?: number | null;
   }[];
   translations?: DynamicTranslations | null;
+  destinations?: {
+    id: number;
+    name: string;
+    slug: string;
+    location?: string | null;
+    translations?: DynamicTranslations | null;
+  }[];
 };
 
 type PublicReviewSeo = {
@@ -165,29 +185,6 @@ function primaryImage(experience: Experience | null) {
   );
 }
 
-function normalizeFaq(value: unknown) {
-  if (typeof value === "string") {
-    try {
-      return normalizeFaq(JSON.parse(value));
-    } catch {
-      return [];
-    }
-  }
-
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .map((item) =>
-      typeof item === "object" && item !== null
-        ? (item as { question?: string | null; answer?: string | null })
-        : null
-    )
-    .filter(
-      (item): item is { question?: string | null; answer?: string | null } =>
-        Boolean(item?.question?.trim() && item?.answer?.trim())
-    );
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const experience = await getExperience(id);
@@ -216,7 +213,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       );
   const image = primaryImage(experience);
   const identifier = experience.slug || experience.id;
-  const path = `/experiencias/${identifier}`;
+  const path = `/es/experiencias/${identifier}`;
   const canonical = canonicalUrl(path);
   const social = socialMetadata({
     title: absoluteTitle(title),
@@ -235,19 +232,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     alternates: {
       canonical,
+      languages: localizedAlternates("experience", experience as TranslatableEntity)
+        .languages,
     },
     openGraph: social.openGraph,
     twitter: social.twitter,
   };
 }
 
-export default async function ExperienceDetailPage({ params }: PageProps) {
+export default async function ExperienceDetailPage({
+  params,
+  locale = "es",
+}: PageProps) {
   const { id } = await params;
   const experience = await getExperience(id);
+  const localizedExperience = experience
+    ? localizedEntityForSeo(experience as any, locale, "experience")
+    : null;
   const extras = experience ? await getExperienceExtras(String(experience.id)) : [];
   const approvedReviews = experience ? await getApprovedReviews(experience) : [];
   const faqSchema = experience
-    ? buildFaqPageSchema(normalizeFaq(experience.faq))
+    ? buildFaqPageSchema(getTranslatedFaq(experience, locale, experience.faq))
     : undefined;
 
   if (!experience) {
@@ -260,7 +265,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
           <p className="mt-3 text-slate-600">
             <TranslatedText k="experience.unavailableText" />
           </p>
-          <Link href="/experiencias">
+          <Link href="/es/experiencias">
             <Button className="mt-6 rounded-xl bg-[#0D2B52] hover:bg-[#12396d]">
               <TranslatedText k="experience.back" />
             </Button>
@@ -274,13 +279,25 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
       <JsonLd
         data={[
-          buildTouristTripSchema(experience, approvedReviews, "experiencias"),
+          buildTouristTripSchema(
+            localizedExperience || experience,
+            approvedReviews,
+            "experiencias"
+          ),
           buildBreadcrumbSchema([
-            { name: "Home", url: "/" },
-            { name: "Experiencias", url: "/experiencias" },
+            { name: "Home", url: localizedRoutePath("home", locale) },
             {
-              name: experience.title || "Experiencia premium",
-              url: `/experiencias/${experience.slug || experience.id}`,
+              name: "Experiencias",
+              url: localizedRoutePath("experience", locale),
+            },
+            {
+              name:
+                getDynamicText(experience, "title", locale) ||
+                experience.title ||
+                "Experiencia premium",
+              url:
+                localizedExperience?.url ||
+                `/es/experiencias/${experience.slug || experience.id}`,
             },
           ]),
           ...(faqSchema ? [faqSchema] : []),
@@ -293,7 +310,7 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
       />
       <section className="premium-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <Link
-          href="/experiencias"
+          href="/es/experiencias"
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[#0D2B52]"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -342,6 +359,8 @@ export default async function ExperienceDetailPage({ params }: PageProps) {
             </Card>
 
             <ExperienceSeoSections experience={experience} />
+
+            <ProductDestinationsLinks destinations={experience.destinations} />
 
             <PublicReviewsSection
               targetType="EXPERIENCE"

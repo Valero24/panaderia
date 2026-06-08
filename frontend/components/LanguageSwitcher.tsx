@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import ReactCountryFlag from "react-country-flag";
 import type { Language } from "@/i18n";
 import { useTranslation } from "@/context/LanguageContext";
+import { localizedPathForCurrentRoute } from "@/lib/i18n-routes";
 
 const languageOptions: {
   code: Language;
@@ -64,12 +66,16 @@ function CountryFlag({ countryCode }: { countryCode: string }) {
 
 export default function LanguageSwitcher() {
   const { language, setLanguage } = useTranslation();
+  const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const activeLanguage =
     languageOptions.find((item) => item.code === language) || languageOptions[0];
 
   useEffect(() => {
+    if (!open) return;
+
     function handlePointerDown(event: MouseEvent | TouchEvent) {
       if (
         wrapperRef.current &&
@@ -94,11 +100,22 @@ export default function LanguageSwitcher() {
       document.removeEventListener("touchstart", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [open]);
 
   function handleSelect(nextLanguage: Language) {
+    const nextPath = localizedPathForCurrentRoute(
+      pathname,
+      nextLanguage,
+      typeof window !== "undefined" ? window.location.search : "",
+      typeof window !== "undefined" ? window.location.hash : ""
+    );
+
     setLanguage(nextLanguage);
     setOpen(false);
+
+    if (nextPath && nextPath !== pathname) {
+      router.push(nextPath);
+    }
   }
 
   return (
@@ -109,7 +126,7 @@ export default function LanguageSwitcher() {
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex h-10 max-w-full items-center gap-2 rounded-2xl border border-[#D4AF37]/30 bg-white/95 px-3 text-sm font-semibold text-[#0D2B52] shadow-[0_8px_22px_rgba(13,43,82,0.08)] transition-all duration-200 hover:border-[#B68D40]/60 hover:bg-[#FFFCF7] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 sm:min-w-[145px] sm:justify-between lg:h-11"
+        className="inline-flex h-10 max-w-full items-center gap-2 rounded-2xl border border-[#D4AF37]/30 bg-white/95 px-3 text-sm font-semibold text-[#0D2B52] shadow-[0_8px_22px_rgba(13,43,82,0.08)] transition-all duration-200 hover:border-[#B68D40]/60 hover:bg-[#FFFCF7] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 sm:w-[160px] sm:justify-between lg:h-11"
       >
         <span className="inline-flex min-w-0 items-center gap-2">
           <CountryFlag countryCode={activeLanguage.countryCode} />

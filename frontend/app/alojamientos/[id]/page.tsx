@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import PropertyDetailClient from "./PropertyDetailClient";
 import { apiUrl } from "@/lib/api";
+import { getTranslatedFaq } from "@/lib/faq";
 import {
   absoluteTitle,
   canonicalUrl,
@@ -17,6 +18,17 @@ import {
   buildLodgingBusinessSchema,
   canUseAggregateRating,
 } from "@/lib/schema";
+import {
+  getDynamicText,
+  type DynamicTranslations,
+  type TranslatableEntity,
+} from "@/lib/dynamic-translations";
+import type { Language } from "@/i18n";
+import {
+  localizedAlternates,
+  localizedEntityForSeo,
+} from "@/lib/i18n-seo";
+import { localizedRoutePath } from "@/lib/i18n-routes";
 
 export const revalidate = 600;
 
@@ -24,6 +36,7 @@ type PageProps = {
   params: Promise<{
     id: string;
   }>;
+  locale?: Language;
 };
 
 type PropertySeo = {
@@ -51,6 +64,7 @@ type PropertySeo = {
   locationDescription?: string | null;
   guestRecommendations?: string | null;
   faq?: unknown;
+  translations?: DynamicTranslations | null;
   averageRating?: number | string | null;
   reviewCount?: number | null;
   images?: {
@@ -76,21 +90,6 @@ type PublicReviewSeo = {
 
 const fallbackDescription =
   "Luxury villa in Cartagena with premium amenities, personalized assistance and strategic location.";
-
-function normalizeFaq(value: unknown) {
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .map((item) =>
-      typeof item === "object" && item !== null
-        ? (item as { question?: string | null; answer?: string | null })
-        : null
-    )
-    .filter(
-      (item): item is { question?: string | null; answer?: string | null } =>
-        Boolean(item?.question?.trim() && item?.answer?.trim())
-    );
-}
 
 async function getProperty(id: string): Promise<PropertySeo | null> {
   try {
@@ -159,7 +158,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       );
   const image = primaryImage(property);
   const identifier = property.slug || property.id;
-  const path = `/alojamientos/${identifier}`;
+  const path = `/es/alojamientos/${identifier}`;
   const canonical = canonicalUrl(path);
   const social = socialMetadata({
     title: absoluteTitle(title),
@@ -184,18 +183,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : undefined,
     alternates: {
       canonical,
+      languages: localizedAlternates("property", property as TranslatableEntity)
+        .languages,
     },
     openGraph: social.openGraph,
     twitter: social.twitter,
   };
 }
 
-export default async function PropertyDetailPage({ params }: PageProps) {
+export default async function PropertyDetailPage({
+  params,
+  locale = "es",
+}: PageProps) {
   const { id } = await params;
   const property = await getProperty(id);
+  const localizedProperty = property
+    ? localizedEntityForSeo(property as any, locale, "property")
+    : null;
   const approvedReviews = property ? await getApprovedReviews(property) : [];
   const faqSchema = property
-    ? buildFaqPageSchema(normalizeFaq(property.faq))
+    ? buildFaqPageSchema(getTranslatedFaq(property, locale, property.faq))
     : undefined;
 
   return (
@@ -203,20 +210,31 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       {property ? (
         <JsonLd
           data={[
-            buildLodgingBusinessSchema(property, approvedReviews),
+            buildLodgingBusinessSchema(
+              localizedProperty || property,
+              approvedReviews
+            ),
             buildBreadcrumbSchema([
-              { name: "Home", url: "/" },
-              { name: "Alojamientos", url: "/alojamientos" },
+              { name: "Home", url: localizedRoutePath("home", locale) },
               {
-                name: property.title || "Alojamiento premium",
-                url: `/alojamientos/${property.slug || property.id}`,
+                name: "Alojamientos",
+                url: localizedRoutePath("property", locale),
+              },
+              {
+                name:
+                  getDynamicText(property, "title", locale) ||
+                  property.title ||
+                  "Alojamiento premium",
+                url:
+                  localizedProperty?.url ||
+                  `/es/alojamientos/${property.slug || property.id}`,
               },
             ]),
             ...(faqSchema ? [faqSchema] : []),
           ]}
         />
       ) : null}
-      <PropertyDetailClient params={params} />
+      <PropertyDetailClient params={params} initialProperty={property as any} />
     </>
   );
 }

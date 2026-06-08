@@ -65,7 +65,7 @@ export default function BookingMoney({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full flex-wrap items-baseline gap-x-1.5 gap-y-0.5 leading-tight",
+        "inline-flex max-w-full flex-wrap items-baseline gap-x-1.5 gap-y-0.5 leading-tight tabular-nums",
         className
       )}
     >

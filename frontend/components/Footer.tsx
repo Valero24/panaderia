@@ -14,9 +14,10 @@ import {
 
 import { useTranslation } from "@/context/LanguageContext";
 import { trackContact, trackCtaClick } from "@/lib/analytics";
+import { localizedRoutePath } from "@/lib/i18n-routes";
 
 export default function Footer() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const whatsappNumber =
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "573000000000";
   const whatsappHref = `https://wa.me/${whatsappNumber.replace(/\D/g, "")}`;
@@ -53,11 +54,18 @@ export default function Footer() {
     },
   ];
   const quickLinks = [
-    { href: "/alojamientos", label: t("footer.stays") },
-    { href: "/experiencias", label: t("footer.experiences") },
-    { href: "/paquetes", label: t("footer.packages") },
-    { href: "/nosotros", label: t("nav.about") },
-    { href: "/contacto", label: t("footer.contact") },
+    { href: localizedRoutePath("property", language), label: t("footer.stays") },
+    {
+      href: localizedRoutePath("experience", language),
+      label: t("footer.experiences"),
+    },
+    { href: localizedRoutePath("package", language), label: t("footer.packages") },
+    {
+      href: localizedRoutePath("destination", language),
+      label: t("footer.destinations"),
+    },
+    { href: localizedRoutePath("about", language), label: t("nav.about") },
+    { href: localizedRoutePath("contact", language), label: t("footer.contact") },
   ];
   const policies = [
     t("footer.privacy"),
@@ -123,7 +131,7 @@ export default function Footer() {
                 {t("footer.location")}
               </p>
               <Link
-                href="/contacto"
+                href={localizedRoutePath("contact", language)}
                 onClick={() => trackCtaClick("hablar_con_asesor", "footer")}
                 className="mt-4 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#0D2B52] transition hover:bg-[#F8F6F1]"
               >

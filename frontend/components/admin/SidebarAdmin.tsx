@@ -21,6 +21,8 @@ import {
   ReceiptText,
   Coins,
   MessageSquare,
+  MapPinned,
+  Newspaper,
 } from "lucide-react";
 
 const menuItems = [
@@ -89,6 +91,18 @@ const menuItems = [
     href: "/admin/paquetes",
     icon: Package,
     roles: ["SUPERADMIN", "ADMIN", "ADVISOR"],
+  },
+  {
+    title: "Destinos",
+    href: "/admin/destinos",
+    icon: MapPinned,
+    roles: ["SUPERADMIN", "ADMIN"],
+  },
+  {
+    title: "Blog",
+    href: "/admin/blog",
+    icon: Newspaper,
+    roles: ["SUPERADMIN", "ADMIN"],
   },
   {
     title: "Contactos",

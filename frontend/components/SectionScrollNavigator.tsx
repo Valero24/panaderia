@@ -129,6 +129,7 @@ export default function SectionScrollNavigator({
   const lastWheelDirectionRef = useRef<1 | -1 | null>(null);
   const wheelTimerRef = useRef<number | null>(null);
   const animationTimerRef = useRef<number | null>(null);
+  const resizeTimerRef = useRef<number | null>(null);
   const pendingNavigationRef = useRef<{ direction: 1 | -1; steps: number } | null>(
     null
   );
@@ -145,10 +146,12 @@ export default function SectionScrollNavigator({
         .filter((element): element is HTMLElement => Boolean(element));
     };
 
+    const desktopMediaQuery = window.matchMedia(
+      `(min-width: ${minDesktopWidth}px)`
+    );
+
     const updateIsDesktop = () => {
-      isDesktopRef.current = window.matchMedia(
-        `(min-width: ${minDesktopWidth}px)`
-      ).matches;
+      isDesktopRef.current = desktopMediaQuery.matches;
     };
 
     hydrateSectionElements();
@@ -189,7 +192,7 @@ export default function SectionScrollNavigator({
       if (
         respectSectionContent &&
         currentSection &&
-        sectionHasRemainingScroll(currentSection, direction, navbarOffset)
+        sectionHasRemainingScroll(currentSection, direction, getSectionOffset(currentSection))
       ) {
         return false;
       }
@@ -212,7 +215,7 @@ export default function SectionScrollNavigator({
       if (
         respectSectionContent &&
         currentSection &&
-        sectionHasRemainingScroll(currentSection, direction, navbarOffset)
+        sectionHasRemainingScroll(currentSection, direction, getSectionOffset(currentSection))
       ) {
         return false;
       }
@@ -331,10 +334,22 @@ export default function SectionScrollNavigator({
     };
 
     const onResize = () => {
+      if (resizeTimerRef.current) {
+        window.clearTimeout(resizeTimerRef.current);
+      }
+
+      resizeTimerRef.current = window.setTimeout(() => {
+        resizeTimerRef.current = null;
+        hydrateSectionElements();
+      }, 120);
+    };
+
+    const onDesktopMediaChange = () => {
       updateIsDesktop();
       hydrateSectionElements();
     };
 
+    desktopMediaQuery.addEventListener("change", onDesktopMediaChange);
     window.addEventListener("resize", onResize, { passive: true });
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
@@ -347,6 +362,10 @@ export default function SectionScrollNavigator({
       if (animationTimerRef.current) {
         window.clearTimeout(animationTimerRef.current);
       }
+      if (resizeTimerRef.current) {
+        window.clearTimeout(resizeTimerRef.current);
+      }
+      desktopMediaQuery.removeEventListener("change", onDesktopMediaChange);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);

@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Image, { ImageProps } from "next/image";
 
 import {
@@ -8,7 +5,7 @@ import {
   optimizedUnsplashUrl,
 } from "@/lib/image-url";
 
-type PublicImageProps = Omit<ImageProps, "src"> & {
+type PublicImageProps = Omit<ImageProps, "src" | "onError"> & {
   src: string;
   fallbackSrc?: string;
   optimizeWidth?: number;
@@ -25,8 +22,7 @@ export default function PublicImage({
   optimizeQuality,
   ...props
 }: PublicImageProps) {
-  const [failed, setFailed] = useState(false);
-  const imageSrc = failed || isKnownBrokenImage(src) ? fallbackSrc : src;
+  const imageSrc = isKnownBrokenImage(src) ? fallbackSrc : src;
   const remoteQuality =
     optimizeQuality ?? (typeof props.quality === "number" ? props.quality : 70);
 
@@ -35,7 +31,6 @@ export default function PublicImage({
       {...props}
       src={optimizedUnsplashUrl(imageSrc, optimizeWidth, remoteQuality)}
       decoding={props.decoding || "async"}
-      onError={() => setFailed(true)}
     />
   );
 }

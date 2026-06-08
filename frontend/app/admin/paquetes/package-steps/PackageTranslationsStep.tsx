@@ -63,6 +63,29 @@ export default function PackageTranslationsStep({
           type: "textarea",
           baseValue: form.recommendations,
         },
+        {
+          key: "seoTitle",
+          label: "Título SEO",
+          baseValue: form.seoTitle,
+        },
+        {
+          key: "seoDescription",
+          label: "Meta descripción",
+          type: "textarea",
+          baseValue: form.seoDescription,
+        },
+        {
+          key: "seoContent",
+          label: "Contenido SEO extendido",
+          type: "textarea",
+          baseValue: form.seoContent,
+        },
+        {
+          key: "faq",
+          label: "Preguntas frecuentes",
+          type: "textarea",
+          baseValue: form.faq,
+        },
       ]}
       value={form.translations}
       onChange={(value) => updateForm("translations", value)}

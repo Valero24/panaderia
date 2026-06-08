@@ -10,6 +10,7 @@ import { UpdateExperienceDto } from "./dto/update-experience.dto";
 import { AuditService } from "../common/audit.service";
 import { normalizeSeoSlug } from "../common/slug";
 import { normalizeTranslations } from "../common/translations";
+import { normalizeFaq } from "../common/faq";
 import { ProductFeaturesService } from "../product-features/product-features.service";
 import { BookingType } from "@prisma/client";
 
@@ -147,6 +148,15 @@ export class ExperiencesService {
         images: {
           orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
         },
+        destinations: {
+          where: { destination: { isActive: true } },
+          include: { destination: true },
+          orderBy: [
+            { isFeatured: "desc" },
+            { sortOrder: "asc" },
+            { createdAt: "desc" },
+          ],
+        },
       },
     });
 
@@ -154,9 +164,15 @@ export class ExperiencesService {
       throw new NotFoundException("Experiencia no encontrada");
     }
 
-    const [withFeatures] = await this.attachPublicFeatures([experience]);
+    const { destinations, ...experienceData } = experience as any;
+    const [withFeatures] = await this.attachPublicFeatures([experienceData]);
 
-    return withFeatures;
+    return {
+      ...withFeatures,
+      destinations: Array.isArray(destinations)
+        ? destinations.map((relation) => relation.destination)
+        : [],
+    };
   }
 
   async findOneAdmin(id: number) {
@@ -241,7 +257,7 @@ export class ExperiencesService {
         durationDescription: data.durationDescription?.trim() || null,
         schedule: data.schedule?.trim() || null,
         conditions: data.conditions?.trim() || null,
-        faq: data.faq || undefined,
+        faq: normalizeFaq(data.faq),
         experienceCategory: data.experienceCategory?.trim() || null,
         images: this.mapImages(data.images),
       },
@@ -324,7 +340,7 @@ export class ExperiencesService {
     }
 
     if (data.faq !== undefined) {
-      nextData.faq = data.faq;
+      nextData.faq = normalizeFaq(data.faq);
     }
 
     if (data.maxGuests !== undefined) {

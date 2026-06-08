@@ -7,6 +7,10 @@ import { usePathname } from "next/navigation";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { LanguageProvider } from "@/context/LanguageContext";
+import {
+  localeFromPathname,
+  publicRouteFromPathname,
+} from "@/lib/i18n-routes";
 
 const FloatingWhatsapp = dynamic(() => import("@/components/FloatingWhatsapp"), {
   ssr: false,
@@ -21,41 +25,33 @@ const SectionScrollNavigator = dynamic(
   }
 );
 
-const scrollSnapRoutes = new Set([
-  "/",
-  "/alojamientos",
-  "/experiencias",
-  "/paquetes",
-  "/nosotros",
-]);
-
 const guidedScrollSections: Record<string, string[]> = {
-  "/": [
+  home: [
     "home-hero",
     "home-alojamientos",
     "home-experiencias",
     "home-paquetes",
     "site-footer",
   ],
-  "/alojamientos": [
+  property: [
     "alojamientos-hero",
     "listado-filtros",
     "alojamientos-listado",
     "site-footer",
   ],
-  "/experiencias": [
+  experience: [
     "experiencias-hero",
     "listado-filtros",
     "experiencias-listado",
     "site-footer",
   ],
-  "/paquetes": [
+  package: [
     "paquetes-hero",
     "listado-filtros",
     "paquetes-listado",
     "site-footer",
   ],
-  "/nosotros": [
+  about: [
     "nosotros-hero",
     "nosotros-quienes",
     "nosotros-como",
@@ -65,7 +61,7 @@ const guidedScrollSections: Record<string, string[]> = {
 };
 
 const guidedScrollOffsets: Record<string, Record<string, number>> = {
-  "/": {
+  home: {
     "home-hero": 0,
     "home-alojamientos": 104,
     "home-experiencias": 104,
@@ -84,8 +80,41 @@ export default function AppChrome({
   const isStaffRoute = pathname === "/login" || pathname === "/staff-login";
   const isInternalRoute = Boolean(isAdminRoute || isStaffRoute);
   const showPublicChrome = !isAdminRoute && !isStaffRoute;
-  const enableGuidedScroll = Boolean(pathname && scrollSnapRoutes.has(pathname));
+  const publicRoute = publicRouteFromPathname(pathname);
+  const routeLocale = localeFromPathname(pathname);
+  const guidedRouteKey =
+    publicRoute?.kind === "home" ||
+    publicRoute?.kind === "property" ||
+    publicRoute?.kind === "experience" ||
+    publicRoute?.kind === "package"
+      ? publicRoute.kind
+      : publicRoute?.kind === "about" || pathname === "/nosotros"
+        ? "about"
+        : null;
+  const enableGuidedScroll = Boolean(guidedRouteKey);
   const [isDesktopGuidedScroll, setIsDesktopGuidedScroll] = useState(false);
+  const [showDeferredPublicWidgets, setShowDeferredPublicWidgets] = useState(false);
+
+  useEffect(() => {
+    if (!showPublicChrome) {
+      setShowDeferredPublicWidgets(false);
+      return;
+    }
+
+    const schedule = () => setShowDeferredPublicWidgets(true);
+
+    if (typeof window.requestIdleCallback === "function") {
+      const idleCallback = window.requestIdleCallback(schedule, {
+        timeout: 1800,
+      });
+
+      return () => window.cancelIdleCallback(idleCallback);
+    }
+
+    const timeout = globalThis.setTimeout(schedule, 1200);
+
+    return () => globalThis.clearTimeout(timeout);
+  }, [showPublicChrome]);
 
   useEffect(() => {
     if (!enableGuidedScroll) {
@@ -118,8 +147,10 @@ export default function AppChrome({
   }, [isDesktopGuidedScroll]);
 
   return (
-    <LanguageProvider scope={isInternalRoute ? "admin" : "public"}>
-      {showPublicChrome && <MarketingScripts />}
+    <LanguageProvider
+      scope={isInternalRoute ? "admin" : "public"}
+      initialLanguage={routeLocale}
+    >
       {showPublicChrome && <Navbar />}
 
       <main
@@ -127,19 +158,20 @@ export default function AppChrome({
           isDesktopGuidedScroll ? "public-guided-scroll-main" : ""
         }`}
       >
-        {isDesktopGuidedScroll && pathname && (
+        {isDesktopGuidedScroll && guidedRouteKey && (
           <SectionScrollNavigator
-            sections={guidedScrollSections[pathname] || []}
-            sectionOffsets={guidedScrollOffsets[pathname]}
-            maxSteps={pathname === "/" ? 1 : 2}
-            respectSectionContent={pathname !== "/"}
+            sections={guidedScrollSections[guidedRouteKey] || []}
+            sectionOffsets={guidedScrollOffsets[guidedRouteKey]}
+            maxSteps={guidedRouteKey === "home" ? 1 : 2}
+            respectSectionContent={guidedRouteKey !== "home"}
           />
         )}
         {children}
       </main>
 
       {showPublicChrome && <Footer />}
-      {showPublicChrome && <FloatingWhatsapp />}
+      {showPublicChrome && showDeferredPublicWidgets && <MarketingScripts />}
+      {showPublicChrome && showDeferredPublicWidgets && <FloatingWhatsapp />}
     </LanguageProvider>
   );
 }

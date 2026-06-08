@@ -17,9 +17,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "@/context/LanguageContext";
 import {
   getDynamicText,
-  getDynamicValue,
   type DynamicTranslations,
 } from "@/lib/dynamic-translations";
+import { getTranslatedFaq } from "@/lib/faq";
 
 type ExperienceSeo = {
   seoContent?: string | null;
@@ -36,11 +36,6 @@ type ExperienceSeo = {
   translations?: DynamicTranslations | null;
 };
 
-type FaqItem = {
-  question?: string | null;
-  answer?: string | null;
-};
-
 function hasText(value?: string | null) {
   return Boolean(value && value.trim());
 }
@@ -50,29 +45,6 @@ function splitItems(value?: string | null) {
     .split(/\r?\n|,/)
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-function normalizeFaq(value: unknown): FaqItem[] {
-  if (typeof value === "string") {
-    try {
-      return normalizeFaq(JSON.parse(value));
-    } catch {
-      return [];
-    }
-  }
-
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .map((item) =>
-      typeof item === "object" && item !== null
-        ? (item as FaqItem)
-        : null
-    )
-    .filter(
-      (item): item is FaqItem =>
-        Boolean(item?.question?.trim() && item?.answer?.trim())
-    );
 }
 
 function TextCard({
@@ -208,9 +180,7 @@ export default function ExperienceSeoSections({
     language,
     experience.conditions || experience.policies
   );
-  const faqItems = normalizeFaq(
-    getDynamicValue(experience, "faq", language, experience.faq)
-  );
+  const faqItems = getTranslatedFaq(experience, language, experience.faq);
   const timing = [durationDescription, schedule].filter(Boolean).join("\n");
   const hasAnySection =
     hasText(seoContent) ||
