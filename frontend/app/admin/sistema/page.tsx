@@ -320,7 +320,7 @@ export default function SistemaPage() {
                   <Metric label="Solicitudes pendientes" value={health.counts.pendingPreReservations} />
                   <Metric label="Reservas confirmadas" value={health.counts.confirmedBookings} />
                   <Metric label="Contactos" value={health.counts.contacts} />
-                  <Metric label="Registros 24h" value={health.counts.auditLogsLast24h} />
+                  <Metric label="Eventos 24h" value={health.counts.auditLogsLast24h} />
                   <Metric label="Notificaciones pendientes" value={health.counts.pendingOperationalNotifications} />
                 </div>
               </CardContent>

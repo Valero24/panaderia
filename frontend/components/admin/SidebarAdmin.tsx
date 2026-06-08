@@ -15,7 +15,6 @@ import {
   Mail,
   LogOut,
   UserCog,
-  History,
   ServerCog,
   Tags,
   ReceiptText,
@@ -100,12 +99,6 @@ const menuItems = [
     title: "Asesores",
     href: "/admin/asesores",
     icon: UserCog,
-    roles: ["SUPERADMIN"],
-  },
-  {
-    title: "Registros",
-    href: "/admin/registros",
-    icon: History,
     roles: ["SUPERADMIN"],
   },
   {
