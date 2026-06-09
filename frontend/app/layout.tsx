@@ -2,27 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AppChrome from "@/components/AppChrome";
 import { API_URL } from "@/lib/api";
-import { siteUrl, socialMetadata } from "@/lib/seo";
+import { siteUrl } from "@/lib/seo";
 
 const defaultTitle = "Cartagena Tailored Travel";
 const defaultDescription =
   "Luxury travel in Cartagena with premium villas, curated experiences, private packages and personalized travel assistance.";
-const defaultSocial = socialMetadata({
-  title: defaultTitle,
-  description: defaultDescription,
-  url: siteUrl,
-});
-
-function safeOrigin(value: string) {
-  try {
-    return new URL(value).origin;
-  } catch {
-    return "";
-  }
-}
-
-const apiOrigin = safeOrigin(API_URL);
-
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -35,9 +19,17 @@ export const metadata: Metadata = {
     shortcut: "/branding/LOGO-06.png",
     apple: "/branding/LOGO-06.png",
   },
-  openGraph: defaultSocial.openGraph,
-  twitter: defaultSocial.twitter,
 };
+
+function safeOrigin(value: string) {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
+  }
+}
+
+const apiOrigin = safeOrigin(API_URL);
 
 export default function RootLayout({
   children,

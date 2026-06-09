@@ -26,6 +26,8 @@ import PackageBookingCard from "@/components/packages/package-booking-card";
 import PackageFaqSection from "@/components/packages/PackageFaqSection";
 import BookingMoney from "@/components/BookingMoney";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import PublicProductCard from "@/components/public-product-card";
+import PublicBreadcrumbs from "@/components/PublicBreadcrumbs";
 import PublicReviewsSection from "@/components/reviews/PublicReviewsSection";
 import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
@@ -34,12 +36,8 @@ import { apiUrl } from "@/lib/api";
 import { getTranslatedFaq } from "@/lib/faq";
 import { cleanPublicCopy } from "@/lib/public-copy";
 import {
-  absoluteTitle,
-  canonicalUrl,
+  buildMetadata,
   defaultOgImage,
-  pageTitle,
-  productSeoDescription,
-  socialMetadata,
 } from "@/lib/seo";
 import {
   buildBreadcrumbSchema,
@@ -53,11 +51,13 @@ import {
   type TranslatableEntity,
 } from "@/lib/dynamic-translations";
 import type { Language } from "@/i18n";
+import { formatMoneyByLanguage } from "@/lib/currency";
 import {
-  localizedAlternates,
   localizedEntityForSeo,
+  localizedEntityMetadata,
 } from "@/lib/i18n-seo";
 import { localizedRoutePath } from "@/lib/i18n-routes";
+import { packagePublicPath } from "@/lib/product-url";
 
 export const revalidate = 600;
 
@@ -204,12 +204,116 @@ async function getApprovedReviews(item: PackageItem): Promise<PublicReviewSeo[]>
 }
 
 function primaryImage(item: PackageItem | null) {
+  const activeImages = (item?.images || []).filter(
+    (image) => image.active !== false && image.url
+  );
+
   return (
-    item?.images?.find((image) => image.isPrimary)?.url ||
-    item?.images?.[0]?.url ||
+    activeImages.find((image) => image.isPrimary)?.url ||
+    activeImages[0]?.url ||
     item?.mainImage ||
     defaultOgImage.url
   );
+}
+
+function cardImage(item: PackageItem) {
+  return primaryImage(item) || fallbackImage;
+}
+
+async function getPublicPackages(): Promise<PackageItem[]> {
+  try {
+    const res = await fetch(apiUrl("/packages"), {
+      next: { revalidate },
+    });
+
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizedText(value?: string | null) {
+  return cleanPublicCopy(value || "").toLowerCase();
+}
+
+function destinationKeys(item?: PackageItem | null) {
+  return new Set(
+    (item?.destinations || [])
+      .map((destination) => normalizedText(destination.slug || destination.name))
+      .filter(Boolean)
+  );
+}
+
+function durationScore(current?: string | null, candidate?: string | null) {
+  const currentText = normalizedText(current);
+  const candidateText = normalizedText(candidate);
+
+  if (!currentText || !candidateText) return 0;
+  if (currentText === candidateText) return 3;
+
+  const currentNumber = Number(currentText.match(/\d+/)?.[0] || 0);
+  const candidateNumber = Number(candidateText.match(/\d+/)?.[0] || 0);
+
+  if (currentNumber && candidateNumber) {
+    const difference = Math.abs(currentNumber - candidateNumber);
+    if (difference === 0) return 3;
+    if (difference <= 1) return 2;
+  }
+
+  return currentText.includes(candidateText) || candidateText.includes(currentText)
+    ? 1
+    : 0;
+}
+
+function relatedPackageScore(current: PackageItem, candidate: PackageItem) {
+  let score = 0;
+  const currentDestinations = destinationKeys(current);
+  const candidateDestinations = destinationKeys(candidate);
+
+  candidateDestinations.forEach((destination) => {
+    if (currentDestinations.has(destination)) score += 5;
+  });
+
+  if (
+    normalizedText(current.category) &&
+    normalizedText(current.category) === normalizedText(candidate.category)
+  ) {
+    score += 4;
+  }
+
+  score += durationScore(current.duration, candidate.duration);
+
+  const currentPrice = Number(current.basePrice || 0);
+  const candidatePrice = Number(candidate.basePrice || 0);
+
+  if (currentPrice > 0 && candidatePrice > 0) {
+    const difference = Math.abs(currentPrice - candidatePrice) / currentPrice;
+    if (difference <= 0.15) score += 3;
+    else if (difference <= 0.3) score += 2;
+    else if (difference <= 0.5) score += 1;
+  }
+
+  return score;
+}
+
+async function getRelatedPackages(item: PackageItem | null): Promise<PackageItem[]> {
+  if (!item?.id) return [];
+
+  const packages = await getPublicPackages();
+
+  return packages
+    .filter((candidate) => candidate?.id && candidate.id !== item.id)
+    .map((candidate) => ({
+      item: candidate,
+      score: relatedPackageScore(item, candidate),
+    }))
+    .filter((candidate) => candidate.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((candidate) => candidate.item);
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -217,48 +321,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const item = await getPackage(id);
 
   if (!item) {
-    return {
-      title: pageTitle("Paquete no disponible"),
+    return buildMetadata({
+      title: "Paquete no disponible",
       description: fallbackDescription,
-    };
+      path: `/paquetes/${id}`,
+      image: defaultOgImage,
+    });
   }
 
-  const title = pageTitle(item.seoTitle || item.title || "Paquete premium");
-  const description = productSeoDescription({
-    description:
-      item.seoDescription ||
-      item.shortDescription ||
-      item.description,
-    fallback: fallbackDescription,
-    location: item.location,
+  return localizedEntityMetadata({
+    kind: "package",
+    entity: item as TranslatableEntity,
+    locale: "es",
+    fallbackTitle: "Paquete premium | Cartagena Tailored Travel",
+    fallbackDescription,
+    image: primaryImage(item),
   });
-  const image = primaryImage(item);
-  const identifier = item.slug || item.id;
-  const path = `/es/paquetes/${identifier}`;
-  const canonical = canonicalUrl(path);
-  const social = socialMetadata({
-    title: absoluteTitle(title),
-    description,
-    url: canonical,
-    image: {
-      url: image,
-      width: 1200,
-      height: 630,
-      alt: title,
-    },
-  });
-
-  return {
-    title: absoluteTitle(title),
-    description,
-    alternates: {
-      canonical,
-      languages: localizedAlternates("package", item as TranslatableEntity)
-        .languages,
-    },
-    openGraph: social.openGraph,
-    twitter: social.twitter,
-  };
 }
 
 function TextBlock({
@@ -340,16 +418,25 @@ export default async function PackageDetailPage({
   const localizedPackage = item
     ? localizedEntityForSeo(item as any, locale, "package")
     : null;
-  const extras = item ? await getPackageExtras(String(item.id)) : [];
-  const approvedReviews = item ? await getApprovedReviews(item) : [];
+  const packagePublicUrl = item?.slug?.trim()
+    ? localizedRoutePath("package", locale, item.slug.trim())
+    : localizedRoutePath("package", locale);
+  const schemaPackage = localizedPackage || null;
+  const [extras, approvedReviews, relatedPackages] = item
+    ? await Promise.all([
+        getPackageExtras(String(item.id)),
+        getApprovedReviews(item),
+        getRelatedPackages(item),
+      ])
+    : [[], [], []];
 
   if (!item) {
     return (
       <main className="min-h-screen bg-[#F8F6F1] px-6 py-16 text-[#0D2B52]">
         <div className="mx-auto max-w-3xl rounded-2xl border border-[#D4AF37]/20 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-3xl font-semibold">
+          <h2 className="text-3xl font-semibold">
             <TranslatedText k="package.unavailable" />
-          </h1>
+          </h2>
           <p className="mt-3 text-slate-600">
             <TranslatedText k="package.unavailableText" />
           </p>
@@ -367,15 +454,18 @@ export default async function PackageDetailPage({
     (component) => component.active !== false
   );
   const faqSchema = buildFaqPageSchema(getTranslatedFaq(item, locale, item.faq));
+  const aboutField = hasText(item.seoContent) ? "seoContent" : "description";
+  const aboutBody = hasText(item.seoContent) ? item.seoContent : item.description;
 
   return (
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
       <JsonLd
         data={[
           buildTouristTripSchema(
-            localizedPackage || item,
+            schemaPackage || item,
             approvedReviews,
-            "paquetes"
+            "paquetes",
+            locale
           ),
           buildBreadcrumbSchema([
             { name: "Home", url: localizedRoutePath("home", locale) },
@@ -386,8 +476,7 @@ export default async function PackageDetailPage({
                 item.title ||
                 "Paquete premium",
               url:
-                localizedPackage?.url ||
-                `/es/paquetes/${item.slug || item.id}`,
+                schemaPackage?.url || packagePublicUrl,
             },
           ]),
           ...(faqSchema ? [faqSchema] : []),
@@ -400,6 +489,25 @@ export default async function PackageDetailPage({
       />
 
       <section className="premium-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <PublicBreadcrumbs
+          className="mb-4"
+          items={[
+            {
+              label: <TranslatedText k="destinations.breadcrumbHome" />,
+              href: localizedRoutePath("home", locale),
+            },
+            {
+              label: <TranslatedText k="nav.packages" />,
+              href: localizedRoutePath("package", locale),
+            },
+            {
+              label:
+                getDynamicText(item, "title", locale) ||
+                item.title ||
+                "Paquete premium",
+            },
+          ]}
+        />
         <Link
           href={localizedRoutePath("package", locale)}
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[#0D2B52]"
@@ -475,10 +583,64 @@ export default async function PackageDetailPage({
                   <TranslatedText k="packageDetail.about" />
                 </h2>
                 <p className="whitespace-pre-line leading-8 text-slate-600">
-                  <TranslatedDynamicText entity={item} field="description" />
+                  <TranslatedDynamicText
+                    entity={item}
+                    field={aboutField}
+                    fallback={aboutBody}
+                  />
                 </p>
               </CardContent>
             </Card>
+
+            <section className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm lg:p-8">
+              <div className="max-w-3xl">
+                <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#B48A5A]">
+                  <TranslatedText k="packageDetail.planningEyebrow" />
+                </p>
+                <h2 className="mt-2 text-3xl font-semibold">
+                  <TranslatedText k="packageDetail.idealTitle" />
+                </h2>
+                <p className="mt-3 leading-7 text-slate-600">
+                  <TranslatedText k="packageDetail.idealIntro" />
+                </p>
+              </div>
+
+              <div className="mt-7 grid gap-4 md:grid-cols-3">
+                <div className="rounded-2xl bg-[#F8F6F1] p-5">
+                  <Users className="h-5 w-5 text-[#B48A5A]" />
+                  <h3 className="mt-3 text-lg font-semibold">
+                    <TranslatedText k="packageDetail.travelerProfile" />
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    <TranslatedText k="shared.upTo" /> {item.maxGuests}{" "}
+                    <TranslatedText k="shared.people" /> -{" "}
+                    <TranslatedDynamicText entity={item} field="category" />
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-[#F8F6F1] p-5">
+                  <MapPin className="h-5 w-5 text-[#B48A5A]" />
+                  <h3 className="mt-3 text-lg font-semibold">
+                    <TranslatedText k="packageDetail.routeContext" />
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    <TranslatedDynamicText entity={item} field="location" /> -{" "}
+                    <TranslatedDynamicText entity={item} field="duration" />
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-[#F8F6F1] p-5">
+                  <ShieldCheck className="h-5 w-5 text-[#B48A5A]" />
+                  <h3 className="mt-3 text-lg font-semibold">
+                    <TranslatedText k="packageDetail.howItWorks" />
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    <TranslatedText k="packageDetail.howItWorksText" />
+                  </p>
+                </div>
+              </div>
+
+            </section>
 
             {activeComponents.length > 0 && (
               <section className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm lg:p-8">
@@ -610,80 +772,150 @@ export default async function PackageDetailPage({
               </section>
             )}
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <TextBlock
-                title={<TranslatedText k="packageDetail.includes" />}
-                body={item.includes}
-                entity={item}
-                field="includes"
-                icon={<CheckCircle2 className="h-5 w-5 text-[#B48A5A]" />}
-              />
-              <TextBlock
-                title={<TranslatedText k="packageDetail.notIncludes" />}
-                body={item.notIncludes}
-                entity={item}
-                field="notIncludes"
-                icon={<XCircle className="h-5 w-5 text-[#B48A5A]" />}
-              />
-              <TextBlock
-                title={<TranslatedText k="package.itinerary" />}
-                body={item.itinerary}
-                entity={item}
-                field="itinerary"
-                icon={<CalendarDays className="h-5 w-5 text-[#B48A5A]" />}
-              />
-            </div>
+            <TextBlock
+              title={<TranslatedText k="packageDetail.fullItinerary" />}
+              body={item.itinerary}
+              entity={item}
+              field="itinerary"
+              icon={<CalendarDays className="h-5 w-5 text-[#B48A5A]" />}
+            />
 
-            <Card className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm">
-              <CardContent className="p-6 lg:p-8">
+            {(hasText(item.includes) || hasText(item.notIncludes)) && (
+              <section className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm lg:p-8">
+                <div className="max-w-3xl">
+                  <h2 className="text-2xl font-semibold">
+                    <TranslatedText k="packageDetail.scopeTitle" />
+                  </h2>
+                  <p className="mt-3 leading-7 text-slate-600">
+                    <TranslatedText k="packageDetail.scopeIntro" />
+                  </p>
+                </div>
+                <div className="mt-6 grid gap-5 md:grid-cols-2">
+                  <TextBlock
+                    title={<TranslatedText k="packageDetail.includes" />}
+                    body={item.includes}
+                    entity={item}
+                    field="includes"
+                    icon={<CheckCircle2 className="h-5 w-5 text-[#B48A5A]" />}
+                  />
+                  <TextBlock
+                    title={<TranslatedText k="packageDetail.notIncludes" />}
+                    body={item.notIncludes}
+                    entity={item}
+                    field="notIncludes"
+                    icon={<XCircle className="h-5 w-5 text-[#B48A5A]" />}
+                  />
+                </div>
+              </section>
+            )}
+
+            {(hasText(item.policies) || hasText(item.recommendations)) && (
+              <section className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm lg:p-8">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#B48A5A]" />
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h2 className="text-2xl font-semibold">
                       <TranslatedText k="packageDetail.conditionsRecommendations" />
                     </h2>
-                    {hasText(item.policies) || hasText(item.recommendations) ? (
-                      <div className="mt-5 grid gap-4 md:grid-cols-2">
-                        <DetailLine
-                          titleKey="packageDetail.generalConditions"
-                          body={item.policies}
-                          entity={item}
-                          field="policies"
-                          icon={
-                            <ShieldCheck className="h-4 w-4 text-[#B48A5A]" />
-                          }
-                        />
-                        <DetailLine
-                          titleKey="packageDetail.recommendations"
-                          body={item.recommendations}
-                          entity={item}
-                          field="recommendations"
-                          icon={<Sparkles className="h-4 w-4 text-[#B48A5A]" />}
-                        />
-                      </div>
-                    ) : (
-                      <p className="mt-4 leading-7 text-slate-600">
-                        <TranslatedText k="packageDetail.advisorFallback" />
-                      </p>
-                    )}
+                    <p className="mt-3 leading-7 text-slate-600">
+                      <TranslatedText k="packageDetail.operationalInfoIntro" />
+                    </p>
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+                      <DetailLine
+                        titleKey="packageDetail.generalConditions"
+                        body={item.policies}
+                        entity={item}
+                        field="policies"
+                        icon={
+                          <ShieldCheck className="h-4 w-4 text-[#B48A5A]" />
+                        }
+                      />
+                      <DetailLine
+                        titleKey="packageDetail.recommendations"
+                        body={item.recommendations}
+                        entity={item}
+                        field="recommendations"
+                        icon={<Sparkles className="h-4 w-4 text-[#B48A5A]" />}
+                      />
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <TextBlock
-              title={<TranslatedText k="packageDetail.seoContentTitle" />}
-              body={item.seoContent}
-              entity={item}
-              field="seoContent"
-              icon={<Info className="h-5 w-5 text-[#B48A5A]" />}
-            />
+              </section>
+            )}
 
             <ProductDestinationsLinks destinations={item.destinations} />
+
+            {relatedPackages.length > 0 && (
+              <section className="premium-scroll-reveal rounded-3xl border border-[#D4AF37]/20 bg-white p-6 shadow-sm lg:p-8">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#B48A5A]">
+                      <TranslatedText k="packageDetail.relatedEyebrow" />
+                    </p>
+                    <h2 className="mt-2 text-3xl font-semibold">
+                      <TranslatedText k="packageDetail.relatedTitle" />
+                    </h2>
+                  </div>
+                  <Link
+                    href={localizedRoutePath("package", locale)}
+                    className="text-sm font-semibold text-[#0D2B52] underline-offset-4 hover:underline"
+                  >
+                    <TranslatedText k="packageDetail.relatedViewAll" />
+                  </Link>
+                </div>
+
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+                  <TranslatedText k="packageDetail.relatedIntro" />
+                </p>
+
+                <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {relatedPackages.map((related) => (
+                    <PublicProductCard
+                      key={related.id}
+                      href={packagePublicPath(related, locale)}
+                      reserveHref={`/checkout/${related.id}?type=PACKAGE`}
+                      image={cardImage(related)}
+                      fallbackImage={fallbackImage}
+                      badge={getDynamicText(related, "category", locale)}
+                      title={getDynamicText(related, "title", locale)}
+                      description={getDynamicText(
+                        related,
+                        "shortDescription",
+                        locale,
+                        related.shortDescription
+                      )}
+                      location={getDynamicText(
+                        related,
+                        "location",
+                        locale,
+                        related.location
+                      )}
+                      price={formatMoneyByLanguage(related.basePrice, locale)}
+                      meta={getDynamicText(
+                        related,
+                        "duration",
+                        locale,
+                        related.duration
+                      )}
+                      secondaryMeta={
+                        <>
+                          <TranslatedText k="shared.upTo" /> {related.maxGuests}
+                        </>
+                      }
+                      button={<TranslatedText k="packages.view" />}
+                      trackingLabel={`abrir_paquete_relacionado_${related.id}`}
+                      trackingLocation="paquete_detalle_relacionados"
+                      reserveTrackingLabel={`reservar_paquete_relacionado_${related.id}`}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
             <PublicReviewsSection
               targetType="PACKAGE"
               targetId={item.id}
+              locale={locale}
             />
 
             <PackageFaqSection item={item} fallback={item.faq} />

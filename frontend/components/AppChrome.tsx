@@ -11,6 +11,11 @@ import {
   localeFromPathname,
   publicRouteFromPathname,
 } from "@/lib/i18n-routes";
+import {
+  ADMIN_LOCALE_SCOPE,
+  PUBLIC_LOCALE_SCOPE,
+  isInternalPath,
+} from "@/lib/admin-locale";
 
 const FloatingWhatsapp = dynamic(() => import("@/components/FloatingWhatsapp"), {
   ssr: false,
@@ -76,9 +81,9 @@ export default function AppChrome({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAdminRoute = pathname?.startsWith("/admin");
+  const isAdminRoute = pathname === "/admin" || pathname?.startsWith("/admin/");
   const isStaffRoute = pathname === "/login" || pathname === "/staff-login";
-  const isInternalRoute = Boolean(isAdminRoute || isStaffRoute);
+  const isInternalRoute = isInternalPath(pathname);
   const showPublicChrome = !isAdminRoute && !isStaffRoute;
   const publicRoute = publicRouteFromPathname(pathname);
   const routeLocale = localeFromPathname(pathname);
@@ -148,7 +153,7 @@ export default function AppChrome({
 
   return (
     <LanguageProvider
-      scope={isInternalRoute ? "admin" : "public"}
+      scope={isInternalRoute ? ADMIN_LOCALE_SCOPE : PUBLIC_LOCALE_SCOPE}
       initialLanguage={routeLocale}
     >
       {showPublicChrome && <Navbar />}

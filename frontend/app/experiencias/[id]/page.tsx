@@ -6,25 +6,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import JsonLd from "@/components/JsonLd";
+import PublicProductCard from "@/components/public-product-card";
 import ProductDestinationsLinks from "@/components/destinations/ProductDestinationsLinks";
 import ExperienceBookingCard from "@/components/experiences/experience-booking-card";
 import ExperienceSeoSections from "@/components/experiences/ExperienceSeoSections";
 import BookingMoney from "@/components/BookingMoney";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import PublicBreadcrumbs from "@/components/PublicBreadcrumbs";
 import PublicReviewsSection from "@/components/reviews/PublicReviewsSection";
 import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
 import ViewContentTracker from "@/components/ViewContentTracker";
 import { apiUrl } from "@/lib/api";
+import { formatMoneyByLanguage } from "@/lib/currency";
 import { getTranslatedFaq } from "@/lib/faq";
 import { cleanPublicCopy } from "@/lib/public-copy";
 import {
-  absoluteTitle,
-  canonicalUrl,
+  buildMetadata,
   defaultOgImage,
-  metaDescription,
-  pageTitle,
-  socialMetadata,
 } from "@/lib/seo";
 import {
   buildBreadcrumbSchema,
@@ -34,15 +33,17 @@ import {
 } from "@/lib/schema";
 import {
   getDynamicText,
+  getLocalizedSlug,
   type DynamicTranslations,
   type TranslatableEntity,
 } from "@/lib/dynamic-translations";
 import type { Language } from "@/i18n";
 import {
-  localizedAlternates,
   localizedEntityForSeo,
+  localizedEntityMetadata,
 } from "@/lib/i18n-seo";
 import { localizedRoutePath } from "@/lib/i18n-routes";
+import { experiencePublicPath } from "@/lib/product-url";
 
 export const revalidate = 600;
 
@@ -79,6 +80,12 @@ type Experience = {
   conditions?: string | null;
   faq?: unknown;
   experienceCategory?: string | null;
+  features?: {
+    id?: number;
+    name?: string | null;
+    category?: string | null;
+    translations?: DynamicTranslations | null;
+  }[];
   averageRating?: number | string | null;
   reviewCount?: number | null;
   images?: {
@@ -177,12 +184,112 @@ async function getApprovedReviews(experience: Experience): Promise<PublicReviewS
 }
 
 function primaryImage(experience: Experience | null) {
+  const activeImages = (experience?.images || []).filter(
+    (image) => image.active !== false && image.url
+  );
+
   return (
-    experience?.images?.find((image) => image.isPrimary)?.url ||
-    experience?.images?.[0]?.url ||
+    activeImages.find((image) => image.isPrimary)?.url ||
+    activeImages[0]?.url ||
     experience?.mainImage ||
     defaultOgImage.url
   );
+}
+
+function cardImage(experience: Experience) {
+  return primaryImage(experience) || fallbackImage;
+}
+
+async function getPublicExperiences(): Promise<Experience[]> {
+  try {
+    const res = await fetch(apiUrl("/experiences"), {
+      next: { revalidate },
+    });
+
+    if (!res.ok) return [];
+
+    const experiences = await res.json();
+    return Array.isArray(experiences) ? experiences : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizedText(value?: string | null) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
+function destinationKeys(experience?: Experience | null) {
+  return new Set(
+    (experience?.destinations || [])
+      .map((destination) => normalizedText(destination.slug || destination.name))
+      .filter(Boolean)
+  );
+}
+
+function categoryKeys(experience?: Experience | null) {
+  return new Set(
+    [
+      experience?.experienceCategory,
+      experience?.category,
+      ...(experience?.features || []).map((feature) => feature.category || feature.name),
+    ]
+      .map((value) => normalizedText(value))
+      .filter(Boolean)
+  );
+}
+
+function relatedExperienceScore(current: Experience, candidate: Experience) {
+  const currentDestinations = destinationKeys(current);
+  const candidateDestinations = destinationKeys(candidate);
+  const currentCategories = categoryKeys(current);
+  const candidateCategories = categoryKeys(candidate);
+  const currentPrice = Number(current.basePrice || 0);
+  const candidatePrice = Number(candidate.basePrice || 0);
+  const reviewCount = Number(candidate.reviewCount || 0);
+  const averageRating = Number(candidate.averageRating || 0);
+  let score = 0;
+
+  candidateCategories.forEach((key) => {
+    if (currentCategories.has(key)) score += 5;
+  });
+
+  candidateDestinations.forEach((key) => {
+    if (currentDestinations.has(key)) score += 4;
+  });
+
+  if (currentPrice > 0 && candidatePrice > 0) {
+    const differenceRatio = Math.abs(currentPrice - candidatePrice) / currentPrice;
+    if (differenceRatio <= 0.15) score += 3;
+    else if (differenceRatio <= 0.3) score += 2;
+    else if (differenceRatio <= 0.5) score += 1;
+  }
+
+  if (reviewCount >= 5 && averageRating >= 4.5) score += 2;
+  else if (reviewCount > 0) score += 1;
+
+  return score;
+}
+
+async function getRelatedExperiences(
+  experience: Experience | null
+): Promise<Experience[]> {
+  if (!experience?.id) return [];
+
+  const experiences = await getPublicExperiences();
+
+  return experiences
+    .filter((candidate) => candidate?.id && candidate.id !== experience.id)
+    .map((candidate) => ({
+      experience: candidate,
+      score: relatedExperienceScore(experience, candidate),
+    }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((item) => item.experience);
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -190,54 +297,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const experience = await getExperience(id);
 
   if (!experience) {
-    return {
-      title: pageTitle("Experiencia no disponible"),
+    return buildMetadata({
+      title: "Experiencia no disponible",
       description: fallbackDescription,
-    };
+      path: `/experiencias/${id}`,
+      image: defaultOgImage,
+    });
   }
 
-  const title = pageTitle(
-    experience.seoTitle || experience.title || "Experiencia premium"
-  );
-  const description = experience.seoDescription
-    ? metaDescription(experience.seoDescription, fallbackDescription)
-    : metaDescription(
-        [
-          experience.shortDescription || experience.description || "",
-          experience.location ? `Location: ${experience.location}.` : "",
-          experience.duration ? `Duration: ${experience.duration}.` : "",
-        ]
-          .filter(Boolean)
-          .join(" "),
-        fallbackDescription
-      );
-  const image = primaryImage(experience);
-  const identifier = experience.slug || experience.id;
-  const path = `/es/experiencias/${identifier}`;
-  const canonical = canonicalUrl(path);
-  const social = socialMetadata({
-    title: absoluteTitle(title),
-    description,
-    url: canonical,
-    image: {
-      url: image,
-      width: 1200,
-      height: 630,
-      alt: title,
-    },
+  return localizedEntityMetadata({
+    kind: "experience",
+    entity: experience as TranslatableEntity,
+    locale: "es",
+    fallbackTitle: "Experiencia premium | Cartagena Tailored Travel",
+    fallbackDescription,
+    image: primaryImage(experience),
   });
-
-  return {
-    title: absoluteTitle(title),
-    description,
-    alternates: {
-      canonical,
-      languages: localizedAlternates("experience", experience as TranslatableEntity)
-        .languages,
-    },
-    openGraph: social.openGraph,
-    twitter: social.twitter,
-  };
 }
 
 export default async function ExperienceDetailPage({
@@ -249,8 +324,21 @@ export default async function ExperienceDetailPage({
   const localizedExperience = experience
     ? localizedEntityForSeo(experience as any, locale, "experience")
     : null;
-  const extras = experience ? await getExperienceExtras(String(experience.id)) : [];
-  const approvedReviews = experience ? await getApprovedReviews(experience) : [];
+  const experiencePublicUrl = experience?.slug?.trim()
+    ? localizedRoutePath(
+        "experience",
+        locale,
+        getLocalizedSlug(experience, locale, experience.slug)
+      )
+    : localizedRoutePath("experience", locale);
+  const schemaExperience = localizedExperience || null;
+  const [extras, approvedReviews, relatedExperiences] = experience
+    ? await Promise.all([
+        getExperienceExtras(String(experience.id)),
+        getApprovedReviews(experience),
+        getRelatedExperiences(experience),
+      ])
+    : [[], [], []];
   const faqSchema = experience
     ? buildFaqPageSchema(getTranslatedFaq(experience, locale, experience.faq))
     : undefined;
@@ -259,13 +347,13 @@ export default async function ExperienceDetailPage({
     return (
       <main className="min-h-screen bg-[#F8F6F1] px-6 py-16 text-[#0D2B52]">
         <div className="mx-auto max-w-3xl rounded-2xl border border-[#D4AF37]/20 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-3xl font-semibold">
+          <h2 className="text-3xl font-semibold">
             <TranslatedText k="experience.unavailable" />
-          </h1>
+          </h2>
           <p className="mt-3 text-slate-600">
             <TranslatedText k="experience.unavailableText" />
           </p>
-          <Link href="/es/experiencias">
+          <Link href={localizedRoutePath("experience", locale)}>
             <Button className="mt-6 rounded-xl bg-[#0D2B52] hover:bg-[#12396d]">
               <TranslatedText k="experience.back" />
             </Button>
@@ -280,9 +368,10 @@ export default async function ExperienceDetailPage({
       <JsonLd
         data={[
           buildTouristTripSchema(
-            localizedExperience || experience,
+            schemaExperience || experience,
             approvedReviews,
-            "experiencias"
+            "experiencias",
+            locale
           ),
           buildBreadcrumbSchema([
             { name: "Home", url: localizedRoutePath("home", locale) },
@@ -296,8 +385,7 @@ export default async function ExperienceDetailPage({
                 experience.title ||
                 "Experiencia premium",
               url:
-                localizedExperience?.url ||
-                `/es/experiencias/${experience.slug || experience.id}`,
+                schemaExperience?.url || experiencePublicUrl,
             },
           ]),
           ...(faqSchema ? [faqSchema] : []),
@@ -309,8 +397,27 @@ export default async function ExperienceDetailPage({
         contentName={cleanPublicCopy(experience.title)}
       />
       <section className="premium-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <PublicBreadcrumbs
+          className="mb-4"
+          items={[
+            {
+              label: <TranslatedText k="destinations.breadcrumbHome" />,
+              href: localizedRoutePath("home", locale),
+            },
+            {
+              label: <TranslatedText k="nav.experiences" />,
+              href: localizedRoutePath("experience", locale),
+            },
+            {
+              label:
+                getDynamicText(experience, "title", locale) ||
+                experience.title ||
+                "Experiencia premium",
+            },
+          ]}
+        />
         <Link
-          href="/es/experiencias"
+          href={localizedRoutePath("experience", locale)}
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-[#0D2B52]"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -362,9 +469,77 @@ export default async function ExperienceDetailPage({
 
             <ProductDestinationsLinks destinations={experience.destinations} />
 
+            {relatedExperiences.length > 0 && (
+              <section className="border-b border-[#D4AF37]/20 pb-10">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#B68D40]">
+                      <TranslatedText k="experience.relatedEyebrow" />
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold">
+                      <TranslatedText k="experience.relatedTitle" />
+                    </h2>
+                  </div>
+                  <Link
+                    href={localizedRoutePath("experience", locale)}
+                    className="text-sm font-semibold text-[#0D2B52] underline-offset-4 hover:underline"
+                  >
+                    <TranslatedText k="experience.relatedViewAll" />
+                  </Link>
+                </div>
+
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+                  <TranslatedText k="experience.relatedIntro" />
+                </p>
+
+                <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {relatedExperiences.map((related) => (
+                    <PublicProductCard
+                      key={related.id}
+                      href={experiencePublicPath(related, locale)}
+                      reserveHref={`/checkout/${related.id}?type=EXPERIENCE`}
+                      image={cardImage(related)}
+                      fallbackImage={fallbackImage}
+                      badge={getDynamicText(related, "category", locale)}
+                      title={getDynamicText(related, "title", locale)}
+                      description={getDynamicText(
+                        related,
+                        "shortDescription",
+                        locale,
+                        related.shortDescription
+                      )}
+                      location={getDynamicText(
+                        related,
+                        "location",
+                        locale,
+                        related.location
+                      )}
+                      price={formatMoneyByLanguage(related.basePrice, locale)}
+                      meta={getDynamicText(
+                        related,
+                        "duration",
+                        locale,
+                        related.duration
+                      )}
+                      secondaryMeta={
+                        <>
+                          <TranslatedText k="shared.upTo" /> {related.maxGuests}
+                        </>
+                      }
+                      button={<TranslatedText k="experiences.view" />}
+                      trackingLabel={`abrir_experiencia_relacionada_${related.id}`}
+                      trackingLocation="experiencia_detalle_relacionadas"
+                      reserveTrackingLabel={`reservar_experiencia_relacionada_${related.id}`}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
             <PublicReviewsSection
               targetType="EXPERIENCE"
               targetId={experience.id}
+              locale={locale}
             />
           </div>
 

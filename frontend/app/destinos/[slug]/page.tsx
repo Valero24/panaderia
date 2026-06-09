@@ -19,11 +19,10 @@ import {
 import { localizedRoutePath } from "@/lib/i18n-routes";
 import {
   absoluteTitle,
-  canonicalUrl,
+  buildMetadata,
   defaultOgImage,
   metaDescription,
   pageTitle,
-  socialMetadata,
 } from "@/lib/seo";
 import {
   buildBreadcrumbSchema,
@@ -102,10 +101,13 @@ export async function generateMetadata({
   const destination = await getDestination(slug);
 
   if (!destination) {
-    return {
-      title: "Destino no encontrado | Cartagena Tailored Travel",
+    return buildMetadata({
+      title: "Destino no encontrado",
+      description: fallbackDescription,
+      path: `/destinos/${slug}`,
+      image: defaultOgImage,
       robots: { index: false, follow: false },
-    };
+    });
   }
 
   const title = destination.seoTitle
@@ -120,22 +122,16 @@ export async function generateMetadata({
   );
   const gallery = normalizeGallery(destination.gallery);
   const image = destination.heroImage || gallery[0] || defaultOgImage.url;
-  const url = canonicalUrl(`/es/destinos/${destination.slug || destination.id}`);
-  const social = socialMetadata({ title, description, url, image });
-
-  return {
-    title: { absolute: title },
+  return buildMetadata({
+    title,
     description,
-    alternates: {
-      canonical: url,
-      languages: localizedAlternates(
-        "destination",
-        destination as TranslatableEntity
-      ).languages,
-    },
-    openGraph: social.openGraph,
-    twitter: social.twitter,
-  };
+    path: destination.slug ? `/destinos/${destination.slug}` : "/destinos",
+    image,
+    languages: localizedAlternates(
+      "destination",
+      destination as TranslatableEntity
+    ).languages,
+  });
 }
 
 export default async function DestinationDetailPage({
@@ -152,11 +148,15 @@ export default async function DestinationDetailPage({
     locale,
     "destination"
   );
+  const destinationPublicUrl = destination.slug?.trim()
+    ? `/destinos/${destination.slug.trim()}`
+    : "/destinos";
+  const schemaDestination = localizedDestination;
   const faqSchema = buildFaqPageSchema(
     getTranslatedFaq(destination, locale, destination.faq)
   );
   const schemas = [
-    buildTouristDestinationSchema(localizedDestination),
+    buildTouristDestinationSchema(schemaDestination),
     buildBreadcrumbSchema([
       { name: "Home", url: localizedRoutePath("home", locale) },
       { name: "Destinos", url: localizedRoutePath("destination", locale) },
@@ -166,8 +166,7 @@ export default async function DestinationDetailPage({
           cleanPublicCopy(destination.name) ||
           "Destino",
         url:
-          localizedDestination.url ||
-          `/es/destinos/${destination.slug || destination.id}`,
+          schemaDestination.url || destinationPublicUrl,
       },
     ]),
     faqSchema,

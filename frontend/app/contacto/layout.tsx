@@ -1,27 +1,17 @@
 import type { Metadata } from "next";
 
-import { canonicalUrl, socialMetadata } from "@/lib/seo";
+import { localizedAlternates } from "@/lib/i18n-seo";
+import { buildMetadata } from "@/lib/seo";
 
 const title = "Contact Cartagena Tailored Travel";
 const description =
   "Get in touch with our advisors to plan your luxury experience in Cartagena.";
-const social = socialMetadata({
+export const metadata: Metadata = buildMetadata({
   title,
   description,
-  url: canonicalUrl("/es/contacto"),
+  path: "/contacto",
+  languages: localizedAlternates("contact").languages,
 });
-
-export const metadata: Metadata = {
-  title: {
-    absolute: title,
-  },
-  description,
-  alternates: {
-    canonical: canonicalUrl("/es/contacto"),
-  },
-  openGraph: social.openGraph,
-  twitter: social.twitter,
-};
 
 export default function ContactoLayout({
   children,

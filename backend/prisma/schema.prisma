@@ -117,6 +117,52 @@ enum OperationalNotificationStatus {
   FAILED
 }
 
+enum TranslationStatus {
+  NOT_REQUESTED
+  PENDING_TRANSLATION
+  TRANSLATING
+  COMPLETED
+  ERROR
+}
+
+enum TranslationJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum TranslationEntityType {
+  PROPERTY
+  EXPERIENCE
+  PACKAGE
+  DESTINATION
+  BLOG
+  BLOG_POST
+  EXTRA_SERVICE
+  PRODUCT_FEATURE
+  PACKAGE_COMPONENT
+}
+
+enum BulkImportType {
+  PROPERTY
+  EXPERIENCE
+  PACKAGE
+  DESTINATION
+  BLOG
+}
+
+enum BulkImportStatus {
+  DRAFT
+  UPLOADED
+  VALIDATING
+  VALIDATED
+  FAILED_VALIDATION
+  IMPORTING
+  COMPLETED
+  FAILED
+}
+
 //////////////////////////////////////////////////////
 // USERS
 //////////////////////////////////////////////////////
@@ -136,6 +182,7 @@ model User {
   createdAt DateTime @default(now())
 
   bookings Booking[]
+  bulkImportJobs BulkImportJob[]
 
   preReservationsAssigned PreReservation[] @relation("UserPreReservations")
 }
@@ -155,6 +202,11 @@ model Property {
   slug         String @unique
   description  String
   translations Json?
+  translationsMeta Json?
+  translationStatus TranslationStatus @default(NOT_REQUESTED)
+  translationError String?
+  translationRequestedAt DateTime?
+  translationCompletedAt DateTime?
 
   city    String
   area    String
@@ -291,6 +343,10 @@ model ProductFeature {
   slug         String                  @unique
   description  String?
   translations Json?
+  translationStatus TranslationStatus @default(NOT_REQUESTED)
+  translationError String?
+  translationRequestedAt DateTime?
+  translationCompletedAt DateTime?
   icon         String?
   category     ProductFeatureCategory  @default(OTHER)
   appliesTo    ProductFeatureAppliesTo
@@ -351,10 +407,15 @@ model Experience {
   id Int @id @default(autoincrement())
 
   title            String
-  slug             String? @unique
+  slug             String @unique
   shortDescription String
   description      String
   translations     Json?
+  translationsMeta Json?
+  translationStatus TranslationStatus @default(NOT_REQUESTED)
+  translationError String?
+  translationRequestedAt DateTime?
+  translationCompletedAt DateTime?
 
   location  String
   duration  String
@@ -427,10 +488,15 @@ model Package {
   id Int @id @default(autoincrement())
 
   title            String
-  slug             String? @unique
+  slug             String @unique
   shortDescription String
   description      String
   translations     Json?
+  translationsMeta Json?
+  translationStatus TranslationStatus @default(NOT_REQUESTED)
+  translationError String?
+  translationRequestedAt DateTime?
+  translationCompletedAt DateTime?
 
   duration  String
   location  String
@@ -440,6 +506,8 @@ model Package {
   baseCurrency String @default("COP")
   mainImage String?
   category  String
+  minPeople Int?
+  isFeatured Boolean @default(false)
 
   includes        String?
   notIncludes     String?
@@ -467,6 +535,8 @@ model Package {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([isFeatured])
 }
 
 model PackageComponent {
@@ -475,7 +545,13 @@ model PackageComponent {
   title            String
   shortDescription String?
   description      String?
+  componentType    String?
+  day              Int?
   translations     Json?
+  translationStatus TranslationStatus @default(NOT_REQUESTED)
+  translationError String?
+  translationRequestedAt DateTime?
+  translationCompletedAt DateTime?
   includes         String?
   excludes         String?
   conditions       String?
@@ -533,6 +609,11 @@ model Destination {
   isFeatured       Boolean @default(false)
   sortOrder        Int     @default(0)
   translations     Json?
+  translationsMeta Json?
+  translationStatus TranslationStatus @default(NOT_REQUESTED)
+  translationError String?
+  translationRequestedAt DateTime?
+  translationCompletedAt DateTime?
 
   properties  DestinationProperty[]
   experiences DestinationExperience[]
@@ -624,6 +705,11 @@ model BlogPost {
   publishedAt    DateTime?
   isFeatured     Boolean  @default(false)
   translations   Json?
+  translationsMeta Json?
+  translationStatus TranslationStatus @default(NOT_REQUESTED)
+  translationError String?
+  translationRequestedAt DateTime?
+  translationCompletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -632,6 +718,34 @@ model BlogPost {
   @@index([isFeatured])
   @@index([publishedAt])
   @@index([category])
+}
+
+model TranslationJob {
+  id Int @id @default(autoincrement())
+
+  entityType TranslationEntityType
+  entityId   Int
+  status     TranslationJobStatus @default(PENDING)
+
+  sourceLanguage String @default("es")
+  targetLanguages Json   @default("[\"en\",\"fr\",\"pt\",\"it\"]")
+
+  fields         Json?
+  sourceSnapshot Json
+  overwrite      Boolean @default(false)
+
+  error       String?
+  attempts    Int @default(0)
+  startedAt   DateTime?
+  completedAt DateTime?
+  finishedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([entityType, entityId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 //////////////////////////////////////////////////////
@@ -644,6 +758,10 @@ model ExtraService {
   name         String
   description  String?
   translations Json?
+  translationStatus TranslationStatus @default(NOT_REQUESTED)
+  translationError String?
+  translationRequestedAt DateTime?
+  translationCompletedAt DateTime?
   price        Float
   priceCop     Float  @default(0)
   baseCurrency String @default("COP")
@@ -1164,4 +1282,43 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([action])
   @@index([createdAt])
+}
+
+model BulkImportJob {
+  id Int @id @default(autoincrement())
+
+  type   BulkImportType
+  status BulkImportStatus @default(DRAFT)
+
+  originalFileName String
+  fileSize Int?
+  mimeType String?
+  source   String? @default("ADMIN_UPLOAD")
+
+  totalRows   Int @default(0)
+  validRows   Int @default(0)
+  invalidRows Int @default(0)
+  createdRows Int @default(0)
+  failedRows  Int @default(0)
+
+  validationSummary Json?
+  errorSummary      Json?
+  metadata          Json?
+
+  createdById    Int?
+  createdBy      User? @relation(fields: [createdById], references: [id])
+  createdByEmail String?
+  createdByRole  String?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  startedAt DateTime?
+  finishedAt DateTime?
+  validatedAt DateTime?
+  completedAt DateTime?
+
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
 }

@@ -19,6 +19,7 @@ import {
 
 import SeoChecklist from "@/components/admin/SeoChecklist";
 import TranslationEditor from "@/components/admin/TranslationEditor";
+import TranslationStatusBadge from "@/components/admin/TranslationStatusBadge";
 import type { TranslationMap } from "@/components/admin/translations-model";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,10 +45,13 @@ type BlogPost = {
   publishedAt?: string | null;
   isFeatured: boolean;
   translations?: TranslationMap | null;
+  translationStatus?: string | null;
+  translationError?: string | null;
   updatedAt?: string | null;
 };
 
 type BlogForm = {
+  id?: number;
   title: string;
   slug: string;
   excerpt: string;
@@ -62,6 +66,8 @@ type BlogForm = {
   isPublished: boolean;
   isFeatured: boolean;
   translations: TranslationMap;
+  translationStatus?: string | null;
+  translationError?: string | null;
 };
 
 const emptyForm: BlogForm = {
@@ -79,6 +85,8 @@ const emptyForm: BlogForm = {
   isPublished: false,
   isFeatured: false,
   translations: {},
+  translationStatus: "NOT_REQUESTED",
+  translationError: null,
 };
 
 function authHeaders() {
@@ -118,6 +126,7 @@ function textToArray(value: string) {
 
 function toForm(item: BlogPost): BlogForm {
   return {
+    id: item.id,
     title: item.title || "",
     slug: item.slug || "",
     excerpt: item.excerpt || "",
@@ -132,6 +141,8 @@ function toForm(item: BlogPost): BlogForm {
     isPublished: Boolean(item.isPublished),
     isFeatured: Boolean(item.isFeatured),
     translations: item.translations || {},
+    translationStatus: item.translationStatus || "NOT_REQUESTED",
+    translationError: item.translationError || null,
   };
 }
 
@@ -423,6 +434,9 @@ export default function BlogAdmin() {
                       onChange={(event) => updateForm("slug", event.target.value)}
                       disabled={!canManage}
                     />
+                    <span className="block text-xs text-slate-500">
+                      Se autogenera desde el titulo. El slug sera usado en la URL publica.
+                    </span>
                   </label>
                   <label className="space-y-2">
                     <span className="text-sm font-semibold">Categoria</span>
@@ -577,6 +591,12 @@ export default function BlogAdmin() {
                 value={form.translations}
                 onChange={(value) => updateForm("translations", value)}
                 disabled={!canManage}
+                automation={{
+                  entityType: "BLOG_POST",
+                  entityId: form.id,
+                  status: form.translationStatus,
+                  error: form.translationError,
+                }}
               />
 
               <div className="flex flex-col gap-3 rounded-3xl border border-[#D4AF37]/20 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -680,6 +700,7 @@ export default function BlogAdmin() {
                         </Badge>
                       )}
                       {item.category && <Badge variant="outline">{item.category}</Badge>}
+                      <TranslationStatusBadge status={item.translationStatus} />
                     </div>
                     <h2 className="mt-3 break-words text-2xl font-bold">
                       {item.title}

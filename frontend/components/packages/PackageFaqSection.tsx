@@ -27,9 +27,9 @@ export default function PackageFaqSection({
         <div className="flex items-start gap-3">
           <HelpCircle className="mt-1 h-5 w-5 shrink-0 text-[#B48A5A]" />
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-semibold">{t("property.faq")}</h2>
+            <h2 className="text-2xl font-semibold">{t("packageDetail.faq")}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              {t("property.faqIntro")}
+              {t("packageDetail.faqIntro")}
             </p>
             <div className="mt-5 space-y-3">
               {faqItems.map((item, index) => (

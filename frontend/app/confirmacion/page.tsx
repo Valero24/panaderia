@@ -1,8 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import TranslatedText from "@/components/TranslatedText";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "Confirmacion | Cartagena Tailored Travel",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function ConfirmacionPage() {
   return (

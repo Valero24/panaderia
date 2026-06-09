@@ -20,6 +20,7 @@ import {
 import SeoChecklist from "@/components/admin/SeoChecklist";
 import FaqEditor from "@/components/admin/FaqEditor";
 import TranslationEditor from "@/components/admin/TranslationEditor";
+import TranslationStatusBadge from "@/components/admin/TranslationStatusBadge";
 import type { TranslationMap } from "@/components/admin/translations-model";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,9 +47,12 @@ type Destination = {
   sortOrder: number;
   updatedAt?: string | null;
   translations?: TranslationMap | null;
+  translationStatus?: string | null;
+  translationError?: string | null;
 };
 
 type DestinationForm = {
+  id?: number;
   name: string;
   slug: string;
   shortDescription: string;
@@ -64,6 +68,8 @@ type DestinationForm = {
   isFeatured: boolean;
   sortOrder: string;
   translations: TranslationMap;
+  translationStatus?: string | null;
+  translationError?: string | null;
 };
 
 type FaqFormItem = {
@@ -114,6 +120,8 @@ const emptyForm: DestinationForm = {
   isFeatured: false,
   sortOrder: "0",
   translations: {},
+  translationStatus: "NOT_REQUESTED",
+  translationError: null,
 };
 
 const emptyRelations: RelationsState = {
@@ -170,6 +178,7 @@ function stringifyFaqItems(items: FaqFormItem[]) {
 
 function toForm(item: Destination): DestinationForm {
   return {
+    id: item.id,
     name: item.name || "",
     slug: item.slug || "",
     shortDescription: item.shortDescription || "",
@@ -185,6 +194,8 @@ function toForm(item: Destination): DestinationForm {
     isFeatured: Boolean(item.isFeatured),
     sortOrder: String(item.sortOrder ?? 0),
     translations: item.translations || {},
+    translationStatus: item.translationStatus || "NOT_REQUESTED",
+    translationError: item.translationError || null,
   };
 }
 
@@ -883,6 +894,9 @@ export default function DestinationsAdmin() {
                       onChange={(event) => updateForm("slug", event.target.value)}
                       disabled={!formCanManage}
                     />
+                    <span className="block text-xs text-slate-500">
+                      Se autogenera desde el nombre. El slug sera usado en la URL publica.
+                    </span>
                   </label>
                   <label className="space-y-2 md:col-span-2">
                     <span className="text-sm font-semibold">Descripcion corta</span>
@@ -1068,6 +1082,12 @@ export default function DestinationsAdmin() {
                 value={form.translations}
                 onChange={(value) => updateForm("translations", value)}
                 disabled={!formCanManage}
+                automation={{
+                  entityType: "DESTINATION",
+                  entityId: form.id,
+                  status: form.translationStatus,
+                  error: form.translationError,
+                }}
               />
 
               {isEditRoute && (
@@ -1192,6 +1212,7 @@ export default function DestinationsAdmin() {
                           <Star className="h-3 w-3" /> Destacado
                         </Badge>
                       )}
+                      <TranslationStatusBadge status={item.translationStatus} />
                     </div>
                     <h2 className="mt-3 break-words text-2xl font-bold">
                       {item.name}

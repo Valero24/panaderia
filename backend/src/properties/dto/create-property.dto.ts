@@ -55,8 +55,9 @@ export class CreatePropertyDto {
   @IsString()
   title!: string;
 
+  @IsOptional()
   @IsString()
-  slug!: string;
+  slug?: string;
 
   @IsString()
   description!: string;

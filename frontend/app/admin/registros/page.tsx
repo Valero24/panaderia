@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { apiUrl } from "@/lib/api";
 import { auditActionLabel, entityTypeLabel, roleLabel } from "@/lib/admin-log-labels";
+import { adminSystemMessages, adminTableLabels } from "@/lib/admin-ui-labels";
 
 type AuditLog = {
   id: number;
@@ -182,7 +183,7 @@ export default function AdminLogsPage() {
       setLogs(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion cargando historial operativo.");
+      setMessage("Ocurrió un error cargando historial operativo.");
     } finally {
       setLoading(false);
     }
@@ -280,7 +281,7 @@ export default function AdminLogsPage() {
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={fetchLogs}>
               <Filter className="mr-2 h-4 w-4" />
-              Aplicar filtros
+              {adminTableLabels.applyFilters}
             </Button>
             <Button
               type="button"
@@ -294,9 +295,12 @@ export default function AdminLogsPage() {
                 })
               }
             >
-              Limpiar
+              {adminTableLabels.clearFilters}
             </Button>
           </div>
+          <p className="mt-3 text-xs text-slate-500">
+            {adminTableLabels.showingResults}: {logs.length} registros
+          </p>
         </CardContent>
       </Card>
 
@@ -324,7 +328,7 @@ export default function AdminLogsPage() {
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={6} className="py-8 text-center text-sm text-slate-500">
-                      Cargando historial...
+                      {adminSystemMessages.loading}
                     </TableCell>
                   </TableRow>
                 ) : logs.length === 0 ? (
@@ -343,6 +347,9 @@ export default function AdminLogsPage() {
                         <Badge variant="outline" className="rounded-md">
                           {auditActionLabel(log.action)}
                         </Badge>
+                        <p className="mt-1 text-[11px] text-slate-400">
+                          Código: {log.action}
+                        </p>
                       </TableCell>
                       <TableCell className="text-sm">
                         <p className="font-medium text-[#0D2B52]">{entityTypeLabel(log.entityType)}</p>

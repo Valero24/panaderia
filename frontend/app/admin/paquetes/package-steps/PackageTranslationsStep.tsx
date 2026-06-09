@@ -90,6 +90,12 @@ export default function PackageTranslationsStep({
       value={form.translations}
       onChange={(value) => updateForm("translations", value)}
       disabled={!canManage}
+      automation={{
+        entityType: "PACKAGE",
+        entityId: form.id,
+        status: form.translationStatus,
+        error: form.translationError,
+      }}
     />
   );
 }

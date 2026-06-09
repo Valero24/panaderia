@@ -53,6 +53,14 @@ export class CreatePackageComponentDto {
   description?: string;
 
   @IsOptional()
+  @IsString()
+  componentType?: string;
+
+  @IsOptional()
+  @IsInt()
+  day?: number;
+
+  @IsOptional()
   @IsObject()
   translations?: Record<string, Record<string, string>>;
 
@@ -129,6 +137,15 @@ export class CreatePackageDto {
   @IsInt()
   @Min(1)
   maxGuests!: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  minPeople?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
 
   @IsNumber()
   @Min(0)

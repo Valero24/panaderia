@@ -46,6 +46,8 @@ export type PackageItem = {
   images?: AdminMediaItem[];
   components?: PackageComponent[];
   translations?: unknown;
+  translationStatus?: string | null;
+  translationError?: string | null;
 };
 
 export type ExtraService = {
@@ -59,6 +61,7 @@ export type ExtraService = {
 };
 
 export type PackageForm = {
+  id?: number;
   title: string;
   slug: string;
   shortDescription: string;
@@ -82,11 +85,13 @@ export type PackageForm = {
   images: AdminMediaItem[];
   components: PackageComponent[];
   translations: TranslationMap;
+  translationStatus?: string | null;
+  translationError?: string | null;
 };
 
 export type PackageFormUpdate = (
   key: keyof PackageForm,
-  value: string | boolean | AdminMediaItem[] | PackageComponent[] | TranslationMap
+  value: string | boolean | AdminMediaItem[] | PackageComponent[] | TranslationMap | number | null
 ) => void;
 
 export type ExtraForm = {
@@ -173,6 +178,8 @@ export const emptyForm: PackageForm = {
   images: [],
   components: [],
   translations: {},
+  translationStatus: "NOT_REQUESTED",
+  translationError: null,
 };
 
 export const emptyComponent: PackageComponent = {
@@ -216,6 +223,7 @@ export function previewImage(item: PackageItem) {
 
 export function toForm(item: PackageItem): PackageForm {
   return {
+    id: item.id,
     title: item.title || "",
     slug: item.slug || "",
     shortDescription: item.shortDescription || "",
@@ -242,5 +250,7 @@ export function toForm(item: PackageItem): PackageForm {
       translations: normalizeTranslations(component.translations),
     })),
     translations: normalizeTranslations(item.translations),
+    translationStatus: (item as any).translationStatus || "NOT_REQUESTED",
+    translationError: (item as any).translationError || null,
   };
 }

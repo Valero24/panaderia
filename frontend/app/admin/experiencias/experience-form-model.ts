@@ -34,6 +34,8 @@ export type Experience = {
   experienceCategory?: string | null;
   images?: AdminMediaItem[];
   translations?: unknown;
+  translationStatus?: string | null;
+  translationError?: string | null;
 };
 
 export type ExtraService = {
@@ -47,6 +49,7 @@ export type ExtraService = {
 };
 
 export type ExperienceForm = {
+  id?: number;
   title: string;
   slug: string;
   shortDescription: string;
@@ -74,11 +77,13 @@ export type ExperienceForm = {
   images: AdminMediaItem[];
   active: boolean;
   translations: TranslationMap;
+  translationStatus?: string | null;
+  translationError?: string | null;
 };
 
 export type ExperienceFormUpdate = (
   key: keyof ExperienceForm,
-  value: string | boolean | AdminMediaItem[] | TranslationMap
+  value: string | boolean | AdminMediaItem[] | TranslationMap | number | null
 ) => void;
 
 export type ExtraForm = {
@@ -163,6 +168,8 @@ export const emptyForm: ExperienceForm = {
   images: [],
   active: true,
   translations: {},
+  translationStatus: "NOT_REQUESTED",
+  translationError: null,
 };
 
 export const emptyExtraForm: ExtraForm = {
@@ -191,6 +198,7 @@ export function previewImage(experience: Experience) {
 
 export function toForm(experience: Experience): ExperienceForm {
   return {
+    id: experience.id,
     title: experience.title || "",
     slug: experience.slug || "",
     shortDescription: experience.shortDescription || "",
@@ -218,5 +226,7 @@ export function toForm(experience: Experience): ExperienceForm {
     images: experience.images || [],
     active: Boolean(experience.active),
     translations: normalizeTranslations(experience.translations),
+    translationStatus: (experience as any).translationStatus || "NOT_REQUESTED",
+    translationError: (experience as any).translationError || null,
   };
 }

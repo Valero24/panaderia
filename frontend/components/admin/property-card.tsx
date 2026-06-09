@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiUrl } from "@/lib/api";
 import { propertyPublicPath } from "@/lib/product-url";
+import TranslationStatusBadge from "@/components/admin/TranslationStatusBadge";
 
 type Property = {
   id: number;
@@ -31,6 +32,7 @@ type Property = {
   pricePerNight?: number;
   allowsPets?: boolean;
   status?: string;
+  translationStatus?: string | null;
   bedrooms?: number;
   minimumNights?: number;
   images?: {
@@ -158,6 +160,8 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               <Badge className="rounded-md bg-[#0D2B52] px-3 text-white hover:bg-[#0D2B52]">
                 {property.status || "ACTIVO"}
               </Badge>
+
+              <TranslationStatusBadge status={property.translationStatus} />
 
               {property.allowsPets && (
                 <Badge variant="secondary" className="rounded-md px-3">

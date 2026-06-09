@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { experiencePublicPath } from "@/lib/product-url";
+import TranslationStatusBadge from "@/components/admin/TranslationStatusBadge";
 import {
   money,
   previewImage,
@@ -55,6 +56,7 @@ export function ExperienceCard({
             <Badge variant="outline" className="rounded-md">
               {experience.category}
             </Badge>
+            <TranslationStatusBadge status={experience.translationStatus} />
           </div>
 
           <div>

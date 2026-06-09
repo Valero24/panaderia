@@ -112,6 +112,17 @@ const criticalActionLabels: Record<string, string> = {
   INVOICE_PAYMENT_STATUS_UPDATED: "Estado de pago actualizado",
   SETTINGS_UPDATED: "Configuración actualizada",
   SYSTEM_HEALTH_ERROR: "Error de monitoreo",
+  REVIEW_APPROVED: "Opinión aprobada",
+  REVIEW_DELETED: "Opinion eliminada",
+  REVIEW_HIDDEN: "Opinion oculta",
+  REVIEW_RANKINGS_VIEWED: "Rankings internos de opiniones consultados",
+  REVIEW_RATING_CACHE_UPDATED: "Cache de calificacion de producto actualizado",
+  REVIEW_REJECTED: "Opinion rechazada",
+  TRANSLATION_COMPLETED: "Traducción completada",
+  TRANSLATION_FAILED: "Traduccion fallida",
+  TRANSLATION_STARTED: "Traduccion iniciada",
+  BULK_IMPORT_COMPLETED: "Importación masiva completada",
+  BULK_IMPORT_FAILED: "Importacion masiva fallida",
 };
 
 const entityTypeLabels: Record<string, string> = {
@@ -273,7 +284,7 @@ export default function SistemaPage() {
             <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white">
               <CardContent className="p-5">
                 <h2 className="text-xl font-semibold text-[#0D2B52]">
-                  Integraciones
+                  Estado de APIs
                 </h2>
                 <div className="mt-5 space-y-3">
                   <IntegrationRow
@@ -334,7 +345,7 @@ export default function SistemaPage() {
                   Información técnica segura
                 </h2>
                 <div className="mt-5 space-y-3 text-sm">
-                  <TechRow label="Ambiente" value={health.backend.environment} />
+                  <TechRow label="Entorno" value={health.backend.environment} />
                   <TechRow label="Tiempo activo" value={formatUptime(health.backend.uptime)} />
                   <TechRow label="Uso de memoria RSS" value={`${health.backend.memory.rssMb} MB`} />
                   <TechRow label="Heap usado" value={`${health.backend.memory.heapUsedMb} MB`} />

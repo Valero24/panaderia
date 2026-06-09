@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import type { Language } from "@/i18n";
 import {
+  getLocalizedSlug,
   getDynamicText,
   getDynamicValue,
   type TranslatableEntity,
@@ -13,10 +14,10 @@ import {
 } from "@/lib/i18n-routes";
 import {
   absoluteTitle,
+  buildMetadata,
   canonicalUrl,
   metaDescription,
   pageTitle,
-  socialMetadata,
 } from "@/lib/seo";
 
 type EntitySeoOptions = {
@@ -35,7 +36,11 @@ type EntitySeoOptions = {
     coverImage?: string | null;
     heroImage?: string | null;
     mainImage?: string | null;
-    images?: { url?: string | null; isPrimary?: boolean | null }[] | null;
+    images?: {
+      url?: string | null;
+      isPrimary?: boolean | null;
+      active?: boolean | null;
+    }[] | null;
   };
   locale: Language;
   fallbackTitle: string;
@@ -44,13 +49,25 @@ type EntitySeoOptions = {
   type?: "article" | "website";
 };
 
-function translatedIdentifier(
-  entity: TranslatableEntity & { id?: string | number | null; slug?: string | null },
-  _locale: Language
+type EntityWithFutureTranslatedSlugs = TranslatableEntity & {
+  slug?: string | null;
+  translatedSlugs?: Partial<Record<Language, string | null>> | null;
+};
+
+export function baseSlugForLocale(
+  entity: EntityWithFutureTranslatedSlugs,
+  locale: Language
 ) {
-  // Use the base slug until the backend can resolve translated slugs reliably.
-  // This avoids emitting hreflang URLs that may not exist.
-  return entity.slug || entity.id || "";
+  // Only use translated product slugs when the backend explicitly provides
+  // them. Otherwise the base slug is kept so hreflang points to real routes.
+  return getLocalizedSlug(entity, locale, entity.slug);
+}
+
+function translatedIdentifier(
+  entity: EntityWithFutureTranslatedSlugs,
+  locale: Language
+) {
+  return baseSlugForLocale(entity, locale);
 }
 
 export function localizedAlternates(
@@ -76,7 +93,7 @@ export function localizedAlternates(
     },
     languages: {
       ...languages,
-      "x-default": languages.en || languages.es,
+      "x-default": languages.es,
     },
   };
 }
@@ -115,6 +132,9 @@ export function localizedEntityForSeo<T extends TranslatableEntity>(
     "description",
     "content",
     "seoContent",
+    "locationDescription",
+    "nearbyAttractions",
+    "guestRecommendations",
     "location",
     "city",
     "area",
@@ -168,33 +188,27 @@ export function localizedEntityMetadata({
     localized.description ||
     localized.content ||
     "";
-  const title = pageTitle(titleSource);
+  const title = localized.seoTitle ? pageTitle(titleSource) : absoluteTitle(titleSource);
   const description = metaDescription(descriptionSource, fallbackDescription);
   const alternates = localizedAlternates(kind, entity);
   const url = alternates.canonicalFor(locale);
+  const activeImages = (localized.images || []).filter(
+    (item) => item?.active !== false && item?.url
+  );
   const imageUrl =
     image ||
     localized.coverImage ||
     localized.heroImage ||
     localized.mainImage ||
-    localized.images?.find((item) => item?.isPrimary)?.url ||
-    localized.images?.[0]?.url;
-  const social = socialMetadata({
-    title: absoluteTitle(title),
-    description,
+    activeImages.find((item) => item?.isPrimary)?.url ||
+    activeImages[0]?.url;
+  return buildMetadata({
+    title,
     url,
-    image: imageUrl || undefined,
-    type,
-  });
-
-  return {
-    title: { absolute: absoluteTitle(title) },
     description,
-    alternates: {
-      canonical: url,
-      languages: alternates.languages,
-    },
-    openGraph: social.openGraph,
-    twitter: social.twitter,
-  };
+    image: imageUrl || undefined,
+    locale,
+    type,
+    languages: alternates.languages,
+  });
 }

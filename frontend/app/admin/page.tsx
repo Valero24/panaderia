@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiUrl } from "@/lib/api";
+import { adminReservationStatusLabel } from "@/lib/admin-status-labels";
 
 type DashboardSummary = {
   role: "SUPERADMIN" | "ADVISOR";
@@ -142,6 +143,25 @@ const auditActionLabels: Record<string, string> = {
   PRE_RESERVATION_CREATED: "Solicitud creada",
   REQUEST_ASSIGNED: "Solicitud asignada",
   REQUEST_STATUS_UPDATED: "Estado de solicitud actualizado",
+  REVIEW_APPROVED: "Opinión aprobada",
+  REVIEW_DELETED: "Opinion eliminada",
+  REVIEW_FEATURED: "Opinion destacada",
+  REVIEW_HIDDEN: "Opinion oculta",
+  REVIEW_RANKINGS_VIEWED: "Rankings internos de opiniones consultados",
+  REVIEW_RATING_CACHE_UPDATED: "Cache de calificacion de producto actualizado",
+  REVIEW_RATING_RECALCULATED: "Calificacion de opiniones recalculada",
+  REVIEW_REJECTED: "Opinion rechazada",
+  REVIEW_SCHEMA_READY: "Schema de opiniones preparado",
+  REVIEW_SUBMITTED: "Opinion enviada",
+  REVIEW_UNFEATURED: "Destacado de opinion retirado",
+  TRANSLATION_COMPLETED: "Traducción completada",
+  TRANSLATION_FAILED: "Traduccion fallida",
+  TRANSLATION_JOB_CREATED: "Trabajo de traduccion creado",
+  TRANSLATION_REGENERATED: "Traduccion regenerada",
+  TRANSLATION_STARTED: "Traduccion iniciada",
+  BULK_IMPORT_COMPLETED: "Importación masiva completada",
+  BULK_IMPORT_FAILED: "Importacion masiva fallida",
+  BULK_IMPORT_STARTED: "Importacion masiva iniciada",
   SETTINGS_UPDATED: "Configuración actualizada",
 };
 
@@ -531,7 +551,7 @@ function RequestsPanel({
                 <TableCell className="max-w-48 truncate">{productLabel(request)}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className="rounded-md">
-                    {request.status}
+                    {adminReservationStatusLabel(request.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>

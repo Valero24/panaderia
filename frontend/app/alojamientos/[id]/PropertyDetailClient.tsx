@@ -26,7 +26,9 @@ import { apiUrl } from "@/lib/api";
 import { useTranslation } from "@/context/LanguageContext";
 import { trackInitiateCheckout, trackViewContent } from "@/lib/analytics";
 import ProductMediaGallery from "@/components/media/ProductMediaGallery";
+import PublicProductCard from "@/components/public-product-card";
 import ProductDestinationsLinks from "@/components/destinations/ProductDestinationsLinks";
+import PublicBreadcrumbs from "@/components/PublicBreadcrumbs";
 import PublicReviewsSection from "@/components/reviews/PublicReviewsSection";
 import { formatMoneyByLanguage } from "@/lib/currency";
 import {
@@ -34,6 +36,8 @@ import {
   type DynamicTranslations,
 } from "@/lib/dynamic-translations";
 import { getTranslatedFaq } from "@/lib/faq";
+import { localizedRoutePath } from "@/lib/i18n-routes";
+import { propertyPublicPath } from "@/lib/product-url";
 
 type PropertyImage = {
   id: number;
@@ -49,6 +53,7 @@ type PropertyImage = {
 type PropertyFeature = {
   id: number;
   name: string;
+  category?: string | null;
   translations?: DynamicTranslations | null;
 };
 
@@ -64,6 +69,7 @@ type Property = {
   id: number;
   slug?: string | null;
   title: string;
+  shortDescription?: string | null;
   description: string;
   city: string;
   area: string;
@@ -121,6 +127,8 @@ type PageProps = {
     id: string;
   }>;
   initialProperty?: Property | null;
+  initialExtras?: ExtraService[];
+  initialRelatedProperties?: Property[];
 };
 
 const fallbackImage =
@@ -144,6 +152,15 @@ function splitTextLines(value?: string | null) {
     .filter(Boolean);
 }
 
+function primaryCardImage(property: Property) {
+  const images = (property.images || []).filter(
+    (image) => image.active !== false && image.mediaType !== "VIDEO"
+  );
+  const primary = images.find((image) => image.isPrimary);
+
+  return primary?.url || images[0]?.url || fallbackImage;
+}
+
 function formatReadableList(items: string[], locale: string) {
   if (items.length === 0) return "";
 
@@ -157,14 +174,20 @@ function formatReadableList(items: string[], locale: string) {
   }
 }
 
-export default function PropertyDetailPage({ params, initialProperty = null }: PageProps) {
+export default function PropertyDetailPage({
+  params,
+  initialProperty = null,
+  initialExtras = [],
+  initialRelatedProperties = [],
+}: PageProps) {
   const { language, t } = useTranslation();
   const money = (value?: number | null) => formatMoneyByLanguage(value, language);
   const { id } = use(params);
   const identifier = id;
 
   const [property, setProperty] = useState<Property | null>(initialProperty);
-  const [extras, setExtras] = useState<ExtraService[]>([]);
+  const [extras, setExtras] = useState<ExtraService[]>(initialExtras);
+  const [relatedProperties] = useState<Property[]>(initialRelatedProperties);
   const [selectedExtras, setSelectedExtras] = useState<number[]>([]);
   const [loading, setLoading] = useState(!initialProperty);
   const [error, setError] = useState<string | null>(null);
@@ -334,6 +357,17 @@ export default function PropertyDetailPage({ params, initialProperty = null }: P
     .filter(Boolean)
     .slice(0, 8);
   const featureListText = formatReadableList(featureNames, language);
+  const premiumServiceNames = extras
+    .map((service) => getDynamicText(service, "name", language))
+    .filter(Boolean)
+    .slice(0, 6);
+  const premiumServiceListText = formatReadableList(
+    premiumServiceNames,
+    language
+  );
+  const servicesSeoText = [featureListText, premiumServiceListText]
+    .filter(Boolean)
+    .join(". ");
   const rules = [
     {
       icon: PawPrint,
@@ -369,6 +403,25 @@ export default function PropertyDetailPage({ params, initialProperty = null }: P
     <main className="min-h-screen bg-[#F8F6F1] text-[#0D2B52]">
       <section className="premium-reveal max-w-7xl mx-auto px-6 lg:px-8 py-10">
         <div className="mb-6">
+          <PublicBreadcrumbs
+            className="mb-4"
+            items={[
+              {
+                label: t("destinations.breadcrumbHome"),
+                href: localizedRoutePath("home", language),
+              },
+              {
+                label: t("nav.stays"),
+                href: localizedRoutePath("property", language),
+              },
+              {
+                label:
+                  getDynamicText(property, "title", language) ||
+                  property.title ||
+                  "Alojamiento premium",
+              },
+            ]}
+          />
           <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
             <span className="inline-flex items-center gap-2">
               <MapPin className="h-4 w-4 text-[#B68D40]" />
@@ -579,9 +632,93 @@ export default function PropertyDetailPage({ params, initialProperty = null }: P
 
             <ProductDestinationsLinks destinations={property.destinations} />
 
+            {relatedProperties.length > 0 && (
+              <section className="border-b border-[#D4AF37]/20 pb-10">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#B68D40]">
+                      {t("property.relatedEyebrow")}
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold">
+                      {t("property.relatedTitle")}
+                    </h2>
+                  </div>
+                  <Link
+                    href={localizedRoutePath("property", language)}
+                    className="text-sm font-semibold text-[#0D2B52] underline-offset-4 hover:underline"
+                  >
+                    {t("property.relatedViewAll")}
+                  </Link>
+                </div>
+
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+                  {t("property.relatedIntro")}
+                </p>
+
+                <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {relatedProperties.map((related) => {
+                    const relatedCapacity =
+                      related.maxCapacity || related.maxGuests || 1;
+                    const relatedLocation =
+                      [
+                        getDynamicText(related, "area", language, related.area),
+                        getDynamicText(related, "city", language, related.city),
+                      ]
+                        .filter(Boolean)
+                        .join(", ") || "Cartagena";
+
+                    return (
+                      <PublicProductCard
+                        key={related.id}
+                        href={propertyPublicPath(related, language)}
+                        reserveHref={`/checkout/${related.id}?type=PROPERTY`}
+                        image={primaryCardImage(related)}
+                        fallbackImage={fallbackImage}
+                        badge={t("properties.curated")}
+                        title={getDynamicText(related, "title", language)}
+                        description={
+                          getDynamicText(
+                            related,
+                            "shortDescription",
+                            language,
+                            related.shortDescription
+                          ) ||
+                          getDynamicText(
+                            related,
+                            "description",
+                            language,
+                            related.description
+                          )
+                        }
+                        location={relatedLocation}
+                        price={formatMoneyByLanguage(
+                          related.pricePerNight,
+                          language
+                        )}
+                        meta={`${related.bedrooms || 1} ${t(
+                          "properties.bedrooms"
+                        )} · ${related.bathrooms || 1} ${t(
+                          "properties.bathrooms"
+                        )}`}
+                        secondaryMeta={`${relatedCapacity} ${t(
+                          "properties.guests"
+                        )}`}
+                        metaIcon="users"
+                        button={t("properties.view")}
+                        trackingLabel={`abrir_alojamiento_relacionado_${related.id}`}
+                        trackingLocation="alojamiento_detalle_similares"
+                        reserveTrackingLabel={`reservar_alojamiento_relacionado_${related.id}`}
+                      />
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
             <PublicReviewsSection
               targetType="PROPERTY"
               targetId={property.id}
+              locale={language}
             />
 
             {faqItems.length > 0 && (
@@ -623,46 +760,55 @@ export default function PropertyDetailPage({ params, initialProperty = null }: P
                   {t("property.noPremiumServices")}
                 </div>
               ) : (
-                <div className="mt-5 space-y-3">
-                  {extras.map((item) => {
-                    const selected = selectedExtras.includes(Number(item.id));
+                <>
+                  {servicesSeoText && (
+                    <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+                      {t("property.servicesSeoIntro")} {servicesSeoText}.{" "}
+                      {t("property.servicesSeoOutro")}
+                    </p>
+                  )}
 
-                    return (
-                      <label
-                        key={item.id}
-                        className={`premium-hover-lift grid cursor-pointer gap-4 rounded-lg border bg-white p-4 transition sm:grid-cols-[1fr_auto] ${
-                          selected
-                            ? "border-[#B68D40] ring-1 ring-[#B68D40]"
-                            : "border-[#D4AF37]/20 hover:border-[#B68D40]"
-                        }`}
-                      >
-                        <div className="flex min-w-0 items-start gap-4">
-                          <input
-                            type="checkbox"
-                            checked={selected}
-                            onChange={() => toggleExtra(Number(item.id))}
-                            className="mt-1 h-4 w-4 shrink-0"
-                          />
+                  <div className="mt-5 space-y-3">
+                    {extras.map((item) => {
+                      const selected = selectedExtras.includes(Number(item.id));
 
-                          <div className="min-w-0">
-                            <p className="font-semibold text-[#0D2B52]">
-                              {getDynamicText(item, "name", language)}
-                            </p>
-                            {getDynamicText(item, "description", language) && (
-                              <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-500">
-                                {getDynamicText(item, "description", language)}
+                      return (
+                        <label
+                          key={item.id}
+                          className={`premium-hover-lift grid cursor-pointer gap-4 rounded-lg border bg-white p-4 transition sm:grid-cols-[1fr_auto] ${
+                            selected
+                              ? "border-[#B68D40] ring-1 ring-[#B68D40]"
+                              : "border-[#D4AF37]/20 hover:border-[#B68D40]"
+                          }`}
+                        >
+                          <div className="flex min-w-0 items-start gap-4">
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => toggleExtra(Number(item.id))}
+                              className="mt-1 h-4 w-4 shrink-0"
+                            />
+
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#0D2B52]">
+                                {getDynamicText(item, "name", language)}
                               </p>
-                            )}
+                              {getDynamicText(item, "description", language) && (
+                                <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-500">
+                                  {getDynamicText(item, "description", language)}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
 
-                        <span className="shrink-0 font-semibold text-[#B68D40] sm:text-right">
-                          + {money(item.price)}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
+                          <span className="shrink-0 font-semibold text-[#B68D40] sm:text-right">
+                            + {money(item.price)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </section>
 

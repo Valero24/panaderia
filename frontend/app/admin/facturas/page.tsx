@@ -24,6 +24,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiUrl } from "@/lib/api";
+import {
+  adminInvoiceStatusLabel,
+  adminPaymentStatusLabel,
+} from "@/lib/admin-status-labels";
 
 type Invoice = {
   id: number;
@@ -133,16 +137,11 @@ function formatDate(value?: string | null) {
 }
 
 function statusLabel(status: string) {
-  return (
-    statusOptions.find((option) => option.value === status)?.label || status
-  );
+  return adminInvoiceStatusLabel(status);
 }
 
 function paymentStatusLabel(status: string) {
-  return (
-    paymentStatusOptions.find((option) => option.value === status)?.label ||
-    status
-  );
+  return adminPaymentStatusLabel(status);
 }
 
 function statusClass(status: string) {

@@ -13,6 +13,7 @@ import {
   type TranslationLanguage,
   type TranslationMap,
 } from "@/components/admin/translations-model";
+import TranslationAutomationPanel from "@/components/admin/TranslationAutomationPanel";
 
 type TranslationEditorProps = {
   title?: string;
@@ -21,6 +22,12 @@ type TranslationEditorProps = {
   value: TranslationMap;
   onChange: (value: TranslationMap) => void;
   disabled?: boolean;
+  automation?: {
+    entityType?: "PROPERTY" | "EXPERIENCE" | "PACKAGE" | "DESTINATION" | "BLOG_POST";
+    entityId?: number | null;
+    status?: string | null;
+    error?: string | null;
+  };
 };
 
 const tabs: Array<{ key: "es" | TranslationLanguage; label: string }> = [
@@ -38,6 +45,7 @@ export default function TranslationEditor({
   value,
   onChange,
   disabled = false,
+  automation,
 }: TranslationEditorProps) {
   const [activeTab, setActiveTab] = useState<"es" | TranslationLanguage>("es");
   const translations = useMemo(() => normalizeTranslations(value), [value]);
@@ -54,6 +62,12 @@ export default function TranslationEditor({
         </p>
         <p className="text-sm leading-6 text-slate-500">{description}</p>
       </div>
+
+      {automation && (
+        <div className="mt-4">
+          <TranslationAutomationPanel {...automation} disabled={disabled} />
+        </div>
+      )}
 
       <div className="mt-4 flex max-w-full gap-2 overflow-x-auto pb-1">
         {tabs.map((tab) => {

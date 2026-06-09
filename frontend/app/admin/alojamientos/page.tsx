@@ -27,7 +27,7 @@ export default async function AlojamientosPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.25em] text-[#B48A5A]">
-              Villa management
+              Gestión de alojamientos
             </p>
             <h1 className="mt-2 text-4xl font-semibold text-[#0D2B52]">
               Gestión de alojamientos

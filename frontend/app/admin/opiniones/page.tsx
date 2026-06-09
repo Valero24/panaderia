@@ -339,7 +339,7 @@ export default function OpinionesPage() {
       setReviews(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion cargando opiniones.");
+      setMessage("Error de conexión cargando opiniones.");
     } finally {
       setLoading(false);
     }
@@ -361,7 +361,7 @@ export default function OpinionesPage() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data?.message || "No se pudo recalcular el cache de ratings.");
+        throw new Error(data?.message || "No se pudo recalcular el cache de calificaciones.");
       }
 
       setRecalculateSummary({
@@ -407,14 +407,14 @@ export default function OpinionesPage() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data?.message || "No se pudo actualizar la opinion.");
+        throw new Error(data?.message || "No se pudo actualizar la opinión.");
       }
 
-      setMessage(`Opinion ${statusLabel(status).toLowerCase()} correctamente.`);
+      setMessage(`Opinión ${statusLabel(status).toLowerCase()} correctamente.`);
       await fetchReviews();
     } catch (error) {
       console.error(error);
-      setMessage(error instanceof Error ? error.message : "Error actualizando opinion.");
+      setMessage(error instanceof Error ? error.message : "Error actualizando opinión.");
     } finally {
       setActionLoading("");
     }
@@ -440,7 +440,7 @@ export default function OpinionesPage() {
         throw new Error(data?.message || "No se pudo actualizar el destacado.");
       }
 
-      setMessage(featured ? "Opinion destacada." : "Opinion retirada de destacados.");
+      setMessage(featured ? "Opinión destacada." : "Opinión retirada de destacados.");
       await fetchReviews();
     } catch (error) {
       console.error(error);
@@ -451,7 +451,7 @@ export default function OpinionesPage() {
   }
 
   async function deleteReview(review: Review) {
-    if (!window.confirm("¿Eliminar esta opinion? Esta accion no se puede deshacer.")) {
+    if (!window.confirm("¿Eliminar esta opinión? Esta acción no se puede deshacer.")) {
       return;
     }
 
@@ -469,14 +469,14 @@ export default function OpinionesPage() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data?.message || "No se pudo eliminar la opinion.");
+        throw new Error(data?.message || "No se pudo eliminar la opinión.");
       }
 
-      setMessage("Opinion eliminada.");
+      setMessage("Opinión eliminada.");
       await fetchReviews();
     } catch (error) {
       console.error(error);
-      setMessage(error instanceof Error ? error.message : "Error eliminando opinion.");
+      setMessage(error instanceof Error ? error.message : "Error eliminando opinión.");
     } finally {
       setActionLoading("");
     }
@@ -509,7 +509,7 @@ export default function OpinionesPage() {
         failed: Number(data?.failed || 0),
       });
       setRequestSummaryLabel("Solicitudes iniciales");
-      setMessage("Proceso de solicitudes de opinion ejecutado.");
+      setMessage("Proceso de solicitudes de opinión ejecutado.");
       await fetchReviews();
     } catch (error) {
       console.error(error);
@@ -550,7 +550,7 @@ export default function OpinionesPage() {
         failed: Number(data?.failed || 0),
       });
       setRequestSummaryLabel("Recordatorios");
-      setMessage("Proceso de recordatorios de opinion ejecutado.");
+      setMessage("Proceso de recordatorios de opinión ejecutado.");
       await fetchReviews();
     } catch (error) {
       console.error(error);
@@ -590,7 +590,7 @@ export default function OpinionesPage() {
             Acceso restringido
           </h1>
           <p className="mt-2 text-sm text-red-700">
-            El modulo de opiniones solo esta disponible para Superadmin.
+            El módulo de opiniones solo está disponible para Superadmin.
           </p>
         </CardContent>
       </Card>
@@ -603,14 +603,14 @@ export default function OpinionesPage() {
         <header className="flex flex-col gap-4 rounded-3xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm lg:flex-row lg:items-end lg:justify-between lg:p-7">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B48A5A]">
-              Reputacion verificada
+              Reputación verificada
             </p>
             <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52] lg:text-4xl">
               Opiniones
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-500">
-              Modera las reseñas enviadas por clientes despues de completar una
-              reserva. Solo las aprobadas pueden contar para uso publico futuro.
+              Modera las reseñas enviadas por clientes después de completar una
+              reserva. Solo las aprobadas pueden contar para uso público futuro.
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -652,7 +652,7 @@ export default function OpinionesPage() {
               />
               {actionLoading === "recalculate-ratings"
                 ? "Recalculando..."
-                : "Recalcular ratings"}
+                : "Recalcular calificaciones"}
             </Button>
             <Button
               type="button"
@@ -685,7 +685,7 @@ export default function OpinionesPage() {
         {recalculateSummary && (
           <section className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#B48A5A]">
-              Cache de ratings
+              Cache de calificaciones
             </p>
             <div className="grid gap-3 md:grid-cols-4">
               <Metric label="Alojamientos actualizados" value={recalculateSummary.propertiesUpdated} />
@@ -713,7 +713,7 @@ export default function OpinionesPage() {
           <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
             <CardContent className="p-4 lg:p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#B48A5A]">
-                Distribucion publica
+                Distribución pública
               </p>
               <p className="mt-1 text-sm text-slate-500">
                 Solo reseñas aprobadas cuentan para promedio, cantidad y futuro schema.
@@ -773,7 +773,7 @@ export default function OpinionesPage() {
           <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
             <CardContent className="p-4 lg:p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#B48A5A]">
-                Preparacion SEO
+                Preparación SEO
               </p>
               <p className="mt-3 text-2xl font-semibold text-[#0D2B52]">
                 {totals.aggregateReady.eligible ? "Lista" : "En espera"}
@@ -783,9 +783,9 @@ export default function OpinionesPage() {
                   `Requiere ${totals.aggregateReady.minimumApprovedReviews} reseñas aprobadas reales.`}
               </p>
               <div className="mt-4 grid gap-2 text-sm">
-                <InfoPill label="Aprobadas publicas" value={totals.approved} />
+                <InfoPill label="Aprobadas públicas" value={totals.approved} />
                 <InfoPill label="Destacadas aprobadas" value={totals.approvedFeatured} />
-                <InfoPill label="Aprobadas ultimos 30 dias" value={totals.recentApproved} />
+                <InfoPill label="Aprobadas últimos 30 días" value={totals.recentApproved} />
               </div>
             </CardContent>
           </Card>
@@ -801,7 +801,7 @@ export default function OpinionesPage() {
             ]}
           />
           <RankingsCard
-            title="Productos con mas reseñas"
+            title="Productos con más reseñas"
             groups={[
               { label: "Alojamientos", items: rankings.mostReviewedProperties },
               { label: "Experiencias", items: rankings.mostReviewedExperiences },
@@ -842,12 +842,12 @@ export default function OpinionesPage() {
                 onChange={(value) => updateFilter("featured", value)}
                 options={[
                   { value: "", label: "Todas" },
-                  { value: "true", label: "Si" },
+                  { value: "true", label: "Sí" },
                   { value: "false", label: "No" },
                 ]}
               />
               <SelectField
-                label="Rating"
+                label="Calificación"
                 value={filters.rating}
                 onChange={(value) => updateFilter("rating", value)}
                 options={[
@@ -913,7 +913,7 @@ export default function OpinionesPage() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Producto</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Rating</TableHead>
+                  <TableHead>Calificación</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Enviada</TableHead>
                   <TableHead>Destacada</TableHead>
@@ -948,7 +948,7 @@ export default function OpinionesPage() {
                         {review.booking?.productName || targetLabel(review.targetType)}
                       </p>
                       <p className="text-xs text-slate-500">
-                        {review.booking?.reservationCode || `Booking ${review.bookingId}`}
+                          {review.booking?.reservationCode || `Reserva ${review.bookingId}`}
                       </p>
                     </TableCell>
                     <TableCell>{targetLabel(review.targetType)}</TableCell>
@@ -962,7 +962,7 @@ export default function OpinionesPage() {
                     <TableCell>
                       {review.featured ? (
                         <Badge variant="outline" className="border-[#D4AF37]/30 bg-[#FFF7D8] text-[#9A6A1F]">
-                          Si
+                          Sí
                         </Badge>
                       ) : (
                         <span className="text-sm text-slate-500">No</span>
@@ -1052,7 +1052,7 @@ function RankingsCard({
         </p>
         {!hasItems && (
           <p className="mt-4 rounded-xl bg-[#F8F6F2] p-4 text-sm text-slate-500">
-            Aun no hay productos con reseñas aprobadas.
+            Aún no hay productos con reseñas aprobadas.
           </p>
         )}
         <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
@@ -1258,7 +1258,7 @@ function ReviewCard({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-[#B48A5A]">
-              Opinion
+              Opinión
             </p>
             <h2 className="mt-1 text-lg font-semibold text-[#0D2B52]">
               {review.publicName || review.customerName || "Cliente"}
@@ -1273,14 +1273,14 @@ function ReviewCard({
             {review.booking?.productName || targetLabel(review.targetType)}
           </p>
           <p className="text-xs text-slate-500">
-            {review.booking?.reservationCode || `Booking ${review.bookingId}`}
+            {review.booking?.reservationCode || `Reserva ${review.bookingId}`}
           </p>
         </div>
 
         <Rating value={review.rating} />
 
         <div>
-          <p className="font-medium text-[#0D2B52]">{review.title || "Sin titulo"}</p>
+          <p className="font-medium text-[#0D2B52]">{review.title || "Sin título"}</p>
           <p className="mt-1 text-sm leading-6 text-slate-500">{review.comment}</p>
         </div>
 

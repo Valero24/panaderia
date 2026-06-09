@@ -4,12 +4,17 @@ import { ArrowRight, MapPin, MessageCircle, Sparkles, Star } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import JsonLd from "@/components/JsonLd";
 import TranslatedDynamicText from "@/components/TranslatedDynamicText";
 import TranslatedText from "@/components/TranslatedText";
 import { apiUrl } from "@/lib/api";
-import type { DynamicTranslations } from "@/lib/dynamic-translations";
+import {
+  getLocalizedSlug,
+  type DynamicTranslations,
+} from "@/lib/dynamic-translations";
 import { optimizedUnsplashUrl } from "@/lib/image-url";
 import { localizedRoutePath } from "@/lib/i18n-routes";
+import { buildCollectionPageSchema } from "@/lib/schema";
 import type { Language } from "@/i18n";
 
 export const revalidate = 300;
@@ -23,7 +28,17 @@ type Destination = {
   location?: string | null;
   isFeatured?: boolean | null;
   translations?: DynamicTranslations | null;
+  translatedSlugs?: Record<string, string | null> | null;
 };
+
+const collectionSchema = buildCollectionPageSchema({
+  name: "Destinations in Cartagena | Cartagena Tailored Travel",
+  description:
+    "Explore Cartagena neighborhoods, islands and tourist areas to plan your stay and experiences.",
+  url: "/destinos",
+  image:
+    "https://images.unsplash.com/photo-1533125842689-7a1f6d60f3dc?auto=format&fit=crop&q=70&w=1200",
+});
 
 async function getDestinations(): Promise<Destination[]> {
   try {
@@ -43,13 +58,16 @@ async function getDestinations(): Promise<Destination[]> {
 
 export default async function DestinosPage({
   locale = "es",
+  includeSchema = true,
 }: {
   locale?: Language;
+  includeSchema?: boolean;
 } = {}) {
   const destinations = await getDestinations();
 
   return (
     <main className="bg-[#F8F6F2] text-[#0D2B52]">
+      {includeSchema ? <JsonLd data={collectionSchema} /> : null}
       <section className="mx-auto max-w-7xl px-6 py-14 sm:px-8 lg:py-20">
         <div className="max-w-4xl">
           <p className="text-xs uppercase tracking-[0.35em] text-[#B68D40]">
@@ -77,7 +95,11 @@ export default async function DestinosPage({
               return (
                 <Link
                   key={destination.id}
-                  href={localizedRoutePath("destination", locale, destination.slug)}
+                  href={localizedRoutePath(
+                    "destination",
+                    locale,
+                    getLocalizedSlug(destination, locale, destination.slug)
+                  )}
                   className="group overflow-hidden rounded-3xl border border-[#D4AF37]/20 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
                 >
                   <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[#0D2B52] via-[#143A66] to-[#B68D40]">

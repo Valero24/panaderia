@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { packagePublicPath } from "@/lib/product-url";
+import TranslationStatusBadge from "@/components/admin/TranslationStatusBadge";
 import {
   money,
   previewImage,
@@ -62,6 +63,7 @@ export function PackageCard({
             <Badge variant="outline" className="rounded-md">
               {item.category}
             </Badge>
+            <TranslationStatusBadge status={item.translationStatus} />
           </div>
 
           <div>

@@ -13,6 +13,7 @@ import {
 
 import BlogPostText from "@/components/blog/BlogPostText";
 import JsonLd from "@/components/JsonLd";
+import PublicBreadcrumbs from "@/components/PublicBreadcrumbs";
 import TranslatedText from "@/components/TranslatedText";
 import { apiUrl } from "@/lib/api";
 import { cleanPublicCopy } from "@/lib/public-copy";
@@ -24,11 +25,10 @@ import {
   localizedEntityForSeo,
 } from "@/lib/i18n-seo";
 import {
-  absoluteTitle,
-  canonicalUrl,
+  absoluteImageUrl,
+  buildMetadata,
   defaultOgImage,
   metaDescription,
-  socialMetadata,
 } from "@/lib/seo";
 import { buildBlogPostingSchema, buildBreadcrumbSchema } from "@/lib/schema";
 import type { Language } from "@/i18n";
@@ -98,37 +98,31 @@ export async function generateMetadata({
   const post = await getPost(slug);
 
   if (!post) {
-    return {
-      title: "Articulo no encontrado | Cartagena Tailored Travel",
+    return buildMetadata({
+      title: "Articulo no encontrado",
+      description: fallbackDescription,
+      path: `/blog/${slug}`,
+      image: defaultOgImage,
+      type: "article",
       robots: { index: false, follow: false },
-    };
+    });
   }
 
-  const title = post.seoTitle ? absoluteTitle(post.seoTitle) : absoluteTitle(post.title);
+  const title = post.seoTitle || post.title;
   const description = metaDescription(
-    post.seoDescription || post.excerpt || post.content || "",
+    post.seoDescription || post.excerpt || "",
     fallbackDescription
   );
-  const url = canonicalUrl(`/es/blog/${post.slug || post.id}`);
-  const image = post.coverImage || defaultOgImage.url;
-  const social = socialMetadata({
+  const image = absoluteImageUrl(post.coverImage);
+
+  return buildMetadata({
     title,
     description,
-    url,
+    path: post.slug ? `/blog/${post.slug}` : "/blog",
     image,
     type: "article",
+    languages: localizedAlternates("blog", post).languages,
   });
-
-  return {
-    title: { absolute: title },
-    description,
-    alternates: {
-      canonical: url,
-      languages: localizedAlternates("blog", post).languages,
-    },
-    openGraph: social.openGraph,
-    twitter: social.twitter,
-  };
 }
 
 export default async function BlogPostPage({ params, locale = "es" }: PageProps) {
@@ -138,18 +132,20 @@ export default async function BlogPostPage({ params, locale = "es" }: PageProps)
   if (!post) notFound();
 
   const localizedPost = localizedEntityForSeo(post, locale, "blog");
+  const blogPublicUrl = post.slug?.trim() ? `/blog/${post.slug.trim()}` : "/blog";
+  const schemaPost = localizedPost;
   const imageUrl = post.coverImage || defaultOgImage.url;
   const tags = normalizeTags(post.tags);
   const schemas = [
-    buildBlogPostingSchema(localizedPost),
+    buildBlogPostingSchema(schemaPost),
     buildBreadcrumbSchema([
       { name: "Home", url: localizedRoutePath("home", locale) },
       { name: "Blog", url: localizedRoutePath("blog", locale) },
       {
         name: cleanPublicCopy(localizedPost.title || post.title) || "Articulo",
         url:
-          localizedPost.url ||
-          localizedRoutePath("blog", locale, post.slug || post.id),
+          schemaPost.url ||
+          blogPublicUrl,
       },
     ]),
   ];
@@ -169,6 +165,24 @@ export default async function BlogPostPage({ params, locale = "es" }: PageProps)
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#071E3A]/90 via-[#071E3A]/65 to-[#071E3A]/25" />
         <div className="relative mx-auto flex min-h-[440px] max-w-7xl flex-col justify-end px-6 py-12 sm:px-8">
+          <PublicBreadcrumbs
+            className="mb-5"
+            variant="dark"
+            items={[
+              {
+                label: <TranslatedText k="destinations.breadcrumbHome" />,
+                href: localizedRoutePath("home", locale),
+              },
+              {
+                label: <TranslatedText k="nav.blog" />,
+                href: localizedRoutePath("blog", locale),
+              },
+              {
+                label:
+                  cleanPublicCopy(localizedPost.title || post.title) || "Articulo",
+              },
+            ]}
+          />
           <Link
             href={localizedRoutePath("blog", locale)}
             className="mb-8 inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"

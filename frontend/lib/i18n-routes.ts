@@ -1,97 +1,18 @@
 import type { Language } from "@/i18n";
+import {
+  isValidLocale,
+  legacySegments,
+  localeRouteMap,
+  localizedSegments,
+  supportedLocales,
+  type PublicRouteKind,
+} from "@/lib/locales";
 
-export type PublicRouteKind =
-  | "home"
-  | "property"
-  | "experience"
-  | "package"
-  | "destination"
-  | "blog"
-  | "about"
-  | "contact";
+export type { PublicRouteKind } from "@/lib/locales";
 
-export const publicLocales: Language[] = ["es", "en", "fr", "pt", "it"];
+export const publicLocales = supportedLocales;
 
-export const localizedSegments: Record<
-  Language,
-  Record<Exclude<PublicRouteKind, "home">, string>
-> = {
-  es: {
-    property: "alojamientos",
-    experience: "experiencias",
-    package: "paquetes",
-    destination: "destinos",
-    blog: "blog",
-    about: "nosotros",
-    contact: "contacto",
-  },
-  en: {
-    property: "stays",
-    experience: "tours",
-    package: "packages",
-    destination: "destinations",
-    blog: "blog",
-    about: "about",
-    contact: "contact",
-  },
-  fr: {
-    property: "hebergements",
-    experience: "experiences",
-    package: "forfaits",
-    destination: "destinations",
-    blog: "blog",
-    about: "a-propos",
-    contact: "contact",
-  },
-  pt: {
-    property: "acomodacoes",
-    experience: "experiencias",
-    package: "pacotes",
-    destination: "destinos",
-    blog: "blog",
-    about: "sobre",
-    contact: "contato",
-  },
-  it: {
-    property: "alloggi",
-    experience: "esperienze",
-    package: "pacchetti",
-    destination: "destinazioni",
-    blog: "blog",
-    about: "chi-siamo",
-    contact: "contatto",
-  },
-};
-
-const legacySegments: Record<string, Exclude<PublicRouteKind, "home">> = {
-  alojamientos: "property",
-  stays: "property",
-  hebergements: "property",
-  acomodacoes: "property",
-  alloggi: "property",
-  experiencias: "experience",
-  experiences: "experience",
-  tours: "experience",
-  esperienze: "experience",
-  paquetes: "package",
-  packages: "package",
-  forfaits: "package",
-  pacotes: "package",
-  pacchetti: "package",
-  destinos: "destination",
-  destinations: "destination",
-  destinazioni: "destination",
-  blog: "blog",
-  nosotros: "about",
-  about: "about",
-  "a-propos": "about",
-  sobre: "about",
-  "chi-siamo": "about",
-  contacto: "contact",
-  contact: "contact",
-  contato: "contact",
-  contatto: "contact",
-};
+export { localizedSegments };
 
 export type PublicRouteDescriptor = {
   locale?: Language;
@@ -100,7 +21,7 @@ export type PublicRouteDescriptor = {
 };
 
 export function isPublicLocale(value?: string | null): value is Language {
-  return publicLocales.includes(value as Language);
+  return isValidLocale(value);
 }
 
 export function localeFromPathname(pathname?: string | null) {
@@ -108,7 +29,7 @@ export function localeFromPathname(pathname?: string | null) {
     .split("/")
     .filter(Boolean);
 
-  return isPublicLocale(firstPart) ? firstPart : null;
+  return isValidLocale(firstPart) ? firstPart : null;
 }
 
 export function publicRouteFromPathname(
@@ -117,7 +38,7 @@ export function publicRouteFromPathname(
   const parts = String(pathname || "")
     .split("/")
     .filter(Boolean);
-  const locale = isPublicLocale(parts[0]) ? parts[0] : undefined;
+  const locale = isValidLocale(parts[0]) ? parts[0] : undefined;
   const routeIndex = locale ? 1 : 0;
   const segment = parts[routeIndex];
   const identifier = parts[routeIndex + 1];
@@ -142,7 +63,7 @@ export function localizedRoutePath(
     return `/${locale}`;
   }
 
-  const segment = localizedSegments[locale][kind];
+  const segment = localeRouteMap(locale)[kind];
   const cleanIdentifier = String(identifier || "").trim();
 
   return cleanIdentifier
@@ -170,7 +91,7 @@ export function localizedSectionKind(
 ) {
   if (!section) return null;
 
-  const expected = localizedSegments[locale];
+  const expected = localeRouteMap(locale);
   const match = Object.entries(expected).find(([, value]) => value === section);
 
   return match?.[0] as Exclude<PublicRouteKind, "home"> | undefined;

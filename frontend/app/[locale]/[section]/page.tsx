@@ -17,7 +17,7 @@ import {
   publicLocales,
   type PublicRouteKind,
 } from "@/lib/i18n-routes";
-import { canonicalUrl, socialMetadata } from "@/lib/seo";
+import { buildMetadata, canonicalUrl } from "@/lib/seo";
 import { buildCollectionPageSchema } from "@/lib/schema";
 
 export const revalidate = 300;
@@ -327,26 +327,17 @@ export async function generateMetadata({
   const { locale, kind } = resolved;
   const copy = listSeo[kind][locale] || listSeo[kind].es;
   const url = canonicalUrl(localizedRoutePath(kind, locale));
-  const social = socialMetadata({
+  return buildMetadata({
     title: copy.title,
     description: copy.description,
     url,
     image: copy.image,
-  });
-
-  return {
-    title: { absolute: copy.title },
-    description: copy.description,
-    alternates: {
-      canonical: url,
-      languages: {
-        ...languageAlternates(kind),
-        "x-default": canonicalUrl(localizedRoutePath(kind, "en")),
-      },
+    locale,
+    languages: {
+      ...languageAlternates(kind),
+      "x-default": canonicalUrl(localizedRoutePath(kind, "es")),
     },
-    openGraph: social.openGraph,
-    twitter: social.twitter,
-  };
+  });
 }
 
 export default async function LocalizedListPage({
@@ -372,7 +363,7 @@ export default async function LocalizedListPage({
     return (
       <>
         <JsonLd data={schema} />
-        <AlojamientosPage searchParams={searchParams} />
+        <AlojamientosPage searchParams={searchParams} includeSchema={false} />
       </>
     );
   }
@@ -381,7 +372,7 @@ export default async function LocalizedListPage({
     return (
       <>
         <JsonLd data={schema} />
-        <ExperienciasPage searchParams={searchParams} />
+        <ExperienciasPage searchParams={searchParams} includeSchema={false} />
       </>
     );
   }
@@ -390,7 +381,7 @@ export default async function LocalizedListPage({
     return (
       <>
         <JsonLd data={schema} />
-        <PaquetesPage searchParams={searchParams} />
+        <PaquetesPage searchParams={searchParams} includeSchema={false} />
       </>
     );
   }
@@ -410,7 +401,7 @@ export default async function LocalizedListPage({
   return (
     <>
       <JsonLd data={schema} />
-      <DestinosPage locale={locale as Language} />
+      <DestinosPage locale={locale as Language} includeSchema={false} />
     </>
   );
 }

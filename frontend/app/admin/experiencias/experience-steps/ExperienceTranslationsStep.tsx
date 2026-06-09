@@ -120,6 +120,12 @@ export default function ExperienceTranslationsStep({
       value={form.translations}
       onChange={(value) => updateForm("translations", value)}
       disabled={!canManage}
+      automation={{
+        entityType: "EXPERIENCE",
+        entityId: form.id,
+        status: form.translationStatus,
+        error: form.translationError,
+      }}
     />
   );
 }

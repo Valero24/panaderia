@@ -11,9 +11,15 @@ import {
 import {
   Language,
   TranslationKey,
-  languages,
   translate,
 } from "@/i18n";
+import {
+  ADMIN_LOCALE,
+  ADMIN_LOCALE_SCOPE,
+  PUBLIC_LOCALE_SCOPE,
+  PUBLIC_LOCALE_STORAGE_KEY,
+} from "@/lib/admin-locale";
+import { defaultLocale, isValidLocale } from "@/lib/locales";
 
 type LanguageContextValue = {
   language: Language;
@@ -21,7 +27,7 @@ type LanguageContextValue = {
   t: (key: TranslationKey | string) => string;
 };
 
-type LocaleScope = "public" | "admin";
+type LocaleScope = typeof PUBLIC_LOCALE_SCOPE | typeof ADMIN_LOCALE_SCOPE;
 
 const PublicLocaleContext =
   createContext<LanguageContextValue | null>(null);
@@ -29,25 +35,23 @@ const PublicLocaleContext =
 const AdminLocaleContext =
   createContext<LanguageContextValue | null>(null);
 
-const LocaleScopeContext = createContext<LocaleScope>("public");
+const LocaleScopeContext = createContext<LocaleScope>(PUBLIC_LOCALE_SCOPE);
 
 function normalizeLanguage(value: string | null): Language {
-  return languages.some((language) => language.code === value)
-    ? (value as Language)
-    : "es";
+  return isValidLocale(value) ? value : defaultLocale;
 }
 
 function getStoredLanguage(): Language {
   if (typeof window === "undefined" || !window.localStorage) {
-    return "es";
+    return defaultLocale;
   }
 
   try {
     return normalizeLanguage(
-      window.localStorage.getItem("cartagena-language")
+      window.localStorage.getItem(PUBLIC_LOCALE_STORAGE_KEY)
     );
   } catch {
-    return "es";
+    return ADMIN_LOCALE;
   }
 }
 
@@ -57,7 +61,7 @@ function persistLanguage(language: Language) {
   }
 
   try {
-    window.localStorage.setItem("cartagena-language", language);
+    window.localStorage.setItem(PUBLIC_LOCALE_STORAGE_KEY, language);
   } catch {
     // Storage can be unavailable in restricted browser contexts.
   }
@@ -71,7 +75,7 @@ function PublicLocaleProvider({
   initialLanguage?: Language | null;
 }) {
   const [language, setLanguageState] =
-    useState<Language>(initialLanguage || "es");
+    useState<Language>(initialLanguage || defaultLocale);
 
   useEffect(() => {
     const storedLanguage = initialLanguage || getStoredLanguage();
@@ -108,16 +112,16 @@ function AdminLocaleProvider({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    document.documentElement.lang = "es";
+    document.documentElement.lang = ADMIN_LOCALE;
   }, []);
 
   const value = useMemo<LanguageContextValue>(
     () => ({
-      language: "es",
+      language: ADMIN_LOCALE,
       setLanguage: () => {
-        document.documentElement.lang = "es";
+        document.documentElement.lang = ADMIN_LOCALE;
       },
-      t: (key: TranslationKey | string) => translate("es", key),
+      t: (key: TranslationKey | string) => translate(ADMIN_LOCALE, key),
     }),
     []
   );
@@ -131,23 +135,23 @@ function AdminLocaleProvider({
 
 export function LanguageProvider({
   children,
-  scope = "public",
+  scope = PUBLIC_LOCALE_SCOPE,
   initialLanguage,
 }: {
   children: React.ReactNode;
   scope?: LocaleScope;
   initialLanguage?: Language | null;
 }) {
-  if (scope === "admin") {
+  if (scope === ADMIN_LOCALE_SCOPE) {
     return (
-      <LocaleScopeContext.Provider value="admin">
+      <LocaleScopeContext.Provider value={ADMIN_LOCALE_SCOPE}>
         <AdminLocaleProvider>{children}</AdminLocaleProvider>
       </LocaleScopeContext.Provider>
     );
   }
 
   return (
-    <LocaleScopeContext.Provider value="public">
+    <LocaleScopeContext.Provider value={PUBLIC_LOCALE_SCOPE}>
       <PublicLocaleProvider initialLanguage={initialLanguage}>
         {children}
       </PublicLocaleProvider>
@@ -183,7 +187,7 @@ export function useTranslation() {
   const scope = useContext(LocaleScopeContext);
   const publicLocale = useContext(PublicLocaleContext);
   const adminLocale = useContext(AdminLocaleContext);
-  const context = scope === "admin" ? adminLocale : publicLocale;
+  const context = scope === ADMIN_LOCALE_SCOPE ? adminLocale : publicLocale;
 
   if (!context) {
     throw new Error(

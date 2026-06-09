@@ -1,3 +1,5 @@
+import { adminReservationStatusLabel } from "@/lib/admin-status-labels";
+
 export const realAvailabilityEnabled =
   process.env.NEXT_PUBLIC_ENABLE_REAL_AVAILABILITY === "true";
 
@@ -27,7 +29,7 @@ export const reservationStatusLabels: Record<string, string> = {
 };
 
 export function getReservationStatusLabel(status?: string | null) {
-  return status ? reservationStatusLabels[status] || status : "Pendiente";
+  return adminReservationStatusLabel(status);
 }
 
 export const statusActions = [

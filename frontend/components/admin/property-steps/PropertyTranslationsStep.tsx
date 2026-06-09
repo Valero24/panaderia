@@ -83,6 +83,12 @@ export default function PropertyTranslationsStep({
       value={form.translations}
       onChange={(value) => updateForm("translations", value)}
       disabled={!canManage}
+      automation={{
+        entityType: "PROPERTY",
+        entityId: form.id,
+        status: form.translationStatus,
+        error: form.translationError,
+      }}
     />
   );
 }

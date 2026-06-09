@@ -22,6 +22,7 @@ export type PropertyFormStep =
   | "review";
 
 export type PropertyFormState = {
+  id?: number;
   title: string;
   slug: string;
   city: string;
@@ -64,6 +65,8 @@ export type PropertyFormState = {
   images: AdminMediaItem[];
   featureIds: number[];
   translations: TranslationMap;
+  translationStatus?: string | null;
+  translationError?: string | null;
 };
 
 export type PropertyFormUpdate = (
@@ -153,6 +156,8 @@ export function emptyPropertyForm(): PropertyFormState {
     images: [],
     featureIds: [],
     translations: {},
+    translationStatus: "NOT_REQUESTED",
+    translationError: null,
   };
 }
 
@@ -177,6 +182,7 @@ export function buildPropertyFormState(
   featureAssignments: Array<{ featureId: number | string }>
 ): PropertyFormState {
   return {
+    id: property.id,
     title: toInputValue(property.title),
     slug: toInputValue(property.slug),
     city: toInputValue(property.city),
@@ -219,5 +225,7 @@ export function buildPropertyFormState(
     images: Array.isArray(property.images) ? property.images : [],
     featureIds: featureAssignments.map((item) => Number(item.featureId)),
     translations: normalizeTranslations(property.translations),
+    translationStatus: property.translationStatus || "NOT_REQUESTED",
+    translationError: property.translationError || null,
   };
 }

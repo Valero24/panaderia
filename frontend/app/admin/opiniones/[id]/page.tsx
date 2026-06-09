@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiUrl } from "@/lib/api";
+import { auditActionLabel, roleLabel } from "@/lib/admin-log-labels";
 
 type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED" | "HIDDEN";
 type BookingType = "PROPERTY" | "EXPERIENCE" | "PACKAGE";
@@ -115,22 +116,6 @@ function statusClass(status: ReviewStatus) {
   return "border-red-200 bg-red-50 text-red-700";
 }
 
-function auditActionLabel(action: string) {
-  const labels: Record<string, string> = {
-    REVIEW_APPROVED: "Opinion aprobada",
-    REVIEW_REJECTED: "Opinion rechazada",
-    REVIEW_HIDDEN: "Opinion ocultada",
-    REVIEW_STATUS_UPDATED: "Estado actualizado",
-    REVIEW_FEATURED: "Opinion destacada",
-    REVIEW_UNFEATURED: "Destacado retirado",
-    REVIEW_DELETED: "Opinion eliminada",
-    REVIEW_SUBMITTED: "Opinion enviada",
-    REVIEW_DETAIL_VIEWED: "Detalle consultado",
-  };
-
-  return labels[action] || action.replace(/_/g, " ").toLowerCase();
-}
-
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -140,6 +125,10 @@ function asRecord(value: unknown): Record<string, unknown> {
 function categoryEntries(value: unknown) {
   const record = asRecord(value);
   return Object.entries(record).filter(([, entryValue]) => entryValue !== null && entryValue !== undefined);
+}
+
+function statusHistoryLabel(status: string) {
+  return statusLabels[status as ReviewStatus] || status;
 }
 
 export default function OpinionDetailPage() {
@@ -181,14 +170,14 @@ export default function OpinionDetailPage() {
 
       if (!response.ok) {
         setReview(null);
-        setMessage(data?.message || "No se pudo cargar la opinion.");
+        setMessage(data?.message || "No se pudo cargar la opinión.");
         return;
       }
 
       setReview(data);
     } catch (error) {
       console.error(error);
-      setMessage("Error de conexion cargando la opinion.");
+      setMessage("Error de conexión cargando la opinión.");
     } finally {
       setLoading(false);
     }
@@ -251,7 +240,7 @@ export default function OpinionDetailPage() {
         throw new Error(data?.message || "No se pudo actualizar el destacado.");
       }
 
-      setMessage(nextFeatured ? "Opinion destacada." : "Opinion retirada de destacados.");
+      setMessage(nextFeatured ? "Opinión destacada." : "Opinión retirada de destacados.");
       await fetchReview();
     } catch (error) {
       console.error(error);
@@ -262,7 +251,7 @@ export default function OpinionDetailPage() {
   }
 
   async function deleteReview() {
-    if (!review || !window.confirm("Eliminar esta opinion? Esta accion no se puede deshacer.")) {
+    if (!review || !window.confirm("¿Eliminar esta opinión? Esta acción no se puede deshacer.")) {
       return;
     }
 
@@ -280,13 +269,13 @@ export default function OpinionDetailPage() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data?.message || "No se pudo eliminar la opinion.");
+        throw new Error(data?.message || "No se pudo eliminar la opinión.");
       }
 
       router.push("/admin/opiniones");
     } catch (error) {
       console.error(error);
-      setMessage(error instanceof Error ? error.message : "Error eliminando opinion.");
+      setMessage(error instanceof Error ? error.message : "Error eliminando opinión.");
     } finally {
       setActionLoading("");
     }
@@ -306,7 +295,7 @@ export default function OpinionDetailPage() {
             Acceso restringido
           </h1>
           <p className="mt-2 text-sm text-red-700">
-            El detalle de opiniones solo esta disponible para Superadmin.
+            El detalle de opiniones solo está disponible para Superadmin.
           </p>
         </CardContent>
       </Card>
@@ -320,13 +309,13 @@ export default function OpinionDetailPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B48A5A]">
-                Reputacion verificada
+                Reputación verificada
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-[#0D2B52] lg:text-4xl">
-                Detalle de opinion
+                Detalle de opinión
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                Revisa, modera y deja trazabilidad sobre la opinion enviada por el cliente.
+                Revisa, modera y deja trazabilidad sobre la opinión enviada por el cliente.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -377,7 +366,7 @@ export default function OpinionDetailPage() {
                       Comentario
                     </p>
                     <h2 className="mt-2 text-2xl font-semibold text-[#0D2B52]">
-                      {review.title || "Sin titulo"}
+                      {review.title || "Sin título"}
                     </h2>
                     <div className="mt-3">
                       <Rating value={review.rating} />
@@ -391,8 +380,8 @@ export default function OpinionDetailPage() {
                     items={[
                       ["Cliente", review.publicName || review.customerName || "Cliente"],
                       ["Correo", maskEmail(review.customerEmail)],
-                      ["Pais", review.customerCountry || "Sin pais registrado"],
-                      ["Telefono", review.customerPhone || "Sin telefono"],
+                      ["País", review.customerCountry || "Sin país registrado"],
+                      ["Teléfono", review.customerPhone || "Sin teléfono"],
                     ]}
                   />
                 </CardContent>
@@ -455,10 +444,10 @@ export default function OpinionDetailPage() {
                       ["Producto", review.booking?.productName || "Producto"],
                       ["Tipo", typeLabels[review.targetType]],
                       ["Reserva", `#${review.booking?.id || review.bookingId}`],
-                      ["Codigo RES", review.booking?.reservationCode || "Sin codigo"],
+                      ["Código RES", review.booking?.reservationCode || "Sin código"],
                       ["Inicio", formatDate(review.booking?.checkIn)],
                       ["Fin", formatDate(review.booking?.checkOut)],
-                      ["Huespedes", String(review.booking?.guests || "Sin dato")],
+                      ["Huéspedes", String(review.booking?.guests || "Sin dato")],
                       ["Asesor", review.booking?.advisorName || "Sin asesor"],
                     ]}
                   />
@@ -468,17 +457,17 @@ export default function OpinionDetailPage() {
               <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
                 <CardContent className="space-y-4 p-5">
                   <h2 className="text-lg font-semibold text-[#0D2B52]">
-                    Moderacion
+                    Moderación
                   </h2>
                   <InfoGrid
                     items={[
                       ["Estado", statusLabels[review.status]],
-                      ["Fecha de envio", formatDate(review.submittedAt)],
+                      ["Fecha de envío", formatDate(review.submittedAt)],
                       ["Aprobada", formatDate(review.approvedAt)],
                       ["Aprobada por", review.approvedByName || "Sin aprobador"],
                       ["Rechazada", formatDate(review.rejectedAt)],
-                      ["Ultima moderacion", formatDate(review.moderatedAt)],
-                      ["Destacada", review.featured ? "Si" : "No"],
+                      ["Última moderación", formatDate(review.moderatedAt)],
+                      ["Destacada", review.featured ? "Sí" : "No"],
                     ]}
                   />
                 </CardContent>
@@ -488,11 +477,11 @@ export default function OpinionDetailPage() {
             <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="space-y-4 p-5">
                 <h2 className="text-lg font-semibold text-[#0D2B52]">
-                  Ratings por categoria
+                  Calificaciones por categoría
                 </h2>
                 {categories.length === 0 ? (
                   <p className="text-sm text-slate-500">
-                    Esta opinion no tiene ratings por categoria.
+                    Esta opinión no tiene calificaciones por categoría.
                   </p>
                 ) : (
                   <div className="grid gap-3 md:grid-cols-2">
@@ -512,11 +501,11 @@ export default function OpinionDetailPage() {
             <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
               <CardContent className="space-y-4 p-5">
                 <h2 className="text-lg font-semibold text-[#0D2B52]">
-                  Historial basico
+                  Historial básico
                 </h2>
                 {!review.auditLogs || review.auditLogs.length === 0 ? (
                   <p className="text-sm text-slate-500">
-                    No hay eventos de auditoria asociados a esta opinion.
+                    No hay eventos de auditoría asociados a esta opinión.
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -602,7 +591,9 @@ function AuditItem({ log }: { log: AuditLog }) {
   const previousStatus = typeof previous.status === "string" ? previous.status : "";
   const nextStatus = typeof next.status === "string" ? next.status : "";
   const statusChange =
-    previousStatus && nextStatus ? `${previousStatus} -> ${nextStatus}` : "";
+    previousStatus && nextStatus
+      ? `${statusHistoryLabel(previousStatus)} -> ${statusHistoryLabel(nextStatus)}`
+      : "";
 
   return (
     <div className="rounded-xl border border-slate-100 bg-[#F8F6F2] p-4">
@@ -618,7 +609,7 @@ function AuditItem({ log }: { log: AuditLog }) {
         <p className="text-xs text-slate-500">{formatDate(log.createdAt)}</p>
       </div>
       <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-        <span>{log.actorName || log.actorRole || "Sistema"}</span>
+        <span>{log.actorName || roleLabel(log.actorRole) || "Sistema"}</span>
         {statusChange && <span>Estado: {statusChange}</span>}
       </div>
     </div>

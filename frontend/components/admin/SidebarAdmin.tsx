@@ -23,6 +23,7 @@ import {
   MessageSquare,
   MapPinned,
   Newspaper,
+  UploadCloud,
 } from "lucide-react";
 
 const menuItems = [
@@ -103,6 +104,12 @@ const menuItems = [
     href: "/admin/blog",
     icon: Newspaper,
     roles: ["SUPERADMIN", "ADMIN"],
+  },
+  {
+    title: "Carga masiva",
+    href: "/admin/carga-masiva",
+    icon: UploadCloud,
+    roles: ["SUPERADMIN"],
   },
   {
     title: "Contactos",

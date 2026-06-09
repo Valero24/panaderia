@@ -8,7 +8,7 @@ import {
   localizedRoutePath,
   publicLocales,
 } from "@/lib/i18n-routes";
-import { canonicalUrl, socialMetadata } from "@/lib/seo";
+import { buildMetadata, canonicalUrl } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -64,25 +64,17 @@ export async function generateMetadata({
 
   const copy = homeSeo[locale];
   const url = canonicalUrl(localizedRoutePath("home", locale));
-  const social = socialMetadata({
+
+  return buildMetadata({
     title: copy.title,
     description: copy.description,
     url,
-  });
-
-  return {
-    title: { absolute: copy.title },
-    description: copy.description,
-    alternates: {
-      canonical: url,
-      languages: {
-        ...languageAlternates("home"),
-        "x-default": canonicalUrl(localizedRoutePath("home", "en")),
-      },
+    locale,
+    languages: {
+      ...languageAlternates("home"),
+      "x-default": canonicalUrl(localizedRoutePath("home", "es")),
     },
-    openGraph: social.openGraph,
-    twitter: social.twitter,
-  };
+  });
 }
 
 export default async function LocalizedHomePage({ params }: PageProps) {

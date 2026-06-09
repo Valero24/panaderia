@@ -55,6 +55,9 @@ export default function PropertyBasicInfoStep({
                 placeholder="villa-ocean-pearl"
                 className="h-14 rounded-2xl border-[#D4AF37]/20"
               />
+              <p className="text-xs text-slate-500">
+                Se autogenera desde el nombre. El slug sera usado en la URL publica.
+              </p>
             </div>
 
             <div className="space-y-3">

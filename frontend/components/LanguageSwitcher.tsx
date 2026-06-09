@@ -6,7 +6,14 @@ import { ChevronDown } from "lucide-react";
 import ReactCountryFlag from "react-country-flag";
 import type { Language } from "@/i18n";
 import { useTranslation } from "@/context/LanguageContext";
-import { localizedPathForCurrentRoute } from "@/lib/i18n-routes";
+import { apiUrl } from "@/lib/api";
+import { getLocalizedSlug, type TranslatableEntity } from "@/lib/dynamic-translations";
+import {
+  localizedPathForCurrentRoute,
+  localizedRoutePath,
+  publicRouteFromPathname,
+  type PublicRouteKind,
+} from "@/lib/i18n-routes";
 
 const languageOptions: {
   code: Language;
@@ -64,11 +71,20 @@ function CountryFlag({ countryCode }: { countryCode: string }) {
   );
 }
 
+const detailEndpointByKind: Partial<Record<PublicRouteKind, string>> = {
+  property: "properties",
+  experience: "experiences",
+  package: "packages",
+  destination: "destinations",
+  blog: "blog",
+};
+
 export default function LanguageSwitcher() {
   const { language, setLanguage } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [pendingLanguage, setPendingLanguage] = useState<Language | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const activeLanguage =
     languageOptions.find((item) => item.code === language) || languageOptions[0];
@@ -102,16 +118,66 @@ export default function LanguageSwitcher() {
     };
   }, [open]);
 
-  function handleSelect(nextLanguage: Language) {
-    const nextPath = localizedPathForCurrentRoute(
-      pathname,
-      nextLanguage,
-      typeof window !== "undefined" ? window.location.search : "",
-      typeof window !== "undefined" ? window.location.hash : ""
-    );
+  async function resolveLocalizedPath(nextLanguage: Language) {
+    const search = typeof window !== "undefined" ? window.location.search : "";
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+    const suffix = `${search}${hash}`;
+    const route = publicRouteFromPathname(pathname);
+
+    if (!route?.identifier) {
+      return localizedPathForCurrentRoute(pathname, nextLanguage, search, hash);
+    }
+
+    const endpoint = detailEndpointByKind[route.kind];
+
+    if (!endpoint) {
+      return `${localizedRoutePath(
+        route.kind,
+        nextLanguage,
+        route.identifier
+      )}${suffix}`;
+    }
+
+    try {
+      const response = await fetch(apiUrl(`/${endpoint}/${route.identifier}`), {
+        cache: "force-cache",
+      });
+
+      if (!response.ok) {
+        return `${localizedRoutePath(
+          route.kind,
+          nextLanguage,
+          route.identifier
+        )}${suffix}`;
+      }
+
+      const entity = (await response.json()) as TranslatableEntity;
+      const identifier =
+        getLocalizedSlug(entity, nextLanguage, route.identifier) ||
+        route.identifier;
+
+      return `${localizedRoutePath(route.kind, nextLanguage, identifier)}${suffix}`;
+    } catch {
+      return `${localizedRoutePath(
+        route.kind,
+        nextLanguage,
+        route.identifier
+      )}${suffix}`;
+    }
+  }
+
+  async function handleSelect(nextLanguage: Language) {
+    if (pendingLanguage || nextLanguage === language) {
+      setOpen(false);
+      return;
+    }
+
+    setPendingLanguage(nextLanguage);
+    const nextPath = await resolveLocalizedPath(nextLanguage);
 
     setLanguage(nextLanguage);
     setOpen(false);
+    setPendingLanguage(null);
 
     if (nextPath && nextPath !== pathname) {
       router.push(nextPath);
@@ -157,6 +223,7 @@ export default function LanguageSwitcher() {
                 aria-selected={active}
                 aria-label={item.ariaLabel}
                 onClick={() => handleSelect(item.code)}
+                disabled={Boolean(pendingLanguage)}
                 className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
                   active
                     ? "bg-[#0D2B52] text-white shadow-sm"

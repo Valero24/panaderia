@@ -33,6 +33,8 @@ import { CurrencyModule } from "./currency/currency.module";
 import { ReviewsModule } from "./reviews/reviews.module";
 import { DestinationsModule } from "./destinations/destinations.module";
 import { BlogModule } from "./blog/blog.module";
+import { TranslationsModule } from "./translations/translations.module";
+import { BulkImportModule } from "./bulk-import/bulk-import.module";
 
 @Module({
   imports: [
@@ -76,6 +78,8 @@ import { BlogModule } from "./blog/blog.module";
     ReviewsModule,
     DestinationsModule,
     BlogModule,
+    TranslationsModule,
+    BulkImportModule,
   ],
 
   controllers: [AppController],

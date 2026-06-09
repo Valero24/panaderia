@@ -23,7 +23,7 @@ function wordCount(value: unknown) {
   return String(value).trim().split(/\s+/).filter(Boolean).length;
 }
 
-function hasFaq(value: unknown) {
+function hasFaq(value: unknown): boolean {
   if (Array.isArray(value)) {
     return value.some((item) => {
       if (!item || typeof item !== "object") return false;
@@ -67,14 +67,14 @@ export default function SeoChecklist({
   const words = wordCount(seoContent);
   const checks = [
     { label: "Tiene slug", done: hasText(slug) },
-    { label: "Tiene title SEO", done: hasText(seoTitle) },
-    { label: "Tiene meta description", done: hasText(seoDescription) },
+    { label: "Tiene título SEO", done: hasText(seoTitle) },
+    { label: "Tiene meta descripción", done: hasText(seoDescription) },
     { label: "Tiene contenido SEO", done: hasText(seoContent) },
     { label: "Tiene FAQ", done: hasFaq(faq) },
     { label: "Tiene imagen principal", done: hasText(image) },
-      { label: "Tiene traducción EN", done: hasEnglishTranslation(translations) },
-      {
-        label: `Tiene contenido mínimo recomendado (${minimumWords}+ palabras)`,
+    { label: "Tiene traducción EN", done: hasEnglishTranslation(translations) },
+    {
+      label: `Tiene contenido mínimo recomendado (${minimumWords}+ palabras)`,
       done: words >= minimumWords,
       hint: `${words} palabras`,
     },

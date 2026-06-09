@@ -6,6 +6,8 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../common/audit.service";
 import { normalizeTranslations } from "../common/translations";
+import { TranslationEntityType } from "@prisma/client";
+import { TranslationsService } from "../translations/translations.service";
 
 type AuditActor = {
   userId?: number;
@@ -31,7 +33,8 @@ type ExtraServiceInput = {
 export class ExtrasService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly translations: TranslationsService
   ) {}
 
   private async validateProductTarget(data: ExtraServiceInput) {
@@ -134,6 +137,13 @@ export class ExtrasService {
         experienceId: created.experienceId,
         packageId: created.packageId,
       },
+    });
+
+    await this.translations.enqueueEntityTranslation({
+      entityType: TranslationEntityType.EXTRA_SERVICE,
+      entityId: created.id,
+      source: created as any,
+      overwrite: false,
     });
 
     return created;
@@ -300,6 +310,20 @@ export class ExtrasService {
         changedFields: Object.keys(nextData),
       },
     });
+
+    const changedTranslatableFields = Object.keys(nextData).filter((field) =>
+      this.translations.getDefaultFields().includes(field)
+    );
+
+    if (changedTranslatableFields.length > 0) {
+      await this.translations.enqueueEntityTranslation({
+        entityType: TranslationEntityType.EXTRA_SERVICE,
+        entityId: updated.id,
+        source: updated as any,
+        fields: changedTranslatableFields,
+        overwrite: false,
+      });
+    }
 
     return updated;
   }

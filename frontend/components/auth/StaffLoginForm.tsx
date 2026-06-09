@@ -64,7 +64,7 @@ export default function StaffLoginForm() {
         const message =
           data && "message" in data && data.message
             ? data.message
-            : "Credenciales invalidas";
+            : "Credenciales inválidas";
         throw new Error(message);
       }
 
@@ -73,8 +73,8 @@ export default function StaffLoginForm() {
 
       router.push(data.user.role === "ADVISOR" ? "/admin/reservas" : "/admin");
     } catch (error: unknown) {
-      console.error("Login error:", error);
-      alert(error instanceof Error ? error.message : "Error de conexion");
+      console.error("Error de inicio de sesión:", error);
+      alert(error instanceof Error ? error.message : "Error de conexión");
     } finally {
       setLoading(false);
     }
@@ -100,12 +100,12 @@ export default function StaffLoginForm() {
             </div>
 
             <label className="block space-y-2 text-sm font-semibold text-[#0D2B52]">
-              <span>Correo</span>
+              <span>Correo electrónico</span>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Correo"
+                placeholder="Correo electrónico"
                 autoComplete="email"
                 required
                 value={email}
@@ -127,14 +127,26 @@ export default function StaffLoginForm() {
               />
             </label>
 
-            <label className="flex items-center gap-3 text-sm font-medium text-slate-600">
-              <input
-                type="checkbox"
-                name="remember"
-                className="h-4 w-4 rounded border-[#D4AF37]/40 text-[#0D2B52] focus:ring-[#D4AF37]"
-              />
-              <span>Recordarme</span>
-            </label>
+            <div className="flex items-center justify-between gap-4">
+              <label className="flex items-center gap-3 text-sm font-medium text-slate-600">
+                <input
+                  type="checkbox"
+                  name="remember"
+                  className="h-4 w-4 rounded border-[#D4AF37]/40 text-[#0D2B52] focus:ring-[#D4AF37]"
+                />
+                <span>Recordarme</span>
+              </label>
+
+              <button
+                type="button"
+                onClick={() =>
+                  alert("Solicita al Superadmin la recuperación de tu acceso.")
+                }
+                className="text-sm font-semibold text-[#0D2B52] underline-offset-4 hover:underline"
+              >
+                Recuperar acceso
+              </button>
+            </div>
 
             <Button
               type="submit"

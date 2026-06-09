@@ -19,6 +19,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiUrl } from "@/lib/api";
 import { auditActionLabel, roleLabel } from "@/lib/admin-log-labels";
+import {
+  adminInvoiceStatusLabel,
+  adminFinancialStatusLabel,
+  adminPaymentStatusLabel,
+  adminReservationStatusLabel,
+} from "@/lib/admin-status-labels";
 
 type InvoiceDetail = {
   id: number;
@@ -180,7 +186,15 @@ function statusClass(status: string) {
 }
 
 function bookingStatusLabel(status?: string | null) {
-  return status ? bookingStatusLabels[status] || status : "Sin dato";
+  return adminReservationStatusLabel(status);
+}
+
+function invoiceStatusLabel(status?: string | null) {
+  return adminInvoiceStatusLabel(status);
+}
+
+function paymentStatusLabel(status?: string | null) {
+  return adminPaymentStatusLabel(status);
 }
 
 function actionLabel(action: string) {
@@ -486,11 +500,11 @@ export default function FacturaDetallePage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <StatusBadge
-                    label={statusLabels[invoice.status] || invoice.status}
+                    label={invoiceStatusLabel(invoice.status)}
                     status={invoice.status}
                   />
                   <StatusBadge
-                    label={paymentLabels[invoice.paymentStatus] || invoice.paymentStatus}
+                    label={paymentStatusLabel(invoice.paymentStatus)}
                     status={invoice.paymentStatus}
                   />
                 </div>
@@ -504,8 +518,8 @@ export default function FacturaDetallePage() {
                   title="Informacion general"
                   rows={[
                     ["Numero factura", invoice.invoiceNumber],
-                    ["Estado", statusLabels[invoice.status] || invoice.status],
-                    ["Estado de pago", paymentLabels[invoice.paymentStatus] || invoice.paymentStatus],
+                    ["Estado", invoiceStatusLabel(invoice.status)],
+                    ["Estado de pago", paymentStatusLabel(invoice.paymentStatus)],
                     ["Fecha generacion", formatDate(invoice.issueDate)],
                     ["Último cambio", formatDate(invoice.lastStatusChangeAt)],
                     ["Proveedor", invoice.provider],
@@ -693,9 +707,7 @@ export default function FacturaDetallePage() {
                               label="Estado anterior"
                               value={
                                 previousStatus
-                                  ? statusLabels[previousStatus] ||
-                                    paymentLabels[previousStatus] ||
-                                    previousStatus
+                                  ? adminFinancialStatusLabel(previousStatus)
                                   : "Sin cambio"
                               }
                             />
@@ -703,9 +715,7 @@ export default function FacturaDetallePage() {
                               label="Estado nuevo"
                               value={
                                 newStatus
-                                  ? statusLabels[newStatus] ||
-                                    paymentLabels[newStatus] ||
-                                    newStatus
+                                  ? adminFinancialStatusLabel(newStatus)
                                   : "Sin cambio"
                               }
                             />

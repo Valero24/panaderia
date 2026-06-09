@@ -24,8 +24,9 @@ import {
   propertyPublicPath,
 } from "@/lib/product-url";
 import { localizedRoutePath } from "@/lib/i18n-routes";
-import { canonicalUrl, socialMetadata } from "@/lib/seo";
-import { buildLocalBusinessSchema, buildWebsiteSchema } from "@/lib/schema";
+import { localizedAlternates } from "@/lib/i18n-seo";
+import { buildMetadata } from "@/lib/seo";
+import { buildTravelAgencySchema, buildWebsiteSchema } from "@/lib/schema";
 import type { Language } from "@/i18n";
 
 function localizedRouteForHomeSection(
@@ -40,23 +41,12 @@ export const revalidate = 300;
 const homeTitle = "Cartagena Tailored Travel | Luxury Travel in Cartagena";
 const homeDescription =
   "Private tours, luxury accommodations and unique experiences in Cartagena, Colombia.";
-const homeSocial = socialMetadata({
+export const metadata: Metadata = buildMetadata({
   title: homeTitle,
   description: homeDescription,
-  url: canonicalUrl("/es"),
+  path: "/",
+  languages: localizedAlternates("home").languages,
 });
-
-export const metadata: Metadata = {
-  title: {
-    absolute: homeTitle,
-  },
-  description: homeDescription,
-  alternates: {
-    canonical: canonicalUrl("/es"),
-  },
-  openGraph: homeSocial.openGraph,
-  twitter: homeSocial.twitter,
-};
 
 type Property = {
   id: number;
@@ -202,7 +192,7 @@ export default async function HomePage({
 
   return (
     <main className="bg-[#F8F6F1]">
-      <JsonLd data={[buildWebsiteSchema(), buildLocalBusinessSchema()]} />
+      <JsonLd data={[buildWebsiteSchema(locale), buildTravelAgencySchema(locale)]} />
       <section id="home-hero" data-scroll-section className="relative min-h-[520px] overflow-hidden sm:min-h-[600px] lg:min-h-[calc(100vh-96px)]">
         <Image
           src={optimizedUnsplashUrl(heroImage, 1200, 62)}

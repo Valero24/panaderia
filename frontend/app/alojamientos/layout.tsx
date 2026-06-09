@@ -1,51 +1,27 @@
 import type { Metadata } from "next";
 
-import JsonLd from "@/components/JsonLd";
-import { canonicalUrl, socialMetadata } from "@/lib/seo";
-import { buildCollectionPageSchema } from "@/lib/schema";
+import { localizedAlternates } from "@/lib/i18n-seo";
+import { buildMetadata } from "@/lib/seo";
 
 const title = "Luxury Accommodations in Cartagena | Cartagena Tailored Travel";
 const description =
   "Explore premium villas, apartments and luxury stays in Cartagena with personalized assistance.";
-const social = socialMetadata({
+export const metadata: Metadata = buildMetadata({
   title,
   description,
-  url: canonicalUrl("/es/alojamientos"),
+  path: "/alojamientos",
   image: {
     url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=1200",
     width: 1200,
     height: 630,
     alt: "Luxury accommodation in Cartagena",
   },
+  languages: localizedAlternates("property").languages,
 });
-const collectionSchema = buildCollectionPageSchema({
-  name: title,
-  description,
-  url: "/alojamientos",
-  image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=70&w=1200",
-});
-
-export const metadata: Metadata = {
-  title: {
-    absolute: title,
-  },
-  description,
-  alternates: {
-    canonical: canonicalUrl("/es/alojamientos"),
-  },
-  openGraph: social.openGraph,
-  twitter: social.twitter,
-};
-
 export default function AlojamientosLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      <JsonLd data={collectionSchema} />
-      {children}
-    </>
-  );
+  return children;
 }

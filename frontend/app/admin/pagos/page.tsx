@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiUrl } from "@/lib/api";
+import { adminPaymentStatusLabel } from "@/lib/admin-status-labels";
 
 type Payment = {
   id: number;
@@ -53,21 +54,7 @@ function paymentAmount(payment: Payment) {
 }
 
 function paymentStatusLabel(status?: string | null) {
-  const labels: Record<string, string> = {
-    APPROVED: "Aprobado",
-    CANCELLED: "Cancelado",
-    DECLINED: "Rechazado",
-    FAILED: "Fallido",
-    MANUAL: "Manual",
-    PAID: "Pagado",
-    PENDING: "Pendiente",
-    PENDING_PAYMENT: "Pendiente de pago",
-    REFUNDED: "Reembolsado",
-    UNPAID: "Sin pagar",
-    VOIDED: "Anulado",
-  };
-
-  return status ? labels[status] || status : "Sin estado";
+  return adminPaymentStatusLabel(status);
 }
 
 function paymentMethodLabel(method?: string | null) {

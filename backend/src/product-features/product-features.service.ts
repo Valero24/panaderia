@@ -8,11 +8,13 @@ import {
   ProductFeatureAppliesTo,
   ProductFeatureCategory,
   PropertyStatus,
+  TranslationEntityType,
 } from "@prisma/client";
 
 import { AuditService } from "../common/audit.service";
 import { normalizeTranslations } from "../common/translations";
 import { PrismaService } from "../prisma/prisma.service";
+import { TranslationsService } from "../translations/translations.service";
 import {
   ProductFeatureActor,
   ProductFeatureAssignmentInput,
@@ -28,7 +30,8 @@ const productTypeValues = Object.values(BookingType);
 export class ProductFeaturesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly translations: TranslationsService
   ) {}
 
   private cleanText(value?: string | null) {
@@ -197,6 +200,13 @@ export class ProductFeaturesService {
       newValue: created,
     });
 
+    await this.translations.enqueueEntityTranslation({
+      entityType: TranslationEntityType.PRODUCT_FEATURE,
+      entityId: created.id,
+      source: created as any,
+      overwrite: false,
+    });
+
     return created;
   }
 
@@ -277,6 +287,20 @@ export class ProductFeaturesService {
       newValue: updated,
       metadata: { changedFields: Object.keys(nextData) },
     });
+
+    const changedTranslatableFields = Object.keys(nextData).filter((field) =>
+      this.translations.getDefaultFields().includes(field)
+    );
+
+    if (changedTranslatableFields.length > 0) {
+      await this.translations.enqueueEntityTranslation({
+        entityType: TranslationEntityType.PRODUCT_FEATURE,
+        entityId: updated.id,
+        source: updated as any,
+        fields: changedTranslatableFields,
+        overwrite: false,
+      });
+    }
 
     return updated;
   }

@@ -22,6 +22,7 @@ import {
 import { getTranslatedFaq } from "@/lib/faq";
 
 type ExperienceSeo = {
+  description?: string | null;
   seoContent?: string | null;
   itinerary?: string | null;
   included?: string | null;
@@ -120,6 +121,78 @@ function ListCard({
   );
 }
 
+function splitItineraryStep(value: string, index: number, stepLabel: string) {
+  const text = value.trim();
+  const match = text.match(
+    /^(?:(paso|step|etapa)\s*)?(\d{1,2})(?:[.)-]|\s*:)\s*(.+)$/i
+  );
+  const timeMatch = text.match(/^(\d{1,2}:\d{2}(?:\s*(?:am|pm))?)\s*[-–:]\s*(.+)$/i);
+
+  if (timeMatch) {
+    return {
+      label: timeMatch[1],
+      text: timeMatch[2],
+    };
+  }
+
+  if (match) {
+    return {
+      label: `${stepLabel} ${match[2]}`,
+      text: match[3],
+    };
+  }
+
+  return {
+    label: `${stepLabel} ${index + 1}`,
+    text,
+  };
+}
+
+function ItineraryCard({
+  title,
+  text,
+  stepLabel,
+}: {
+  title: string;
+  text: string;
+  stepLabel: string;
+}) {
+  const items = splitItems(text);
+
+  if (!hasText(text)) return null;
+
+  return (
+    <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-3">
+          <ListChecks className="h-5 w-5 text-[#B48A5A]" />
+          <h2 className="text-xl font-semibold">{title}</h2>
+        </div>
+        {items.length > 1 ? (
+          <ol className="mt-4 space-y-4 text-sm leading-7 text-slate-600">
+            {items.map((item, index) => {
+              const step = splitItineraryStep(item, index, stepLabel);
+
+              return (
+                <li key={`${step.label}-${step.text}`} className="flex gap-3">
+                  <span className="inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-full bg-[#0D2B52] px-2 text-xs font-semibold text-white">
+                    {step.label}
+                  </span>
+                  <span className="pt-1">{step.text}</span>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
+            {text}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ExperienceSeoSections({
   experience,
 }: {
@@ -132,6 +205,9 @@ export default function ExperienceSeoSections({
     language,
     experience.seoContent
   );
+  const aboutText =
+    seoContent ||
+    getDynamicText(experience, "description", language, experience.description);
   const itinerary = getDynamicText(
     experience,
     "itinerary",
@@ -183,7 +259,7 @@ export default function ExperienceSeoSections({
   const faqItems = getTranslatedFaq(experience, language, experience.faq);
   const timing = [durationDescription, schedule].filter(Boolean).join("\n");
   const hasAnySection =
-    hasText(seoContent) ||
+    hasText(aboutText) ||
     hasText(itinerary) ||
     hasText(timing) ||
     hasText(meetingPoint) ||
@@ -199,14 +275,14 @@ export default function ExperienceSeoSections({
     <div className="grid gap-5 md:grid-cols-2">
       <TextCard
         title={t("experience.about")}
-        text={seoContent}
+        text={aboutText}
         icon={Sparkles}
         wide
       />
-      <ListCard
-        title={t("experience.whatYouWillLive")}
+      <ItineraryCard
+        title={t("experience.itinerary")}
         text={itinerary}
-        icon={ListChecks}
+        stepLabel={t("experience.step")}
       />
       <TextCard
         title={t("experience.durationAndSchedule")}

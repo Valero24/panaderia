@@ -7,6 +7,7 @@ export type DynamicTranslations = Partial<
 
 export type TranslatableEntity = {
   translations?: DynamicTranslations | null;
+  translatedSlugs?: Partial<Record<Language, string | null>> | null;
   [key: string]: unknown;
 };
 
@@ -29,6 +30,11 @@ function toSafeText(value: unknown) {
   }
 
   return "";
+}
+
+function translatedTextOrEmpty(value: unknown) {
+  const text = toSafeText(value);
+  return text.includes("[object Object]") ? "" : text;
 }
 
 function hasUsableValue(value: unknown): boolean {
@@ -110,7 +116,20 @@ export function getTranslatedField(
   language: Language,
   fallback?: unknown
 ) {
-  return getDynamicText(entity, field, language, fallback);
+  const baseValue = fallback ?? entity?.[field];
+
+  if (language !== "es") {
+    const translated = entity?.translations?.[language]?.[field];
+
+    if (hasUsableValue(translated)) {
+      const translatedText = translatedTextOrEmpty(translated);
+      if (translatedText.trim()) {
+        return translatedText;
+      }
+    }
+  }
+
+  return translatedTextOrEmpty(baseValue);
 }
 
 export function hasDynamicText(
@@ -120,4 +139,29 @@ export function hasDynamicText(
   fallback?: unknown
 ) {
   return getDynamicText(entity, field, language, fallback).trim().length > 0;
+}
+
+export function getLocalizedSlug(
+  entity: TranslatableEntity | null | undefined,
+  language: Language,
+  fallback?: unknown
+) {
+  const translatedSlugFromMap = entity?.translatedSlugs?.[language]?.trim();
+  const translatedSlugFromTranslations = getDynamicValue(
+    entity,
+    "slug",
+    language,
+    fallback ?? entity?.slug
+  );
+  const translatedSlug =
+    translatedSlugFromMap ||
+    (typeof translatedSlugFromTranslations === "string"
+      ? translatedSlugFromTranslations.trim()
+      : "");
+  const baseSlug =
+    typeof (fallback ?? entity?.slug) === "string"
+      ? String(fallback ?? entity?.slug).trim()
+      : "";
+
+  return translatedSlug || baseSlug;
 }
