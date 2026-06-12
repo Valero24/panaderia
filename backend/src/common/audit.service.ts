@@ -7,6 +7,8 @@ type AuditActor = {
   role?: string;
   name?: string;
   email?: string;
+  ip?: string;
+  userAgent?: string;
 };
 
 @Injectable()
@@ -14,6 +16,34 @@ export class AuditService {
   private readonly logger = new Logger(AuditService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  async logAction(data: {
+    actor?: AuditActor | null;
+    action: string;
+    entityType: string;
+    entityId: string | number;
+    message?: string;
+    metadata?: Record<string, unknown>;
+    request?: any;
+    previousValue?: unknown;
+    newValue?: unknown;
+  }) {
+    return this.record({
+      actor: data.actor,
+      action: data.action,
+      entityType: data.entityType,
+      entityId: data.entityId,
+      message: data.message,
+      metadata: data.metadata,
+      previousValue: data.previousValue,
+      newValue: data.newValue,
+      ip: this.getRequestIp(data.request) || data.actor?.ip,
+      userAgent:
+        data.request?.headers?.["user-agent"] ||
+        data.request?.headers?.["User-Agent"] ||
+        data.actor?.userAgent,
+    });
+  }
 
   async record(data: {
     actor?: AuditActor | null;
@@ -41,8 +71,8 @@ export class AuditService {
           previousValue: this.toJson(data.previousValue),
           newValue: this.toJson(data.newValue),
           metadata: this.toJson(data.metadata),
-          ip: data.ip || null,
-          userAgent: data.userAgent || null,
+          ip: data.ip || data.actor?.ip || null,
+          userAgent: data.userAgent || data.actor?.userAgent || null,
         },
       });
     } catch (error) {
@@ -67,6 +97,15 @@ export class AuditService {
     return this.sanitize(value) as Prisma.InputJsonValue;
   }
 
+  private getRequestIp(request?: any) {
+    const forwarded = request?.headers?.["x-forwarded-for"];
+    if (typeof forwarded === "string" && forwarded.trim()) {
+      return forwarded.split(",")[0]?.trim();
+    }
+
+    return request?.ip || request?.socket?.remoteAddress || null;
+  }
+
   private sanitize(value: unknown, depth = 0): unknown {
     if (depth > 4) {
       return "[Max depth]";
@@ -87,17 +126,23 @@ export class AuditService {
     const blocked = [
       "password",
       "token",
+      "reviewToken",
+      "reviewRequestToken",
       "accessToken",
       "refreshToken",
       "authorization",
       "jwt",
       "secret",
       "privateKey",
+      "card",
+      "payment",
+      "phone",
+      "customerPhone",
     ];
     const safe: Record<string, unknown> = {};
 
     for (const [key, item] of Object.entries(value)) {
-      if (blocked.includes(key)) {
+      if (blocked.includes(key) || blocked.includes(key.toLowerCase())) {
         safe[key] = "[REDACTED]";
       } else {
         safe[key] = this.sanitize(item, depth + 1);

@@ -6,6 +6,8 @@ import {
 import {
   BulkImportStatus,
   BulkImportType,
+  MediaOwnerType,
+  MediaProvider,
   MediaType,
   Prisma,
   TranslationEntityType,
@@ -16,6 +18,11 @@ import { promises as fs } from "fs";
 import path from "path";
 
 import { AuditService } from "../common/audit.service";
+import { sanitizeBlogHtml } from "../common/blog-html";
+import {
+  FAQ_MAX_ANSWER_LENGTH,
+  FAQ_MAX_QUESTION_LENGTH,
+} from "../common/faq";
 import { PrismaService } from "../prisma/prisma.service";
 import { BulkImportTemplatesService } from "./bulk-import-templates.service";
 import { BulkImportTypeQueryDto } from "./dto/bulk-import-type.dto";
@@ -68,6 +75,14 @@ type ParsedBulkImportRow = {
 type BulkImportExecutionError = {
   row: number;
   message: string;
+};
+
+type BulkImportCreatedRecord = {
+  row: number;
+  type: BulkImportType;
+  id: number | string;
+  slug?: string | null;
+  name?: string | null;
 };
 
 const acceptedExtensions = [".xlsx"];
@@ -164,6 +179,11 @@ export class BulkImportService {
   }
 
   async findJobs(query: BulkImportTypeQueryDto = {}, actor?: AuditActor | null) {
+    const page = this.parsePositiveInt(query.page, 1);
+    const limit = Math.min(this.parsePositiveInt(query.limit, 20), 100);
+    const skip = (page - 1) * limit;
+    const where = this.buildJobWhere(query);
+
     await this.audit.record({
       actor,
       action: "BULK_IMPORT_HISTORY_VIEWED",
@@ -176,17 +196,67 @@ export class BulkImportService {
       },
     });
 
-    return this.prisma.bulkImportJob.findMany({
+    const [items, total, stats] = await Promise.all([
+      this.prisma.bulkImportJob.findMany({
+        where,
+        include: {
+          createdBy: {
+            select: { id: true, name: true, email: true, role: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      this.prisma.bulkImportJob.count({ where }),
+      this.buildHistoryStats(where),
+    ]);
+
+    return {
+      items: items.map((job) => ({
+        ...job,
+        actions: this.availableActions(job.status),
+      })),
+      total,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+      summary: stats,
+    };
+  }
+
+  async getStats(query: BulkImportTypeQueryDto = {}) {
+    return this.buildHistoryStats(this.buildJobWhere(query));
+  }
+
+  private async findAuditTrailForJob(id: number) {
+    return this.prisma.auditLog.findMany({
       where: {
-        ...(query.type ? { type: query.type } : {}),
-        ...(query.status ? { status: query.status } : {}),
+        OR: [
+          {
+            entityType: "BulkImportJob",
+            entityId: String(id),
+          },
+          {
+            metadata: {
+              path: ["jobId"],
+              equals: id,
+            } as any,
+          },
+          {
+            metadata: {
+              path: ["jobId"],
+              equals: String(id),
+            } as any,
+          },
+        ],
       },
-      orderBy: { createdAt: "desc" },
-      take: 50,
+      orderBy: { createdAt: "asc" },
+      take: 500,
     });
   }
 
-  async findJobById(id: number) {
+  async findJobById(id: number, actor?: AuditActor | null) {
     const job = await this.prisma.bulkImportJob.findUnique({
       where: { id },
       include: {
@@ -205,10 +275,326 @@ export class BulkImportService {
       throw new NotFoundException("Carga masiva no encontrada");
     }
 
-    return job;
+    await this.audit.record({
+      actor,
+      action: "BULK_IMPORT_DETAIL_VIEWED",
+      entityType: "BulkImportJob",
+      entityId: id,
+      message: "Detalle de carga masiva consultado",
+      metadata: {
+        jobId: id,
+        type: job.type,
+        status: job.status,
+      },
+    });
+
+    return {
+      ...job,
+      actions: this.availableActions(job.status),
+      rowSummary: {
+        totalRows: job.totalRows,
+        validRows: job.validRows,
+        invalidRows: job.invalidRows,
+        createdRows: job.createdRows,
+        failedRows: job.failedRows,
+        skippedRows: job.skippedRows,
+        warningRows: job.warningRows,
+      },
+      auditTrail: await this.findAuditTrailForJob(id),
+    };
+  }
+
+  async downloadErrorsReport(id: number, actor?: AuditActor | null) {
+    const job = await this.findJobById(id, actor);
+    const rows = this.extractReportRows([
+      ...(this.asArray(job.errorSummary) || []),
+      ...(this.asArray(job.warningSummary) || []),
+      ...this.extractSummaryItems(job.errorSummary, "errors", "ERROR"),
+      ...this.extractSummaryItems(job.errorSummary, "warnings", "WARNING"),
+    ]);
+
+    await this.audit.record({
+      actor,
+      action: "BULK_IMPORT_ERRORS_DOWNLOADED",
+      entityType: "BulkImportJob",
+      entityId: id,
+      message: "Reporte de errores de importacion descargado",
+      metadata: {
+        jobId: id,
+        type: job.type,
+        downloadedBy: actor?.userId ?? null,
+      },
+    });
+
+    return this.buildErrorsWorkbook(rows);
+  }
+
+  async downloadResultReport(id: number, actor?: AuditActor | null) {
+    const job = await this.findJobById(id, actor);
+    const result = this.asRecord(job.resultSummary);
+    const created = this.asArray(result?.created).map((item: any) => ({
+      row: item.row,
+      type: item.type || job.type,
+      name: item.name || "",
+      slug: item.slug || "",
+      id: item.id || "",
+      status: "CREADO",
+      observation: "",
+    }));
+    const failed = this.asArray(result?.failed).map((item: any) => ({
+      row: item.row,
+      type: item.type || job.type,
+      name: item.name || "",
+      slug: item.slug || "",
+      id: "",
+      status: "FALLIDO",
+      observation: item.reason || item.message || "",
+    }));
+    const skipped = this.asArray(result?.skipped).map((item: any) => ({
+      row: item.row,
+      type: item.type || job.type,
+      name: item.name || "",
+      slug: item.slug || "",
+      id: "",
+      status: "OMITIDO",
+      observation: item.reason || item.message || "",
+    }));
+
+    await this.audit.record({
+      actor,
+      action: "BULK_IMPORT_RESULT_DOWNLOADED",
+      entityType: "BulkImportJob",
+      entityId: id,
+      message: "Reporte de resultado de importacion descargado",
+      metadata: {
+        jobId: id,
+        type: job.type,
+        downloadedBy: actor?.userId ?? null,
+      },
+    });
+
+    return this.buildResultWorkbook([...created, ...failed, ...skipped]);
+  }
+
+  async cancelJob(id: number, actor?: AuditActor | null) {
+    const job = await this.prisma.bulkImportJob.findUnique({ where: { id } });
+
+    if (!job) throw new NotFoundException("Carga masiva no encontrada");
+
+    const cancellable: BulkImportStatus[] = [
+      BulkImportStatus.DRAFT,
+      BulkImportStatus.UPLOADED,
+      BulkImportStatus.VALIDATING,
+      BulkImportStatus.VALIDATED,
+    ];
+
+    if (!cancellable.includes(job.status)) {
+      throw new BadRequestException("Esta carga no puede cancelarse en su estado actual");
+    }
+
+    const updated = await this.prisma.bulkImportJob.update({
+      where: { id },
+      data: {
+        status: BulkImportStatus.CANCELLED,
+        finishedAt: new Date(),
+        resultSummary: this.toJson({
+          cancelled: true,
+          cancelledAt: new Date().toISOString(),
+          reason: "Cancelado manualmente desde admin",
+        }),
+      },
+    });
+
+    await this.audit.record({
+      actor,
+      action: "BULK_IMPORT_CANCELLED",
+      entityType: "BulkImportJob",
+      entityId: id,
+      message: "Carga masiva cancelada",
+      metadata: {
+        jobId: id,
+        type: job.type,
+        previousStatus: job.status,
+        cancelledBy: actor?.userId ?? null,
+      },
+    });
+
+    return updated;
+  }
+
+  private buildJobWhere(query: BulkImportTypeQueryDto = {}): Prisma.BulkImportJobWhereInput {
+    const fromDate = this.parseDateOrNull(query.fromDate);
+    const toDate = this.parseDateOrNull(query.toDate);
+    const createdById = query.createdById ? Number(query.createdById) : null;
+    const search = String(query.search || "").trim();
+
+    if (toDate) {
+      toDate.setHours(23, 59, 59, 999);
+    }
+
+    return {
+      ...(query.type ? { type: query.type } : {}),
+      ...(query.status ? { status: query.status } : {}),
+      ...(createdById ? { createdById } : {}),
+      ...(fromDate || toDate
+        ? {
+            createdAt: {
+              ...(fromDate ? { gte: fromDate } : {}),
+              ...(toDate ? { lte: toDate } : {}),
+            },
+          }
+        : {}),
+      ...(search
+        ? {
+            OR: [
+              { originalFileName: { contains: search, mode: "insensitive" } },
+              { createdByEmail: { contains: search, mode: "insensitive" } },
+              { createdByRole: { contains: search, mode: "insensitive" } },
+              {
+                createdBy: {
+                  is: {
+                    OR: [
+                      { name: { contains: search, mode: "insensitive" } },
+                      { email: { contains: search, mode: "insensitive" } },
+                    ],
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+  }
+
+  private async buildHistoryStats(where: Prisma.BulkImportJobWhereInput = {}) {
+    const [jobs, aggregate] = await Promise.all([
+      this.prisma.bulkImportJob.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: 1000,
+      }),
+      this.prisma.bulkImportJob.aggregate({
+        where,
+        _sum: {
+          totalRows: true,
+          createdRows: true,
+          failedRows: true,
+          invalidRows: true,
+        },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const byType = jobs.reduce<Record<string, number>>((acc, job) => {
+      acc[job.type] = (acc[job.type] || 0) + 1;
+      return acc;
+    }, {});
+    const mostImportedType =
+      Object.entries(byType).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+    return {
+      total: aggregate._count._all,
+      completed: jobs.filter((job) => job.status === BulkImportStatus.COMPLETED).length,
+      failed: jobs.filter((job) => job.status === BulkImportStatus.FAILED).length,
+      partial: jobs.filter((job) => job.status === BulkImportStatus.PARTIALLY_COMPLETED).length,
+      cancelled: jobs.filter((job) => job.status === BulkImportStatus.CANCELLED).length,
+      totalRowsProcessed: aggregate._sum.totalRows || 0,
+      totalCreatedRows: aggregate._sum.createdRows || 0,
+      totalErrors: (aggregate._sum.failedRows || 0) + (aggregate._sum.invalidRows || 0),
+      lastJob: jobs[0] || null,
+      mostImportedType,
+    };
+  }
+
+  private availableActions(status: BulkImportStatus) {
+    const canCancel = ([
+      BulkImportStatus.DRAFT,
+      BulkImportStatus.UPLOADED,
+      BulkImportStatus.VALIDATING,
+      BulkImportStatus.VALIDATED,
+    ] as BulkImportStatus[]).includes(status);
+
+    return {
+      canCancel,
+      canDownloadErrors: true,
+      canDownloadResult: true,
+      retryAvailable: false,
+      retryMessage: "Reintento no disponible en esta version.",
+    };
+  }
+
+  private async buildErrorsWorkbook(rows: any[]) {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Errores");
+
+    sheet.columns = [
+      { header: "fila", key: "row", width: 12 },
+      { header: "campo", key: "field", width: 28 },
+      { header: "tipo", key: "code", width: 28 },
+      { header: "mensaje", key: "message", width: 80 },
+      { header: "severidad", key: "severity", width: 18 },
+    ];
+
+    rows.forEach((row) => sheet.addRow(row));
+    sheet.getRow(1).font = { bold: true };
+
+    return Buffer.from(await workbook.xlsx.writeBuffer());
+  }
+
+  private async buildResultWorkbook(rows: any[]) {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Resultado");
+
+    sheet.columns = [
+      { header: "fila", key: "row", width: 12 },
+      { header: "tipo", key: "type", width: 18 },
+      { header: "nombre", key: "name", width: 40 },
+      { header: "slug", key: "slug", width: 40 },
+      { header: "id_creado", key: "id", width: 18 },
+      { header: "estado", key: "status", width: 18 },
+      { header: "observacion", key: "observation", width: 80 },
+    ];
+
+    rows.forEach((row) => sheet.addRow(row));
+    sheet.getRow(1).font = { bold: true };
+
+    return Buffer.from(await workbook.xlsx.writeBuffer());
+  }
+
+  private extractReportRows(items: any[]) {
+    return items.slice(0, 1000).map((item: any) => ({
+      row: item.row || "",
+      field: item.field || item.column || "",
+      code: item.code || item.type || "",
+      message: this.cleanErrorMessage(item.message || item.reason || ""),
+      severity: item.severity || "ERROR",
+    }));
+  }
+
+  private extractSummaryItems(summary: unknown, key: string, severity: string) {
+    const record = this.asRecord(summary);
+    return this.asArray(record?.[key]).map((item: any) => ({ ...item, severity }));
+  }
+
+  private parsePositiveInt(value: unknown, fallback: number) {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+  }
+
+  private parseDateOrNull(value?: string | null) {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private asArray(value: unknown): any[] {
+    return Array.isArray(value) ? value : [];
   }
 
   async recordTemplateDownloaded(type: BulkImportType, actor?: AuditActor | null) {
+    const config = bulkImportTypes[type];
+    const fileName = this.templates.getTemplateFileName(type);
+
     await this.audit.record({
       actor,
       action: "BULK_TEMPLATE_DOWNLOADED",
@@ -217,6 +603,8 @@ export class BulkImportService {
       message: "Plantilla de carga masiva descargada",
       metadata: {
         type,
+        label: config?.label || type,
+        fileName,
         downloadedAt: new Date().toISOString(),
       },
     });
@@ -247,6 +635,7 @@ export class BulkImportService {
         originalFileName: this.cleanFileName(file.originalname),
         fileSize: file.size,
         mimeType: file.mimetype || null,
+        uploadedAt: new Date(),
         startedAt: new Date(),
         metadata: this.toJson({
           storageKey,
@@ -286,6 +675,11 @@ export class BulkImportService {
     const validationResult = await this.validateWorkbook(job.type, file.buffer);
     const hasErrors = validationResult.errors.length > 0;
     const hasValidRows = validationResult.validRows > 0;
+    const warningRows = new Set(
+      validationResult.warnings
+        .map((warning: any) => Number(warning.row))
+        .filter((row: number) => Number.isInteger(row) && row > 0)
+    ).size;
 
     const updatedJob = await this.prisma.bulkImportJob.update({
       where: { id },
@@ -299,6 +693,8 @@ export class BulkImportService {
         totalRows: validationResult.totalRows,
         validRows: validationResult.validRows,
         invalidRows: validationResult.invalidRows,
+        skippedRows: validationResult.invalidRows,
+        warningRows,
         validationSummary: this.toJson({
           status: hasValidRows ? "VALIDATED" : "FAILED_VALIDATION",
           type: job.type,
@@ -315,11 +711,17 @@ export class BulkImportService {
             ? "Archivo validado con errores. Solo se importarán las filas válidas."
             : "Archivo validado correctamente. Listo para confirmar importación.",
         }),
-        errorSummary: this.toJson({
-          errors: validationResult.errors.slice(0, 200),
-          warnings: validationResult.warnings.slice(0, 200),
-          previewRows: validationResult.previewRows.slice(0, 100),
-        }),
+        errorSummary: this.toJson(
+          validationResult.errors
+            .slice(0, 500)
+            .map((item: any) => ({ ...item, severity: "ERROR" }))
+        ),
+        warningSummary: this.toJson(
+          validationResult.warnings
+            .slice(0, 500)
+            .map((item: any) => ({ ...item, severity: "WARNING" }))
+        ),
+        previewSummary: this.toJson(validationResult.previewRows.slice(0, 200)),
         validatedAt: new Date(),
         finishedAt: new Date(),
       },
@@ -346,6 +748,8 @@ export class BulkImportService {
         warningCount: validationResult.warnings.length,
       },
     });
+
+    await this.auditValidationFindings(id, job.type, validationResult, actor);
 
     return {
       ...updatedJob,
@@ -403,6 +807,12 @@ export class BulkImportService {
       entityType: "BulkImportJob",
       entityId: job.id,
       message: "Intento de carga masiva registrado",
+      metadata: {
+        jobId: job.id,
+        type: job.type,
+        originalFileName: job.originalFileName,
+        fileSize: job.fileSize,
+      },
       newValue: {
         id: job.id,
         type: job.type,
@@ -472,15 +882,20 @@ export class BulkImportService {
     const validRowNumbers = new Set(validationResult.validRowNumbers);
     const rows = await this.readWorkbookRows(job.type, fileBuffer, validRowNumbers);
     const executionErrors: BulkImportExecutionError[] = [];
+    const createdRecords: BulkImportCreatedRecord[] = [];
     let createdRows = 0;
     let failedRows = 0;
 
     for (const row of rows) {
       try {
-        await this.prisma.$transaction(async (tx) => {
-          await this.createImportedRow(tx, job.type, row);
+        const created = await this.prisma.$transaction(async (tx) => {
+          return this.createImportedRow(tx, job.type, row);
         });
+        const createdSummary = this.createdRecordSummary(job.type, row, created);
+        createdRecords.push(createdSummary);
         createdRows += 1;
+        await this.auditCreatedImportRow(id, job.type, row, createdSummary, actor);
+        await this.auditPostImportSideEffects(id, job.type, row, createdSummary, actor);
       } catch (error) {
         failedRows += 1;
         executionErrors.push({
@@ -491,7 +906,24 @@ export class BulkImportService {
     }
 
     const finalStatus =
-      createdRows > 0 ? BulkImportStatus.COMPLETED : BulkImportStatus.FAILED;
+      createdRows > 0 && failedRows > 0
+        ? BulkImportStatus.PARTIALLY_COMPLETED
+        : createdRows > 0
+          ? BulkImportStatus.COMPLETED
+          : BulkImportStatus.FAILED;
+    const finalResultSummary = {
+      created: createdRecords.slice(0, 500),
+      failed: executionErrors.slice(0, 500).map((error) => ({
+        row: error.row,
+        reason: error.message,
+        type: job.type,
+      })),
+      skipped: validationResult.invalidRowNumbers.slice(0, 500).map((row) => ({
+        row,
+        reason: "Fila invalida en validacion",
+        type: job.type,
+      })),
+    };
 
     const updatedJob = await this.prisma.bulkImportJob.update({
       where: { id },
@@ -502,17 +934,19 @@ export class BulkImportService {
         invalidRows: validationResult.invalidRows,
         createdRows,
         failedRows,
+        skippedRows: validationResult.invalidRows,
         completedAt: new Date(),
         finishedAt: new Date(),
-        errorSummary: this.toJson({
-          ...(this.asRecord(job.errorSummary) || {}),
-          importErrors: executionErrors.slice(0, 200),
-          importSummary: {
-            createdRows,
-            failedRows,
-            attemptedRows: rows.length,
-          },
-        }),
+        errorSummary: this.toJson([
+          ...this.asArray(job.errorSummary),
+          ...executionErrors.slice(0, 500).map((error) => ({
+            row: error.row,
+            message: error.message,
+            severity: "ERROR",
+            code: "IMPORT_ERROR",
+          })),
+        ]),
+        resultSummary: this.toJson(finalResultSummary),
       },
     });
 
@@ -521,20 +955,27 @@ export class BulkImportService {
       action:
         finalStatus === BulkImportStatus.COMPLETED
           ? "BULK_IMPORT_COMPLETED"
-          : "BULK_IMPORT_FAILED",
+          : finalStatus === BulkImportStatus.PARTIALLY_COMPLETED
+            ? "BULK_IMPORT_PARTIALLY_COMPLETED"
+            : "BULK_IMPORT_FAILED",
       entityType: "BulkImportJob",
       entityId: id,
       message:
         finalStatus === BulkImportStatus.COMPLETED
           ? "Importación masiva completada"
-          : "Importación masiva fallida",
+          : finalStatus === BulkImportStatus.PARTIALLY_COMPLETED
+            ? "Importación masiva completada parcialmente"
+            : "Importación masiva fallida",
       metadata: {
         jobId: id,
         type: job.type,
+        totalRows: validationResult.totalRows,
         createdRows,
         failedRows,
+        skippedRows: validationResult.invalidRows,
         validRows: validationResult.validRows,
         invalidRows: validationResult.invalidRows,
+        status: finalStatus,
       },
     });
 
@@ -548,6 +989,225 @@ export class BulkImportService {
     };
   }
 
+  private async auditValidationFindings(
+    jobId: number,
+    type: BulkImportType,
+    validationResult: any,
+    actor?: AuditActor | null
+  ) {
+    const mediaErrors = this.asArray(validationResult.errors).filter(
+      (item) => item?.code === "INVALID_MEDIA_URL"
+    );
+    const relationWarnings = this.asArray(validationResult.warnings).filter(
+      (item) => item?.code === "RELATION_NOT_FOUND"
+    );
+
+    for (const item of mediaErrors.slice(0, 200)) {
+      await this.audit.record({
+        actor,
+        action: "MEDIA_URL_INVALID",
+        entityType: "BulkImportJob",
+        entityId: jobId,
+        message: "URL de multimedia inválida en archivo Excel",
+        metadata: {
+          jobId,
+          type,
+          row: item.row,
+          field: item.field,
+          reason: "URL inválida",
+        },
+      });
+    }
+
+    for (const item of relationWarnings.slice(0, 200)) {
+      await this.audit.record({
+        actor,
+        action: "BULK_DESTINATION_RELATION_WARNING",
+        entityType: "BulkImportJob",
+        entityId: jobId,
+        message: "Relación de destino no encontrada durante validación",
+        metadata: {
+          jobId,
+          type,
+          row: item.row,
+          field: item.field,
+          warning: this.cleanErrorMessage(item.message || "Relación no encontrada"),
+        },
+      });
+    }
+  }
+
+  private async auditCreatedImportRow(
+    jobId: number,
+    type: BulkImportType,
+    row: ParsedBulkImportRow,
+    created: BulkImportCreatedRecord,
+    actor?: AuditActor | null
+  ) {
+    if (this.getBulkImportAuditLevel() !== "DETAILED") return;
+
+    await this.audit.record({
+      actor,
+      action: this.bulkCreatedAction(type),
+      entityType: this.bulkCreatedEntityType(type),
+      entityId: created.id || `${jobId}:${row.rowNumber}`,
+      message: "Registro creado por carga masiva",
+      metadata: {
+        jobId,
+        row: row.rowNumber,
+        type,
+        createdId: created.id,
+        slug: created.slug,
+        name: this.truncateAuditText(created.name),
+      },
+    });
+  }
+
+  private async auditPostImportSideEffects(
+    jobId: number,
+    type: BulkImportType,
+    row: ParsedBulkImportRow,
+    created: BulkImportCreatedRecord,
+    actor?: AuditActor | null
+  ) {
+    if (this.getBulkImportAuditLevel() !== "DETAILED") return;
+
+    await this.auditImportedMedia(jobId, type, row, created, actor);
+    await this.auditDestinationRelations(jobId, type, row, created, actor);
+    await this.auditTranslationJobCreated(jobId, type, row, created, actor);
+  }
+
+  private async auditImportedMedia(
+    jobId: number,
+    type: BulkImportType,
+    row: ParsedBulkImportRow,
+    created: BulkImportCreatedRecord,
+    actor?: AuditActor | null
+  ) {
+    const media = this.parseMedia(row.values);
+
+    for (const item of media) {
+      await this.audit.record({
+        actor,
+        action: "MEDIA_IMPORT_FROM_EXCEL",
+        entityType: "ContentMedia",
+        entityId: `${type}:${created.id}:${item.sortOrder}`,
+        message: "Multimedia importada desde Excel",
+        metadata: {
+          jobId,
+          row: row.rowNumber,
+          ownerType: type,
+          ownerId: created.id,
+          mediaType: item.type,
+          provider: item.provider,
+          isPrimary: item.isPrimary,
+        },
+      });
+    }
+  }
+
+  private async auditDestinationRelations(
+    jobId: number,
+    type: BulkImportType,
+    row: ParsedBulkImportRow,
+    created: BulkImportCreatedRecord,
+    actor?: AuditActor | null
+  ) {
+    const relationFields =
+      type === "DESTINATION"
+        ? [
+            ["PROPERTY", "alojamientos_relacionados"],
+            ["EXPERIENCE", "experiencias_relacionadas"],
+            ["PACKAGE", "paquetes_relacionados"],
+          ]
+        : [["DESTINATION", "destinos_relacionados"]];
+
+    for (const [relationType, field] of relationFields) {
+      for (const slug of this.parseList(row.values[field])) {
+        await this.audit.record({
+          actor,
+          action: "BULK_DESTINATION_RELATION_CREATED",
+          entityType: "DestinationRelation",
+          entityId: `${jobId}:${row.rowNumber}:${slug}`,
+          message: "Relación creada desde carga masiva",
+          metadata: {
+            jobId,
+            row: row.rowNumber,
+            ownerType: type,
+            ownerSlug: created.slug,
+            relationType,
+            destinationSlug: slug,
+          },
+        });
+      }
+    }
+  }
+
+  private async auditTranslationJobCreated(
+    jobId: number,
+    type: BulkImportType,
+    row: ParsedBulkImportRow,
+    created: BulkImportCreatedRecord,
+    actor?: AuditActor | null
+  ) {
+    const manualTranslations = this.parseTranslations(row.values, type);
+    if (!this.isAutoTranslationEnabled() || manualTranslations) return;
+
+    const source = this.buildTranslationSource(type, row.values);
+    const fields = Object.keys(source).filter((field) =>
+      this.hasUsableTranslationValue(source[field])
+    );
+
+    if (!fields.length) return;
+
+    await this.audit.record({
+      actor,
+      action: "BULK_TRANSLATION_JOB_CREATED",
+      entityType: "TranslationJob",
+      entityId: `${type}:${created.id}`,
+      message: "Trabajo de traducción generado por carga masiva",
+      metadata: {
+        jobId,
+        entityType: type,
+        entityId: created.id,
+        targetLanguages: this.getTranslationTargets(),
+        fields,
+      },
+    });
+  }
+
+  private bulkCreatedAction(type: BulkImportType) {
+    return {
+      PROPERTY: "BULK_PROPERTY_CREATED",
+      EXPERIENCE: "BULK_EXPERIENCE_CREATED",
+      PACKAGE: "BULK_PACKAGE_CREATED",
+      DESTINATION: "BULK_DESTINATION_CREATED",
+      BLOG: "BULK_BLOG_CREATED",
+    }[type];
+  }
+
+  private bulkCreatedEntityType(type: BulkImportType) {
+    return {
+      PROPERTY: "Property",
+      EXPERIENCE: "Experience",
+      PACKAGE: "Package",
+      DESTINATION: "Destination",
+      BLOG: "BlogPost",
+    }[type];
+  }
+
+  private getBulkImportAuditLevel() {
+    const configured = String(process.env.BULK_IMPORT_AUDIT_LEVEL || "DETAILED")
+      .trim()
+      .toUpperCase();
+
+    return configured === "SUMMARY" ? "SUMMARY" : "DETAILED";
+  }
+
+  private truncateAuditText(value: unknown) {
+    return String(value || "").replace(/\s+/g, " ").trim().slice(0, 120) || null;
+  }
+
   private buildTypes() {
     return Object.entries(bulkImportTypes).map(([type, config]) => ({
       type,
@@ -555,6 +1215,20 @@ export class BulkImportService {
       acceptedExtensions,
       importExecutionEnabled: false,
     }));
+  }
+
+  private createdRecordSummary(
+    type: BulkImportType,
+    row: ParsedBulkImportRow,
+    record: any
+  ): BulkImportCreatedRecord {
+    return {
+      row: row.rowNumber,
+      type,
+      id: record?.id || "",
+      slug: record?.slug || null,
+      name: record?.title || record?.name || row.values.nombre || row.values.titulo || null,
+    };
   }
 
   private validateUploadedFile(file: any) {
@@ -616,6 +1290,7 @@ export class BulkImportService {
         warningsCount: warnings.length,
         previewRows: [],
         validRowNumbers: [],
+        invalidRowNumbers: [],
       };
     }
 
@@ -647,6 +1322,7 @@ export class BulkImportService {
         warningsCount: warnings.length,
         previewRows: [],
         validRowNumbers: [],
+        invalidRowNumbers: [],
       };
     }
 
@@ -706,6 +1382,10 @@ export class BulkImportService {
         : rowStats.dataRowNumbers.filter(
             (rowNumber) => !rowStats.invalidRowNumbers.has(rowNumber)
           );
+    const invalidRowNumbers =
+      headerErrors.length > 0
+        ? rowStats.dataRowNumbers
+        : Array.from(rowStats.invalidRowNumbers);
 
     return {
       expectedSheet: spec.sheetName,
@@ -719,6 +1399,7 @@ export class BulkImportService {
       warnings,
       previewRows,
       validRowNumbers,
+      invalidRowNumbers,
     };
   }
 
@@ -913,6 +1594,7 @@ export class BulkImportService {
       this.validateFaqFields(
         valuesByHeader,
         errors,
+        warnings,
         invalidRowNumbers,
         rowNumber
       );
@@ -1244,6 +1926,17 @@ export class BulkImportService {
 
       if (mediaUrl) mediaUrlCount += 1;
 
+      if (mediaType && !["IMAGE", "VIDEO"].includes(mediaType)) {
+        this.addRowError(
+          errors,
+          invalidRowNumbers,
+          rowNumber,
+          "INVALID_MEDIA_TYPE",
+          `Fila ${rowNumber} — ${typeField} debe ser IMAGE o VIDEO.`,
+          typeField
+        );
+      }
+
       if (mediaUrl && !mediaType) {
         this.addRowError(
           errors,
@@ -1266,7 +1959,7 @@ export class BulkImportService {
         );
       }
 
-      if (mediaUrl && !this.isValidUrl(mediaUrl)) {
+      if (mediaUrl && !this.isValidSafeMediaUrl(mediaUrl, mediaType || "IMAGE")) {
         this.addRowError(
           errors,
           invalidRowNumbers,
@@ -1307,6 +2000,7 @@ export class BulkImportService {
   private validateFaqFields(
     valuesByHeader: Record<string, string>,
     errors: BulkImportValidationError[],
+    warnings: BulkImportValidationError[],
     invalidRowNumbers: Set<number>,
     rowNumber: number
   ) {
@@ -1322,6 +2016,8 @@ export class BulkImportService {
 
         if (blocks.length === 0) return;
 
+        const seenQuestions = new Set<string>();
+
         blocks.forEach((block) => {
           const parts = block.split("|").map((part) => part.trim());
           const hasExactlyQuestionAndAnswer = parts.length === 2;
@@ -1334,6 +2030,44 @@ export class BulkImportService {
               rowNumber,
               "INVALID_FAQ_FORMAT",
               `Fila ${rowNumber} — ${field} debe usar el formato pregunta|respuesta; pregunta|respuesta.`,
+              field
+            );
+            return;
+          }
+
+          const questionKey = question
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+
+          if (seenQuestions.has(questionKey)) {
+            this.addWarning(
+              warnings,
+              rowNumber,
+              "DUPLICATED_FAQ_QUESTION",
+              `Fila ${rowNumber} â€” ${field} contiene una pregunta frecuente duplicada.`,
+              field
+            );
+          }
+          seenQuestions.add(questionKey);
+
+          if (question.length > FAQ_MAX_QUESTION_LENGTH) {
+            this.addWarning(
+              warnings,
+              rowNumber,
+              "FAQ_QUESTION_TOO_LONG",
+              `Fila ${rowNumber} â€” pregunta de ${field} supera ${FAQ_MAX_QUESTION_LENGTH} caracteres.`,
+              field
+            );
+          }
+
+          if (answer.length > FAQ_MAX_ANSWER_LENGTH) {
+            this.addWarning(
+              warnings,
+              rowNumber,
+              "FAQ_ANSWER_TOO_LONG",
+              `Fila ${rowNumber} â€” respuesta de ${field} supera ${FAQ_MAX_ANSWER_LENGTH} caracteres.`,
               field
             );
           }
@@ -1704,6 +2438,89 @@ export class BulkImportService {
     }
   }
 
+  private isValidSafeMediaUrl(value: string, mediaType: string) {
+    try {
+      const url = new URL(String(value || "").trim());
+      const protocolAllowed = ["http:", "https:"].includes(url.protocol);
+      const host = url.hostname.toLowerCase();
+      const pathName = url.pathname.toLowerCase();
+      const isPrivate =
+        host === "localhost" ||
+        host === "::1" ||
+        host.startsWith("127.") ||
+        host.startsWith("10.") ||
+        host.startsWith("192.168.") ||
+        /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+
+      if (!protocolAllowed || isPrivate || value.length > 500) return false;
+
+      if (mediaType === "VIDEO") {
+        return (
+          host.includes("youtube.com") ||
+          host.includes("youtu.be") ||
+          host.includes("vimeo.com") ||
+          /\.(mp4|webm|mov)(\?.*)?$/.test(pathName)
+        );
+      }
+
+      return (
+        /\.(jpe?g|png|webp|avif)(\?.*)?$/.test(pathName) ||
+        [
+          "cloudinary.com",
+          "images.unsplash.com",
+          "imgix.net",
+          "supabase.co",
+          "googleusercontent.com",
+          "wp.com",
+          "ctfassets.net",
+        ].some((hostPart) => host.includes(hostPart))
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  private detectMediaProvider(url: string): MediaProvider {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    const pathName = parsed.pathname.toLowerCase();
+
+    if (host.includes("youtube.com") || host.includes("youtu.be")) {
+      return MediaProvider.YOUTUBE;
+    }
+
+    if (host.includes("vimeo.com")) {
+      return MediaProvider.VIMEO;
+    }
+
+    if (/\.(mp4|webm|mov)(\?.*)?$/.test(pathName)) {
+      return MediaProvider.DIRECT;
+    }
+
+    return MediaProvider.EXTERNAL;
+  }
+
+  private buildVideoThumbnail(url: string, mediaType: MediaType) {
+    if (mediaType !== MediaType.VIDEO) return null;
+
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    let videoId: string | null = null;
+
+    if (host.includes("youtu.be")) {
+      videoId = parsed.pathname.split("/").filter(Boolean)[0] || null;
+    } else if (host.includes("youtube.com")) {
+      videoId =
+        parsed.searchParams.get("v") ||
+        parsed.pathname.match(/\/(embed|shorts)\/([^/?]+)/)?.[2] ||
+        null;
+    }
+
+    return videoId
+      ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+      : null;
+  }
+
   private async readWorkbookRows(
     type: BulkImportType,
     buffer: Buffer,
@@ -1788,6 +2605,12 @@ export class BulkImportService {
       },
     });
 
+    await this.createContentMediaFromImport(
+      tx,
+      MediaOwnerType.DESTINATION,
+      destination.id,
+      media
+    );
     await this.createDestinationRelations(tx, destination.id, values);
     await this.queuePostImportTranslation(tx, "DESTINATION", destination.id, values, translations);
     return destination;
@@ -1859,6 +2682,12 @@ export class BulkImportService {
       },
     });
 
+    await this.createContentMediaFromImport(
+      tx,
+      MediaOwnerType.PROPERTY,
+      property.id,
+      media
+    );
     await this.linkProductToDestinations(tx, "PROPERTY", property.id, values.destinos_relacionados);
     await this.queuePostImportTranslation(tx, "PROPERTY", property.id, values, translations);
     return property;
@@ -1920,6 +2749,12 @@ export class BulkImportService {
       },
     });
 
+    await this.createContentMediaFromImport(
+      tx,
+      MediaOwnerType.EXPERIENCE,
+      experience.id,
+      media
+    );
     await this.linkProductToDestinations(tx, "EXPERIENCE", experience.id, values.destinos_relacionados);
     await this.queuePostImportTranslation(tx, "EXPERIENCE", experience.id, values, translations);
     return experience;
@@ -1978,6 +2813,12 @@ export class BulkImportService {
       },
     });
 
+    await this.createContentMediaFromImport(
+      tx,
+      MediaOwnerType.PACKAGE,
+      packageRecord.id,
+      media
+    );
     await this.linkProductToDestinations(tx, "PACKAGE", packageRecord.id, values.destinos_relacionados);
     await this.queuePostImportTranslation(tx, "PACKAGE", packageRecord.id, values, translations);
     return packageRecord;
@@ -1996,13 +2837,25 @@ export class BulkImportService {
         title: values.titulo,
         slug: this.resolveSlug(values.slug, values.titulo),
         excerpt: this.emptyToNull(values.extracto),
-        content: values.contenido,
+        content: sanitizeBlogHtml(values.contenido),
         coverImage: media.find((item) => item.isPrimary)?.url || media[0]?.url || null,
         category: this.emptyToNull(values.categoria),
         tags: this.toJsonOrNull(this.parseList(values.tags)),
         seoTitle: this.emptyToNull(values.seo_titulo),
         seoDescription: this.emptyToNull(values.seo_descripcion),
         seoKeywords: this.toJsonOrNull(this.parseList(values.palabras_clave)),
+        relatedDestinationSlugs: this.toJsonOrNull(
+          this.parseList(values.destinos_relacionados)
+        ),
+        relatedPropertySlugs: this.toJsonOrNull(
+          this.parseList(values.alojamientos_relacionados)
+        ),
+        relatedExperienceSlugs: this.toJsonOrNull(
+          this.parseList(values.experiencias_relacionadas)
+        ),
+        relatedPackageSlugs: this.toJsonOrNull(
+          this.parseList(values.paquetes_relacionados)
+        ),
         authorName: this.emptyToNull(values.autor),
         isPublished,
         publishedAt: isPublished
@@ -2014,8 +2867,48 @@ export class BulkImportService {
       },
     });
 
+    await this.createContentMediaFromImport(
+      tx,
+      MediaOwnerType.BLOG,
+      post.id,
+      media
+    );
     await this.queuePostImportTranslation(tx, "BLOG", post.id, values, translations);
     return post;
+  }
+
+  private async createContentMediaFromImport(
+    tx: Prisma.TransactionClient,
+    ownerType: MediaOwnerType,
+    ownerId: number,
+    media: Array<{
+      type: MediaType;
+      url: string;
+      title: string | null;
+      description: string | null;
+      isPrimary: boolean;
+      sortOrder: number;
+      provider: MediaProvider;
+      thumbnailUrl: string | null;
+    }>
+  ) {
+    if (!media.length) return;
+
+    await tx.contentMedia.createMany({
+      data: media.map((item, index) => ({
+        ownerType,
+        ownerId,
+        type: item.type,
+        url: item.url,
+        title: item.title,
+        description: item.description,
+        isMain: item.isPrimary,
+        sortOrder: item.sortOrder ?? index + 1,
+        provider: item.provider,
+        thumbnailUrl: item.thumbnailUrl,
+        isActive: true,
+      })),
+    });
   }
 
   private cleanFileName(fileName: string) {
@@ -2100,6 +2993,7 @@ export class BulkImportService {
 
   private parseFaq(value: string | undefined) {
     if (!value) return null;
+    const seenQuestions = new Set<string>();
     const items = value
       .split(";")
       .map((block) => block.trim())
@@ -2108,7 +3002,19 @@ export class BulkImportService {
         const [question, answer] = block.split("|").map((part) => part.trim());
         return question && answer ? { question, answer } : null;
       })
-      .filter(Boolean);
+      .filter((item): item is { question: string; answer: string } =>
+        Boolean(item)
+      )
+      .filter((item) => {
+        const key = item.question
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .trim();
+        if (seenQuestions.has(key)) return false;
+        seenQuestions.add(key);
+        return true;
+      });
 
     return items.length ? items : null;
   }
@@ -2121,10 +3027,12 @@ export class BulkImportService {
         title: this.emptyToNull(values[`media_${index}_titulo`]),
         description: this.emptyToNull(values[`media_${index}_descripcion`]),
         isPrimary: this.parseBoolean(values[`media_${index}_principal`], false),
+        sortOrder: index,
       }))
       .filter((item) => item.url)
       .map((item) => ({
         ...item,
+        url: item.url.trim(),
         type: item.type === "VIDEO" ? MediaType.VIDEO : MediaType.IMAGE,
       }));
 
@@ -2134,10 +3042,20 @@ export class BulkImportService {
 
     let primaryAlreadyAssigned = false;
     return media.map((item) => {
-      if (!item.isPrimary) return item;
-      if (primaryAlreadyAssigned) return { ...item, isPrimary: false };
+      const provider = this.detectMediaProvider(item.url);
+      const thumbnailUrl = this.buildVideoThumbnail(item.url, item.type);
+      const normalized = {
+        ...item,
+        provider,
+        thumbnailUrl,
+        isMain: item.isPrimary,
+      };
+      if (!normalized.isPrimary) return normalized;
+      if (primaryAlreadyAssigned) {
+        return { ...normalized, isPrimary: false, isMain: false };
+      }
       primaryAlreadyAssigned = true;
-      return item;
+      return normalized;
     });
   }
 
@@ -2541,6 +3459,10 @@ export class BulkImportService {
   }
 
   private cleanErrorMessage(error: unknown) {
+    if (typeof error === "string") {
+      return error.replace(/\s+/g, " ").slice(0, 240);
+    }
+
     if (error instanceof Error) {
       return error.message.replace(/\s+/g, " ").slice(0, 240);
     }

@@ -27,6 +27,11 @@ function actorFromRequest(req: any) {
     role: req.user?.role,
     email: req.user?.email,
     name: req.user?.name,
+    ip:
+      req.headers?.["x-forwarded-for"]?.split?.(",")?.[0]?.trim?.() ||
+      req.ip ||
+      req.socket?.remoteAddress,
+    userAgent: req.headers?.["user-agent"],
   };
 }
 
@@ -71,9 +76,50 @@ export class BulkImportController {
     return this.service.findJobs(query, actorFromRequest(req));
   }
 
+  @Get("jobs/stats")
+  getJobStats(@Query() query: BulkImportTypeQueryDto) {
+    return this.service.getStats(query);
+  }
+
+  @Get("jobs/:id/errors.xlsx")
+  async downloadErrorsReport(
+    @Param("id", ParseIntPipe) id: number,
+    @Request() req: any,
+    @Res() res: Response
+  ) {
+    const buffer = await this.service.downloadErrorsReport(id, actorFromRequest(req));
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=\"errores-importacion-${id}.xlsx\"`
+    );
+    res.send(buffer);
+  }
+
+  @Get("jobs/:id/result.xlsx")
+  async downloadResultReport(
+    @Param("id", ParseIntPipe) id: number,
+    @Request() req: any,
+    @Res() res: Response
+  ) {
+    const buffer = await this.service.downloadResultReport(id, actorFromRequest(req));
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=\"resultado-importacion-${id}.xlsx\"`
+    );
+    res.send(buffer);
+  }
+
   @Get("jobs/:id")
-  findJobById(@Param("id", ParseIntPipe) id: number) {
-    return this.service.findJobById(id);
+  findJobById(@Param("id", ParseIntPipe) id: number, @Request() req: any) {
+    return this.service.findJobById(id, actorFromRequest(req));
   }
 
   @Post("jobs")
@@ -100,5 +146,10 @@ export class BulkImportController {
   @Post("jobs/:id/confirm")
   confirmJob(@Param("id", ParseIntPipe) id: number, @Request() req: any) {
     return this.service.confirmImport(id, actorFromRequest(req));
+  }
+
+  @Post("jobs/:id/cancel")
+  cancelJob(@Param("id", ParseIntPipe) id: number, @Request() req: any) {
+    return this.service.cancelJob(id, actorFromRequest(req));
   }
 }

@@ -74,13 +74,6 @@ async function fetchCanonicalSlug(
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
 
-  if (url.pathname === "/") {
-    const redirectUrl = url.clone();
-    redirectUrl.pathname = "/es";
-
-    return NextResponse.redirect(redirectUrl, 308);
-  }
-
   const pathParts = url.pathname.split("/").filter(Boolean);
   const hasLocalePrefix = locales.has(pathParts[0]);
   const routeIndex = hasLocalePrefix ? 1 : 0;
@@ -139,6 +132,5 @@ export const config = {
     "/:locale/esperienze/:path*",
     "/:locale/pacchetti/:path*",
     "/:locale/destinazioni/:path*",
-    "/",
   ],
 };

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, MapPin, MessageCircle } from "lucide-react";
+import { ArrowLeft, ChevronRight, ExternalLink, MapPin, MessageCircle } from "lucide-react";
 
 import LazyProductCarousel from "@/components/home/LazyProductCarousel";
 import PublicProductCard from "@/components/public-product-card";
@@ -63,6 +63,14 @@ type Destination = {
   packages?: RelatedProduct[];
 };
 
+type DestinationMediaItem = {
+  type: "IMAGE" | "VIDEO";
+  url: string;
+  title: string | null;
+  description: string | null;
+  isPrimary: boolean;
+};
+
 function normalizeGallery(value: unknown) {
   if (typeof value === "string") {
     try {
@@ -76,14 +84,59 @@ function normalizeGallery(value: unknown) {
 
   return value
     .map((item) => {
-      if (typeof item === "string") return item;
-      if (item && typeof item === "object") {
-        return (item as { url?: string | null }).url || "";
+      if (typeof item === "string") {
+        return {
+          type: "IMAGE" as const,
+          url: item.trim(),
+          title: null,
+          description: null,
+          isPrimary: false,
+        };
       }
-      return "";
+      if (item && typeof item === "object") {
+        const source = item as {
+          type?: string | null;
+          url?: string | null;
+          title?: string | null;
+          description?: string | null;
+          isPrimary?: boolean | null;
+        };
+        return {
+          type: source.type === "VIDEO" ? "VIDEO" as const : "IMAGE" as const,
+          url: String(source.url || "").trim(),
+          title: source.title || null,
+          description: source.description || null,
+          isPrimary: Boolean(source.isPrimary),
+        };
+      }
+      return null;
     })
-    .map((url) => url.trim())
-    .filter(Boolean);
+    .filter((item): item is DestinationMediaItem => Boolean(item?.url));
+}
+
+function videoEmbedUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+
+    if (parsed.hostname.includes("youtube.com")) {
+      const videoId = parsed.searchParams.get("v");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+
+    if (parsed.hostname === "youtu.be") {
+      const videoId = parsed.pathname.replace("/", "");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+
+    if (parsed.hostname.includes("vimeo.com")) {
+      const videoId = parsed.pathname.split("/").filter(Boolean)[0];
+      return videoId ? `https://player.vimeo.com/video/${videoId}` : url;
+    }
+  } catch {
+    return "";
+  }
+
+  return url;
 }
 
 function primaryImage(item: RelatedProduct, fallback: string) {
@@ -138,7 +191,8 @@ export default function DestinationDetailContent({
   const packages = destination.packages || [];
   const heroImage =
     destination.heroImage ||
-    gallery[0] ||
+    gallery.find((item) => item.type === "IMAGE" && item.isPrimary)?.url ||
+    gallery.find((item) => item.type === "IMAGE")?.url ||
     "https://images.unsplash.com/photo-1533125842689-7a1f6d60f3dc?auto=format&fit=crop&q=70&w=1600";
 
   return (
@@ -233,7 +287,7 @@ export default function DestinationDetailContent({
 
             {properties.length > 0 && (
               <RelatedProductsSection
-                title="Alojamientos relacionados"
+                title="Alojamientos en este destino"
                 subtitle="Estadias conectadas con este destino para planear una visita con asesoria personalizada."
               >
                 <LazyProductCarousel>
@@ -289,7 +343,7 @@ export default function DestinationDetailContent({
 
             {experiences.length > 0 && (
               <RelatedProductsSection
-                title="Experiencias relacionadas"
+                title="Experiencias en este destino"
                 subtitle="Planes privados y experiencias curadas para descubrir este destino con acompanamiento experto."
               >
                 <LazyProductCarousel>
@@ -331,7 +385,7 @@ export default function DestinationDetailContent({
 
             {packages.length > 0 && (
               <RelatedProductsSection
-                title="Paquetes relacionados"
+                title="Paquetes recomendados en este destino"
                 subtitle="Viajes completos que combinan estadia, experiencias y servicios premium alrededor de este destino."
               >
                 <LazyProductCarousel>
@@ -378,20 +432,45 @@ export default function DestinationDetailContent({
                   {t("destinations.gallery")}
                 </p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {gallery.slice(0, 6).map((image, index) => (
+                  {gallery.slice(0, 6).map((media, index) => (
                     <div
-                      key={`${image}-${index}`}
+                      key={`${media.url}-${index}`}
                       className="relative h-56 overflow-hidden rounded-2xl bg-slate-100"
                     >
-                      <PublicImage
-                        src={image}
-                        alt={`${name} ${index + 1}`}
-                        fill
-                        sizes="(min-width: 640px) 50vw, 100vw"
-                        quality={68}
-                        optimizeWidth={900}
-                        className="object-cover"
-                      />
+                      {media.type === "VIDEO" ? (
+                        videoEmbedUrl(media.url) ? (
+                          <iframe
+                            src={videoEmbedUrl(media.url)}
+                            title={media.title || `${name} video ${index + 1}`}
+                            className="h-full w-full"
+                            loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <a
+                            href={media.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[#0D2B52] p-6 text-center text-white"
+                          >
+                            <ExternalLink className="h-6 w-6 text-[#D4AF37]" />
+                            <span className="text-sm font-semibold">
+                              Ver video del destino
+                            </span>
+                          </a>
+                        )
+                      ) : (
+                        <PublicImage
+                          src={media.url}
+                          alt={media.title || `${name} ${index + 1}`}
+                          fill
+                          sizes="(min-width: 640px) 50vw, 100vw"
+                          quality={68}
+                          optimizeWidth={900}
+                          className="object-cover"
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -403,14 +482,19 @@ export default function DestinationDetailContent({
                 <p className="text-xs uppercase tracking-[0.28em] text-[#B68D40]">
                   {t("destinations.faq")}
                 </p>
-                <div className="mt-4 divide-y divide-[#D4AF37]/15">
+                <div className="mt-4 space-y-3">
                   {faqs.map((faq, index) => (
-                    <div key={`${faq.question}-${index}`} className="py-4">
-                      <h2 className="text-lg font-bold">{faq.question}</h2>
-                      <p className="mt-2 text-sm leading-7 text-slate-600">
+                    <details
+                      key={`${faq.question}-${index}`}
+                      className="rounded-2xl border border-[#D4AF37]/15 bg-[#F8F6F1] p-4"
+                    >
+                      <summary className="cursor-pointer text-sm font-semibold text-[#0D2B52]">
+                        {faq.question}
+                      </summary>
+                      <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">
                         {faq.answer}
                       </p>
-                    </div>
+                    </details>
                   ))}
                 </div>
               </section>

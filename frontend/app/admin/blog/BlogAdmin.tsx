@@ -18,14 +18,23 @@ import {
 } from "lucide-react";
 
 import SeoChecklist from "@/components/admin/SeoChecklist";
+import MediaGalleryEditor, {
+  type AdminMediaItem,
+} from "@/components/admin/MediaGalleryEditor";
+import RichBlogEditor from "@/components/admin/RichBlogEditor";
 import TranslationEditor from "@/components/admin/TranslationEditor";
 import TranslationStatusBadge from "@/components/admin/TranslationStatusBadge";
-import type { TranslationMap } from "@/components/admin/translations-model";
+import {
+  translationLanguages,
+  type TranslationLanguage,
+  type TranslationMap,
+} from "@/components/admin/translations-model";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { apiUrl } from "@/lib/api";
+import { sanitizeBlogHtml } from "@/lib/blog-html";
 import { normalizeSeoSlug } from "@/lib/slug";
 
 type BlogPost = {
@@ -41,6 +50,10 @@ type BlogPost = {
   seoDescription?: string | null;
   seoKeywords?: unknown;
   authorName?: string | null;
+  relatedDestinationSlugs?: unknown;
+  relatedPropertySlugs?: unknown;
+  relatedExperienceSlugs?: unknown;
+  relatedPackageSlugs?: unknown;
   isPublished: boolean;
   publishedAt?: string | null;
   isFeatured: boolean;
@@ -63,11 +76,17 @@ type BlogForm = {
   seoDescription: string;
   seoKeywords: string;
   authorName: string;
+  publishedAt: string;
+  relatedDestinationSlugs: string;
+  relatedPropertySlugs: string;
+  relatedExperienceSlugs: string;
+  relatedPackageSlugs: string;
   isPublished: boolean;
   isFeatured: boolean;
   translations: TranslationMap;
   translationStatus?: string | null;
   translationError?: string | null;
+  media: AdminMediaItem[];
 };
 
 const emptyForm: BlogForm = {
@@ -82,11 +101,17 @@ const emptyForm: BlogForm = {
   seoDescription: "",
   seoKeywords: "",
   authorName: "Cartagena Tailored Travel",
+  publishedAt: "",
+  relatedDestinationSlugs: "",
+  relatedPropertySlugs: "",
+  relatedExperienceSlugs: "",
+  relatedPackageSlugs: "",
   isPublished: false,
   isFeatured: false,
   translations: {},
   translationStatus: "NOT_REQUESTED",
   translationError: null,
+  media: [],
 };
 
 function authHeaders() {
@@ -124,6 +149,42 @@ function textToArray(value: string) {
   return items.length ? items : undefined;
 }
 
+function sanitizeBlogTranslations(value: TranslationMap) {
+  const copy: TranslationMap = {};
+
+  Object.entries(value || {}).forEach(([locale, fields]) => {
+    if (!translationLanguages.includes(locale as TranslationLanguage)) return;
+    const language = locale as TranslationLanguage;
+
+    copy[language] = {
+      ...fields,
+      content:
+        typeof fields?.content === "string"
+          ? sanitizeBlogHtml(fields.content)
+          : fields?.content,
+    };
+  });
+
+  return copy;
+}
+
+function normalizeMediaItems(value: unknown): AdminMediaItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item: any, index) => ({
+      id: item.id,
+      url: String(item.url || "").trim(),
+      mediaType: item.mediaType || item.type || "IMAGE",
+      title: item.title || "",
+      description: item.description || "",
+      isPrimary: Boolean(item.isPrimary ?? item.isMain),
+      active: item.active ?? item.isActive ?? true,
+      sortOrder: item.sortOrder ?? index,
+    }))
+    .filter((item) => item.url);
+}
+
 function toForm(item: BlogPost): BlogForm {
   return {
     id: item.id,
@@ -138,11 +199,17 @@ function toForm(item: BlogPost): BlogForm {
     seoDescription: item.seoDescription || "",
     seoKeywords: arrayToText(item.seoKeywords),
     authorName: item.authorName || "",
+    publishedAt: item.publishedAt ? item.publishedAt.slice(0, 10) : "",
+    relatedDestinationSlugs: arrayToText(item.relatedDestinationSlugs),
+    relatedPropertySlugs: arrayToText(item.relatedPropertySlugs),
+    relatedExperienceSlugs: arrayToText(item.relatedExperienceSlugs),
+    relatedPackageSlugs: arrayToText(item.relatedPackageSlugs),
     isPublished: Boolean(item.isPublished),
     isFeatured: Boolean(item.isFeatured),
     translations: item.translations || {},
     translationStatus: item.translationStatus || "NOT_REQUESTED",
     translationError: item.translationError || null,
+    media: normalizeMediaItems((item as any).media),
   };
 }
 
@@ -183,6 +250,9 @@ export default function BlogAdmin() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] =
     useState<"ALL" | "PUBLISHED" | "DRAFT">("ALL");
+  const [featuredFilter, setFeaturedFilter] =
+    useState<"ALL" | "FEATURED" | "NOT_FEATURED">("ALL");
+  const [categoryFilter, setCategoryFilter] = useState("ALL");
 
   const canManage = useMemo(() => ["SUPERADMIN", "ADMIN"].includes(role), [role]);
   const canDelete = role === "SUPERADMIN";
@@ -198,10 +268,22 @@ export default function BlogAdmin() {
       const matchesStatus =
         statusFilter === "ALL" ||
         (statusFilter === "PUBLISHED" ? item.isPublished : !item.isPublished);
+      const matchesFeatured =
+        featuredFilter === "ALL" ||
+        (featuredFilter === "FEATURED" ? item.isFeatured : !item.isFeatured);
+      const matchesCategory =
+        categoryFilter === "ALL" || String(item.category || "") === categoryFilter;
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesFeatured && matchesCategory;
     });
-  }, [items, search, statusFilter]);
+  }, [categoryFilter, featuredFilter, items, search, statusFilter]);
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Set(items.map((item) => String(item.category || "").trim()).filter(Boolean))
+      ).sort((a, b) => a.localeCompare(b)),
+    [items]
+  );
 
   function updateForm<K extends keyof BlogForm>(key: K, value: BlogForm[K]) {
     setForm((current) => {
@@ -261,7 +343,19 @@ export default function BlogAdmin() {
         throw new Error(data?.message || "No se pudo cargar el articulo.");
       }
 
-      setForm(toForm(data));
+      let media: AdminMediaItem[] = [];
+      try {
+        const mediaResponse = await fetch(apiUrl(`/media/BLOG/${id}`), {
+          headers: authHeaders(),
+          cache: "no-store",
+        });
+        const mediaData = await mediaResponse.json();
+        media = mediaResponse.ok ? normalizeMediaItems(mediaData) : [];
+      } catch {
+        media = [];
+      }
+
+      setForm({ ...toForm(data), media });
     } catch (error: any) {
       setMessage(friendlyError(error, "Error cargando articulo."));
     } finally {
@@ -292,7 +386,7 @@ export default function BlogAdmin() {
       title: form.title,
       slug: form.slug,
       excerpt: form.excerpt,
-      content: form.content,
+      content: sanitizeBlogHtml(form.content),
       coverImage: form.coverImage,
       category: form.category,
       tags: textToArray(form.tags),
@@ -300,9 +394,14 @@ export default function BlogAdmin() {
       seoDescription: form.seoDescription,
       seoKeywords: textToArray(form.seoKeywords),
       authorName: form.authorName,
+      publishedAt: form.publishedAt || undefined,
+      relatedDestinationSlugs: textToArray(form.relatedDestinationSlugs),
+      relatedPropertySlugs: textToArray(form.relatedPropertySlugs),
+      relatedExperienceSlugs: textToArray(form.relatedExperienceSlugs),
+      relatedPackageSlugs: textToArray(form.relatedPackageSlugs),
       isPublished: form.isPublished,
       isFeatured: form.isFeatured,
-      translations: form.translations,
+      translations: sanitizeBlogTranslations(form.translations),
     };
   }
 
@@ -325,6 +424,36 @@ export default function BlogAdmin() {
 
       if (!response.ok) {
         throw new Error(data?.message || "No se pudo guardar el articulo.");
+      }
+
+      const savedId = data?.id || editId;
+      if (savedId) {
+        const mediaItems = form.media
+          .filter((item) => item.url?.trim())
+          .map((item, index) => ({
+            type: item.mediaType || "IMAGE",
+            url: item.url,
+            title: item.title,
+            description: item.description,
+            isMain: item.isPrimary,
+            sortOrder: item.sortOrder ?? index,
+            isActive: item.active !== false,
+          }));
+
+        if (mediaItems.length || isEditRoute) {
+          const mediaResponse = await fetch(apiUrl(`/media/BLOG/${savedId}/replace`), {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ items: mediaItems }),
+          });
+          const mediaData = await mediaResponse.json();
+
+          if (!mediaResponse.ok) {
+            throw new Error(
+              mediaData?.message || "El articulo se guardo, pero falló la multimedia."
+            );
+          }
+        }
       }
 
       router.push("/admin/blog");
@@ -355,6 +484,28 @@ export default function BlogAdmin() {
       await fetchPosts();
     } catch (error: any) {
       setMessage(friendlyError(error, "Error actualizando estado."));
+    }
+  }
+
+  async function toggleFeatured(item: BlogPost) {
+    if (!canManage) return;
+
+    try {
+      setMessage("");
+      const response = await fetch(apiUrl(`/blog/${item.id}/feature`), {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ isFeatured: !item.isFeatured }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || "No se pudo actualizar el destacado.");
+      }
+
+      await fetchPosts();
+    } catch (error: any) {
+      setMessage(friendlyError(error, "Error actualizando destacado."));
     }
   }
 
@@ -454,6 +605,15 @@ export default function BlogAdmin() {
                       disabled={!canManage}
                     />
                   </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-semibold">Fecha publicacion</span>
+                    <Input
+                      type="date"
+                      value={form.publishedAt}
+                      onChange={(event) => updateForm("publishedAt", event.target.value)}
+                      disabled={!canManage}
+                    />
+                  </label>
                   <label className="space-y-2 md:col-span-2">
                     <span className="text-sm font-semibold">Resumen</span>
                     <Textarea
@@ -465,12 +625,15 @@ export default function BlogAdmin() {
                   </label>
                   <label className="space-y-2 md:col-span-2">
                     <span className="text-sm font-semibold">Contenido</span>
-                    <Textarea
+                    <RichBlogEditor
                       value={form.content}
-                      rows={12}
-                      onChange={(event) => updateForm("content", event.target.value)}
+                      onChange={(content) => updateForm("content", content)}
                       disabled={!canManage}
                     />
+                    <span className="block text-xs text-slate-500">
+                      Usa un solo H1, H2 para secciones, enlaces internos y alt
+                      descriptivo en imagenes.
+                    </span>
                   </label>
                   <label className="space-y-2 md:col-span-2">
                     <span className="text-sm font-semibold">Imagen principal</span>
@@ -516,6 +679,75 @@ export default function BlogAdmin() {
               </section>
 
               <section className="rounded-3xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm">
+                <h2 className="text-xl font-bold">Multimedia</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Agrega imagenes o videos por URL externa. No se cargan
+                  archivos al servidor.
+                </p>
+                <div className="mt-4">
+                  <MediaGalleryEditor
+                    value={form.media}
+                    onChange={(media) => updateForm("media", media)}
+                    disabled={!canManage}
+                  />
+                </div>
+              </section>
+
+              <section className="rounded-3xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm">
+                <h2 className="text-xl font-bold">Relaciones internas SEO</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Usa slugs separados por coma para enlazar el articulo con destinos,
+                  alojamientos, experiencias y paquetes relacionados.
+                </p>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <label className="space-y-2">
+                    <span className="text-sm font-semibold">Destinos relacionados</span>
+                    <Input
+                      value={form.relatedDestinationSlugs}
+                      onChange={(event) =>
+                        updateForm("relatedDestinationSlugs", event.target.value)
+                      }
+                      placeholder="islas-del-rosario, centro-historico"
+                      disabled={!canManage}
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-semibold">Alojamientos relacionados</span>
+                    <Input
+                      value={form.relatedPropertySlugs}
+                      onChange={(event) =>
+                        updateForm("relatedPropertySlugs", event.target.value)
+                      }
+                      placeholder="villa-premium-centro-historico"
+                      disabled={!canManage}
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-semibold">Experiencias relacionadas</span>
+                    <Input
+                      value={form.relatedExperienceSlugs}
+                      onChange={(event) =>
+                        updateForm("relatedExperienceSlugs", event.target.value)
+                      }
+                      placeholder="tour-privado-islas-del-rosario"
+                      disabled={!canManage}
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-semibold">Paquetes relacionados</span>
+                    <Input
+                      value={form.relatedPackageSlugs}
+                      onChange={(event) =>
+                        updateForm("relatedPackageSlugs", event.target.value)
+                      }
+                      placeholder="cartagena-premium-5-dias"
+                      disabled={!canManage}
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section className="rounded-3xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm">
                 <h2 className="text-xl font-bold">SEO del articulo</h2>
                 <p className="mt-1 text-sm text-slate-500">
                   Estos campos ayudan a posicionar el articulo en Google.
@@ -525,10 +757,23 @@ export default function BlogAdmin() {
                     slug={form.slug}
                     seoTitle={form.seoTitle}
                     seoDescription={form.seoDescription}
+                    shortDescription={form.excerpt}
                     seoContent={form.content}
                     image={form.coverImage}
                     translations={form.translations}
                     minimumWords={700}
+                    hasInternalLinks={
+                      Boolean(form.tags.trim()) ||
+                      Boolean(form.seoKeywords.trim()) ||
+                      Boolean(form.relatedDestinationSlugs.trim()) ||
+                      Boolean(form.relatedPropertySlugs.trim()) ||
+                      Boolean(form.relatedExperienceSlugs.trim()) ||
+                      Boolean(form.relatedPackageSlugs.trim()) ||
+                      /\/(destinos|alojamientos|experiencias|paquetes)\//.test(
+                        form.content
+                      )
+                    }
+                    internalLinksLabel="Tiene enlaces internos o temas relacionados"
                   />
                 </div>
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -649,7 +894,7 @@ export default function BlogAdmin() {
         )}
 
         <section className="mb-5 rounded-3xl border border-[#D4AF37]/20 bg-white p-4 shadow-sm">
-          <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+          <div className="grid gap-3 md:grid-cols-[1fr_170px_170px_190px]">
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -665,6 +910,29 @@ export default function BlogAdmin() {
               <option value="ALL">Todos</option>
               <option value="PUBLISHED">Publicados</option>
               <option value="DRAFT">Borradores</option>
+            </select>
+            <select
+              value={featuredFilter}
+              onChange={(event) =>
+                setFeaturedFilter(event.target.value as typeof featuredFilter)
+              }
+              className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm"
+            >
+              <option value="ALL">Todos destacados</option>
+              <option value="FEATURED">Destacados</option>
+              <option value="NOT_FEATURED">No destacados</option>
+            </select>
+            <select
+              value={categoryFilter}
+              onChange={(event) => setCategoryFilter(event.target.value)}
+              className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm"
+            >
+              <option value="ALL">Todas las categorias</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
             </select>
           </div>
         </section>
@@ -748,6 +1016,17 @@ export default function BlogAdmin() {
                           <Eye className="mr-1 h-4 w-4" /> Publicar
                         </>
                       )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl"
+                      onClick={() => toggleFeatured(item)}
+                      disabled={!canManage}
+                    >
+                      <Star className="mr-1 h-4 w-4" />
+                      {item.isFeatured ? "Quitar destacado" : "Destacar"}
                     </Button>
                     <Button
                       type="button"

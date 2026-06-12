@@ -13,6 +13,9 @@ import {
 
 import BlogPostText from "@/components/blog/BlogPostText";
 import JsonLd from "@/components/JsonLd";
+import ProductMediaGallery, {
+  type ProductMediaItem,
+} from "@/components/media/ProductMediaGallery";
 import PublicBreadcrumbs from "@/components/PublicBreadcrumbs";
 import TranslatedText from "@/components/TranslatedText";
 import { apiUrl } from "@/lib/api";
@@ -33,7 +36,7 @@ import {
 import { buildBlogPostingSchema, buildBreadcrumbSchema } from "@/lib/schema";
 import type { Language } from "@/i18n";
 
-export const revalidate = 600;
+export const revalidate = 900;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -52,9 +55,14 @@ type BlogPost = {
   seoTitle?: string | null;
   seoDescription?: string | null;
   authorName?: string | null;
+  relatedDestinationSlugs?: unknown;
+  relatedPropertySlugs?: unknown;
+  relatedExperienceSlugs?: unknown;
+  relatedPackageSlugs?: unknown;
   publishedAt?: string | null;
   updatedAt?: string | null;
   translations?: DynamicTranslations | null;
+  media?: ProductMediaItem[] | null;
 };
 
 const fallbackDescription =
@@ -91,6 +99,65 @@ function normalizeTags(value: unknown) {
     .slice(0, 12);
 }
 
+function normalizeSlugList(value: unknown) {
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 8);
+  }
+
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function labelFromSlug(slug: string) {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function normalizeBlogMedia(post: BlogPost): ProductMediaItem[] {
+  const media = Array.isArray(post.media) ? post.media : [];
+
+  return media
+    .map((item: any, index) => ({
+      id: item.id,
+      url: String(item.url || "").trim(),
+      mediaType: item.mediaType || item.type || "IMAGE",
+      title: item.title || null,
+      description: item.description || null,
+      isPrimary: item.isPrimary ?? item.isMain ?? index === 0,
+      active: item.active ?? item.isActive ?? true,
+      sortOrder: item.sortOrder ?? index,
+      thumbnailUrl: item.thumbnailUrl || null,
+    }))
+    .filter((item) => item.url && item.active !== false);
+}
+
+function visualImageFromMedia(post: BlogPost) {
+  const media = normalizeBlogMedia(post);
+  const main = media.find((item) => item.isPrimary) || media[0];
+  const firstImage = media.find((item) => item.mediaType !== "VIDEO");
+
+  if (main?.mediaType === "VIDEO" && main.thumbnailUrl) {
+    return main.thumbnailUrl;
+  }
+
+  if (main?.mediaType !== "VIDEO" && main?.url) {
+    return main.url;
+  }
+
+  return firstImage?.url || post.coverImage || defaultOgImage.url;
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -113,7 +180,7 @@ export async function generateMetadata({
     post.seoDescription || post.excerpt || "",
     fallbackDescription
   );
-  const image = absoluteImageUrl(post.coverImage);
+  const image = absoluteImageUrl(visualImageFromMedia(post));
 
   return buildMetadata({
     title,
@@ -133,9 +200,36 @@ export default async function BlogPostPage({ params, locale = "es" }: PageProps)
 
   const localizedPost = localizedEntityForSeo(post, locale, "blog");
   const blogPublicUrl = post.slug?.trim() ? `/blog/${post.slug.trim()}` : "/blog";
-  const schemaPost = localizedPost;
-  const imageUrl = post.coverImage || defaultOgImage.url;
+  const blogMedia = normalizeBlogMedia(post);
+  const imageUrl = visualImageFromMedia(post);
+  const schemaPost = { ...localizedPost, coverImage: imageUrl };
   const tags = normalizeTags(post.tags);
+  const relatedLinks = [
+    ...normalizeSlugList(post.relatedDestinationSlugs).map((slug) => ({
+      href: localizedRoutePath("destination", locale, slug),
+      label: labelFromSlug(slug),
+      type: "Destino",
+      icon: MapPinned,
+    })),
+    ...normalizeSlugList(post.relatedPropertySlugs).map((slug) => ({
+      href: localizedRoutePath("property", locale, slug),
+      label: labelFromSlug(slug),
+      type: "Alojamiento",
+      icon: BedDouble,
+    })),
+    ...normalizeSlugList(post.relatedExperienceSlugs).map((slug) => ({
+      href: localizedRoutePath("experience", locale, slug),
+      label: labelFromSlug(slug),
+      type: "Experiencia",
+      icon: Sparkles,
+    })),
+    ...normalizeSlugList(post.relatedPackageSlugs).map((slug) => ({
+      href: localizedRoutePath("package", locale, slug),
+      label: labelFromSlug(slug),
+      type: "Paquete",
+      icon: Package,
+    })),
+  ];
   const schemas = [
     buildBlogPostingSchema(schemaPost),
     buildBreadcrumbSchema([
@@ -198,6 +292,13 @@ export default async function BlogPostPage({ params, locale = "es" }: PageProps)
         </div>
       </section>
       <BlogPostText post={post} mode="detail" />
+      <section className="mx-auto max-w-5xl px-6 py-8 sm:px-8">
+        <ProductMediaGallery
+          title={cleanPublicCopy(localizedPost.title || post.title) || "Blog"}
+          media={blogMedia}
+          fallbackImage={imageUrl}
+        />
+      </section>
       <section className="mx-auto max-w-4xl px-6 pb-6 sm:px-8">
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2 border-t border-[#D4AF37]/20 pt-6">
@@ -221,25 +322,31 @@ export default async function BlogPostPage({ params, locale = "es" }: PageProps)
             <TranslatedText k="blog.internalLinksTitle" />
           </h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {([
+            {(relatedLinks.length > 0
+              ? relatedLinks
+              : [
               {
                 href: localizedRoutePath("property", locale),
                 label: "nav.stays",
+                type: null,
                 icon: BedDouble,
               },
               {
                 href: localizedRoutePath("experience", locale),
                 label: "nav.experiences",
+                type: null,
                 icon: Sparkles,
               },
               {
                 href: localizedRoutePath("package", locale),
                 label: "nav.packages",
+                type: null,
                 icon: Package,
               },
               {
                 href: localizedRoutePath("destination", locale),
                 label: "nav.destinations",
+                type: null,
                 icon: MapPinned,
               },
             ] as const).map((item) => {
@@ -249,10 +356,17 @@ export default async function BlogPostPage({ params, locale = "es" }: PageProps)
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-3 rounded-2xl border border-[#D4AF37]/15 bg-[#F8F6F2] p-4 text-sm font-bold text-[#0D2B52] transition hover:bg-white hover:shadow-sm"
+                  className="flex items-start gap-3 rounded-2xl border border-[#D4AF37]/15 bg-[#F8F6F2] p-4 text-sm font-bold text-[#0D2B52] transition hover:bg-white hover:shadow-sm"
                 >
-                  <Icon className="h-5 w-5 text-[#B68D40]" />
-                  <TranslatedText k={item.label} />
+                  <Icon className="mt-0.5 h-5 w-5 shrink-0 text-[#B68D40]" />
+                  <span>
+                    {item.type && (
+                      <span className="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        {item.type}
+                      </span>
+                    )}
+                    {item.type ? item.label : <TranslatedText k={item.label as any} />}
+                  </span>
                 </Link>
               );
             })}

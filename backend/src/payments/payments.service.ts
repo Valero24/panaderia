@@ -15,6 +15,7 @@ import { PreReservationsService } from "../pre-reservations/pre-reservations.ser
 import { InvoiceService } from "../invoice/invoice.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { AuditService } from "../common/audit.service";
+import { EmailService } from "../email/email.service";
 import {
   AvailabilitySource,
   BookingStatus,
@@ -39,7 +40,8 @@ export class PaymentsService {
     private readonly preReservationsService: PreReservationsService,
     private readonly invoiceService: InvoiceService,
     private readonly notificationsService: NotificationsService,
-    private readonly audit: AuditService
+    private readonly audit: AuditService,
+    private readonly emailService: EmailService
   ) {
     this.stripe = new Stripe(
       process.env.STRIPE_SECRET_KEY || "sk_test_disabled",
@@ -253,6 +255,9 @@ export class PaymentsService {
     );
 
     if (existingPending) {
+      void this.emailService
+        .sendPaymentLink(pre.id, existingPending.id, actor)
+        .catch(() => undefined);
       return {
         reused: true,
         payment: existingPending,
@@ -365,6 +370,10 @@ export class PaymentsService {
         wompiReference,
       },
     });
+
+    void this.emailService
+      .sendPaymentLink(pre.id, payment.id, actor)
+      .catch(() => undefined);
 
     return {
       reused: false,

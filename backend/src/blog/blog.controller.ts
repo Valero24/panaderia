@@ -84,6 +84,16 @@ export class BlogController {
   }
 
   @Roles("SUPERADMIN", "ADMIN")
+  @Patch(":id/feature")
+  feature(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { isFeatured?: boolean },
+    @Request() req: any
+  ) {
+    return this.service.updateFeature(id, Boolean(body.isFeatured), actorFromRequest(req));
+  }
+
+  @Roles("SUPERADMIN", "ADMIN")
   @Patch(":id")
   update(
     @Param("id", ParseIntPipe) id: number,

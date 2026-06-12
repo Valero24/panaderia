@@ -57,7 +57,7 @@ export default function LazyProductCarousel({ children }: LazyProductCarouselPro
         observer.disconnect();
       },
       {
-        rootMargin: "420px 0px",
+        rootMargin: "220px 0px",
         threshold: 0.01,
       }
     );

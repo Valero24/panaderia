@@ -145,6 +145,13 @@ export default function AdminLogsPage() {
     entityId: "",
     action: "",
     actorId: "",
+    user: "",
+    jobId: "",
+    importType: "",
+    category: "",
+    from: "",
+    to: "",
+    search: "",
   });
 
   const user = useMemo(() => readUser(), []);
@@ -277,6 +284,99 @@ export default function AdminLogsPage() {
                 }))
               }
             />
+            <Input
+              placeholder="Usuario o correo"
+              value={filters.user}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  user: event.target.value,
+                }))
+              }
+            />
+            <Input
+              placeholder="Job ID de importacion"
+              value={filters.jobId}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  jobId: event.target.value,
+                }))
+              }
+            />
+            <select
+              value={filters.importType}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  importType: event.target.value,
+                }))
+              }
+              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+            >
+              <option value="">Tipo de importacion</option>
+              <option value="PROPERTY">Alojamientos</option>
+              <option value="EXPERIENCE">Experiencias</option>
+              <option value="PACKAGE">Paquetes</option>
+              <option value="DESTINATION">Destinos</option>
+              <option value="BLOG">Blog</option>
+            </select>
+            <Input
+              type="date"
+              value={filters.from}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  from: event.target.value,
+                }))
+              }
+            />
+            <Input
+              type="date"
+              value={filters.to}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  to: event.target.value,
+                }))
+              }
+            />
+            <Input
+              placeholder="Busqueda general"
+              value={filters.search}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  search: event.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[
+              ["bulk-import", "Carga masiva"],
+              ["templates", "Plantillas"],
+              ["completed", "Importaciones completadas"],
+              ["failed", "Importaciones fallidas"],
+              ["media", "Multimedia"],
+              ["translations", "Traducciones"],
+              ["relations", "Relaciones"],
+            ].map(([category, label]) => (
+              <Button
+                key={category}
+                type="button"
+                variant={filters.category === category ? "default" : "outline"}
+                className={filters.category === category ? "bg-[#0D2B52]" : ""}
+                onClick={() =>
+                  setFilters((current) => ({
+                    ...current,
+                    category: current.category === category ? "" : category,
+                  }))
+                }
+              >
+                {label}
+              </Button>
+            ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={fetchLogs}>
@@ -292,6 +392,13 @@ export default function AdminLogsPage() {
                   entityId: "",
                   action: "",
                   actorId: "",
+                  user: "",
+                  jobId: "",
+                  importType: "",
+                  category: "",
+                  from: "",
+                  to: "",
+                  search: "",
                 })
               }
             >

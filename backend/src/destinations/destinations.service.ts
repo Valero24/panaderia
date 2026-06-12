@@ -23,6 +23,15 @@ type AuditActor = {
   email?: string;
 };
 
+type DestinationMediaItem = {
+  type: "IMAGE" | "VIDEO";
+  url: string;
+  title?: string | null;
+  description?: string | null;
+  isPrimary?: boolean;
+  sortOrder?: number;
+};
+
 @Injectable()
 export class DestinationsService {
   constructor(
@@ -33,6 +42,98 @@ export class DestinationsService {
 
   private cleanText(value?: string | null) {
     return (value || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  }
+
+  private normalizeGallery(value: unknown): DestinationMediaItem[] {
+    if (typeof value === "string") {
+      try {
+        return this.normalizeGallery(JSON.parse(value));
+      } catch {
+        throw new BadRequestException("Galeria debe tener formato valido");
+      }
+    }
+
+    if (value === undefined || value === null || value === "") return [];
+    if (!Array.isArray(value)) {
+      throw new BadRequestException("Galeria debe ser una lista de multimedia");
+    }
+
+    const media: DestinationMediaItem[] = [];
+
+    value.forEach((item, index) => {
+      if (typeof item === "string") {
+        const url = item.trim();
+        if (!url) return;
+
+        media.push({
+          type: "IMAGE",
+          url,
+          title: null,
+          description: null,
+          isPrimary: index === 0,
+          sortOrder: index + 1,
+        });
+        return;
+      }
+
+      if (!item || typeof item !== "object") return;
+
+      const source = item as Record<string, unknown>;
+      const type = String(source.type || "IMAGE").trim().toUpperCase();
+      const url = this.cleanText(String(source.url || ""));
+
+      if (!["IMAGE", "VIDEO"].includes(type)) {
+        throw new BadRequestException("El tipo de multimedia debe ser IMAGE o VIDEO");
+      }
+
+      if (!url) return;
+
+      media.push({
+        type: type as "IMAGE" | "VIDEO",
+        url,
+        title: this.cleanText(String(source.title || "")) || null,
+        description: this.cleanText(String(source.description || "")) || null,
+        isPrimary: Boolean(source.isPrimary),
+        sortOrder: Number(source.sortOrder || index + 1),
+      });
+    });
+
+    media.forEach((item) => {
+      try {
+        const url = new URL(item.url);
+        if (!["http:", "https:"].includes(url.protocol)) {
+          throw new Error("Invalid protocol");
+        }
+      } catch {
+        throw new BadRequestException(`URL de multimedia no valida: ${item.url}`);
+      }
+    });
+
+    if (media.length && !media.some((item) => item.isPrimary)) {
+      media[0].isPrimary = true;
+    }
+
+    let primaryAssigned = false;
+    return media.map((item, index) => {
+      const isPrimary = Boolean(item.isPrimary && !primaryAssigned);
+      if (isPrimary) primaryAssigned = true;
+
+      return {
+        ...item,
+        isPrimary,
+        sortOrder: Number.isFinite(Number(item.sortOrder))
+          ? Number(item.sortOrder)
+          : index + 1,
+      };
+    });
+  }
+
+  private primaryImageFromGallery(gallery: DestinationMediaItem[]) {
+    return (
+      gallery.find((item) => item.type === "IMAGE" && item.isPrimary)?.url ||
+      gallery.find((item) => item.type === "IMAGE")?.url ||
+      null
+    );
   }
 
   private normalizeSlug(data: { name?: string; slug?: string | null }) {
@@ -95,6 +196,66 @@ export class DestinationsService {
             : index,
         isFeatured: Boolean(item.isFeatured),
       };
+    });
+  }
+
+  private linkedActionForProduct(type: "PROPERTY" | "EXPERIENCE" | "PACKAGE") {
+    if (type === "PROPERTY") return "DESTINATION_PROPERTY_LINKED";
+    if (type === "EXPERIENCE") return "DESTINATION_EXPERIENCE_LINKED";
+    return "DESTINATION_PACKAGE_LINKED";
+  }
+
+  private productLabel(type: "PROPERTY" | "EXPERIENCE" | "PACKAGE") {
+    if (type === "PROPERTY") return "alojamiento";
+    if (type === "EXPERIENCE") return "experiencia";
+    return "paquete";
+  }
+
+  private async recordRelationLinked(input: {
+    actor?: AuditActor;
+    destinationId: number;
+    destinationName?: string | null;
+    productType: "PROPERTY" | "EXPERIENCE" | "PACKAGE";
+    productId: number;
+    relation?: unknown;
+  }) {
+    await this.audit.record({
+      actor: input.actor,
+      action: this.linkedActionForProduct(input.productType),
+      entityType: "Destination",
+      entityId: input.destinationId,
+      message: `Destino relacionado con ${this.productLabel(input.productType)}`,
+      newValue: input.relation,
+      metadata: {
+        destinationId: input.destinationId,
+        destinationName: input.destinationName || null,
+        productType: input.productType,
+        productId: input.productId,
+      },
+    });
+  }
+
+  private async recordRelationRemoved(input: {
+    actor?: AuditActor;
+    destinationId: number;
+    destinationName?: string | null;
+    productType: "PROPERTY" | "EXPERIENCE" | "PACKAGE";
+    productId: number;
+    relation?: unknown;
+  }) {
+    await this.audit.record({
+      actor: input.actor,
+      action: "DESTINATION_RELATION_REMOVED",
+      entityType: "Destination",
+      entityId: input.destinationId,
+      message: `Relacion de destino removida de ${this.productLabel(input.productType)}`,
+      previousValue: input.relation,
+      metadata: {
+        destinationId: input.destinationId,
+        destinationName: input.destinationName || null,
+        productType: input.productType,
+        productId: input.productId,
+      },
     });
   }
 
@@ -379,6 +540,71 @@ export class DestinationsService {
       },
     });
 
+    const relationGroups = [
+      {
+        type: "PROPERTY" as const,
+        previous: previous.properties,
+        updated: updated.properties,
+        previousId: (relation: any) => Number(relation.propertyId),
+        updatedId: (relation: any) => Number(relation.propertyId),
+      },
+      {
+        type: "EXPERIENCE" as const,
+        previous: previous.experiences,
+        updated: updated.experiences,
+        previousId: (relation: any) => Number(relation.experienceId),
+        updatedId: (relation: any) => Number(relation.experienceId),
+      },
+      {
+        type: "PACKAGE" as const,
+        previous: previous.packages,
+        updated: updated.packages,
+        previousId: (relation: any) => Number(relation.packageId),
+        updatedId: (relation: any) => Number(relation.packageId),
+      },
+    ];
+
+    for (const group of relationGroups) {
+      const previousById = new Map(
+        group.previous.map((relation: any) => [
+          group.previousId(relation),
+          relation,
+        ] as const)
+      );
+      const updatedById = new Map(
+        group.updated.map((relation: any) => [
+          group.updatedId(relation),
+          relation,
+        ] as const)
+      );
+
+      for (const [productId, relation] of updatedById) {
+        if (!previousById.has(productId)) {
+          await this.recordRelationLinked({
+            actor,
+            destinationId: id,
+            destinationName: destination.name,
+            productType: group.type,
+            productId,
+            relation,
+          });
+        }
+      }
+
+      for (const [productId, relation] of previousById) {
+        if (!updatedById.has(productId)) {
+          await this.recordRelationRemoved({
+            actor,
+            destinationId: id,
+            destinationName: destination.name,
+            productType: group.type,
+            productId,
+            relation,
+          });
+        }
+      }
+    }
+
     return updated;
   }
 
@@ -509,6 +735,45 @@ export class DestinationsService {
       },
     });
 
+    const previousRelationsByDestination = new Map(
+      previous.map((relation: any) => [
+        Number(relation.destinationId),
+        relation,
+      ] as const)
+    );
+    const updatedRelationsByDestination = new Map(
+      updated.map((relation: any) => [
+        Number(relation.destinationId),
+        relation,
+      ] as const)
+    );
+
+    for (const [destinationId, relation] of updatedRelationsByDestination) {
+      if (!previousRelationsByDestination.has(destinationId)) {
+        await this.recordRelationLinked({
+          actor,
+          destinationId,
+          destinationName: (relation as any).destination?.name,
+          productType,
+          productId,
+          relation,
+        });
+      }
+    }
+
+    for (const [destinationId, relation] of previousRelationsByDestination) {
+      if (!updatedRelationsByDestination.has(destinationId)) {
+        await this.recordRelationRemoved({
+          actor,
+          destinationId,
+          destinationName: (relation as any).destination?.name,
+          productType,
+          productId,
+          relation,
+        });
+      }
+    }
+
     return updated;
   }
 
@@ -521,6 +786,9 @@ export class DestinationsService {
     const baseSlug = this.normalizeSlug({ name, slug: data.slug });
     const slug = await this.uniqueSlug(baseSlug);
     const faq = normalizeFaq(data.faq);
+    const gallery = this.normalizeGallery(data.gallery);
+    const heroImage =
+      this.cleanText(data.heroImage) || this.primaryImageFromGallery(gallery);
     const translations = await this.translations.buildTranslationsForSave({
       source: {
         ...data,
@@ -549,8 +817,8 @@ export class DestinationsService {
         seoDescription: this.cleanText(data.seoDescription) || null,
         seoContent: this.cleanText(data.seoContent) || null,
         faq,
-        heroImage: this.cleanText(data.heroImage) || null,
-        gallery: data.gallery || undefined,
+        heroImage,
+        gallery: gallery.length ? (gallery as any) : undefined,
         location: this.cleanText(data.location) || null,
         isActive: data.isActive ?? true,
         isFeatured: data.isFeatured ?? false,
@@ -635,7 +903,14 @@ export class DestinationsService {
     }
 
     if (data.faq !== undefined) nextData.faq = normalizeFaq(data.faq);
-    if (data.gallery !== undefined) nextData.gallery = data.gallery || undefined;
+    if (data.gallery !== undefined) {
+      const gallery = this.normalizeGallery(data.gallery);
+      nextData.gallery = gallery.length ? gallery : undefined;
+
+      if (data.heroImage !== undefined && !nextData.heroImage) {
+        nextData.heroImage = this.primaryImageFromGallery(gallery);
+      }
+    }
     if (data.isActive !== undefined) nextData.isActive = Boolean(data.isActive);
     if (data.isFeatured !== undefined) {
       nextData.isFeatured = Boolean(data.isFeatured);
@@ -742,6 +1017,35 @@ export class DestinationsService {
   }
 
   async remove(id: number, actor?: AuditActor) {
-    return this.update(id, { isActive: false }, actor);
+    const previous = await this.findOneAdmin(id);
+    const updated = await this.prisma.destination.update({
+      where: { id },
+      data: { isActive: false },
+    });
+
+    await this.audit.record({
+      actor,
+      action: "DESTINATION_DELETED",
+      entityType: "Destination",
+      entityId: updated.id,
+      message: `Destino eliminado: ${updated.name}`,
+      previousValue: {
+        id: previous.id,
+        name: previous.name,
+        slug: previous.slug,
+        isActive: previous.isActive,
+        isFeatured: previous.isFeatured,
+      },
+      newValue: {
+        id: updated.id,
+        name: updated.name,
+        slug: updated.slug,
+        isActive: updated.isActive,
+        isFeatured: updated.isFeatured,
+      },
+      metadata: { softDelete: true },
+    });
+
+    return updated;
   }
 }

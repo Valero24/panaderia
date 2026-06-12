@@ -15,6 +15,7 @@ import { InvoiceService } from "../invoice/invoice.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { CurrencyService } from "../currency/currency.service";
 import { MailService } from "../mail/mail.service";
+import { EmailService } from "../email/email.service";
 
 import {
   BookingType,
@@ -95,7 +96,8 @@ export class PreReservationsService {
     private invoiceService: InvoiceService,
     private notificationsService: NotificationsService,
     private currencyService: CurrencyService,
-    private mailService: MailService
+    private mailService: MailService,
+    private emailService: EmailService
   ) { }
 
   private isSuperAdmin(actor: ReservationActor) {
@@ -234,6 +236,18 @@ export class PreReservationsService {
     this.logger.log(
       `Transition ${id}: ${current} -> ${target} by ${actor.role}:${actor.userId}`
     );
+  }
+
+  private queueStatusEmail(id: string, fromStatus: PreReservationStatus, actor: ReservationActor) {
+    void this.emailService
+      .sendPreReservationStatusChanged(id, fromStatus, actor)
+      .catch((error) => {
+        this.logger.warn(
+          `No se pudo procesar correo de estado ${id}: ${
+            error instanceof Error ? error.message : "Email error"
+          }`
+        );
+      });
   }
 
   private toMoney(value: unknown, fallback = 0) {
@@ -1800,9 +1814,9 @@ export class PreReservationsService {
         },
       });
 
-      void this.sendPreReservationCreatedEmail(updated.id).catch((error) => {
+      void this.emailService.sendPreReservationCreated(updated.id).catch((error) => {
         this.logger.warn(
-          `No se pudo enviar correo de solicitud ${updated.id}: ${
+          `No se pudo procesar correo de solicitud ${updated.id}: ${
             error instanceof Error ? error.message : "Email error"
           }`
         );
@@ -2139,6 +2153,7 @@ export class PreReservationsService {
               invoices: { orderBy: { createdAt: "desc" } },
             },
           },
+          emailLogs: { orderBy: { createdAt: "desc" } },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -2167,6 +2182,7 @@ export class PreReservationsService {
               invoices: { orderBy: { createdAt: "desc" } },
             },
           },
+          emailLogs: { orderBy: { createdAt: "desc" } },
         },
         orderBy: { createdAt: "desc" },
       });
@@ -2284,6 +2300,7 @@ export class PreReservationsService {
             invoices: { orderBy: { createdAt: "desc" } },
           },
         },
+        emailLogs: { orderBy: { createdAt: "desc" } },
       },
     });
 
@@ -2433,6 +2450,8 @@ export class PreReservationsService {
       },
     });
 
+    this.queueStatusEmail(id, pre.status, actor);
+
     return updated;
   }
 
@@ -2487,6 +2506,8 @@ export class PreReservationsService {
           mode: "MANUAL_AVAILABILITY",
         },
       });
+
+      this.queueStatusEmail(id, pre.status, actor);
 
       return updated;
     }
@@ -2702,6 +2723,8 @@ export class PreReservationsService {
       },
     });
 
+    this.queueStatusEmail(id, pre.status, actor);
+
     return updated;
   }
 
@@ -2740,6 +2763,8 @@ export class PreReservationsService {
         to: PreReservationStatus.UNAVAILABLE,
       },
     });
+
+    this.queueStatusEmail(id, pre.status, actor);
 
     return updated;
   }
@@ -2793,6 +2818,8 @@ export class PreReservationsService {
         finalTotal: updated.finalTotal,
       },
     });
+
+    this.queueStatusEmail(id, pre.status, actor);
 
     return updated;
   }
@@ -3013,6 +3040,16 @@ export class PreReservationsService {
         finalTotal,
       },
     });
+
+    void this.emailService
+      .sendBookingConfirmed(booking.id, actor)
+      .catch((error) => {
+        this.logger.warn(
+          `No se pudo procesar correo de reserva confirmada ${booking.id}: ${
+            error instanceof Error ? error.message : "Email error"
+          }`
+        );
+      });
 
     return {
       booking: {

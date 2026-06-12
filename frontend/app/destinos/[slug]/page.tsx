@@ -72,7 +72,9 @@ function normalizeGallery(value: unknown) {
     .map((item) => {
       if (typeof item === "string") return item;
       if (item && typeof item === "object") {
-        return (item as { url?: string | null }).url || "";
+        const source = item as { type?: string | null; url?: string | null };
+        if (source.type === "VIDEO") return "";
+        return source.url || "";
       }
       return "";
     })

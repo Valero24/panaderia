@@ -13,6 +13,7 @@ import type {
 type PropertyPricingStepProps = {
   form: PropertyFormState;
   updateField: PropertyFormUpdate;
+  hasInternalLinks?: boolean;
 };
 
 const ruleToggles = [
@@ -25,6 +26,7 @@ const ruleToggles = [
 export default function PropertyPricingStep({
   form,
   updateField,
+  hasInternalLinks = false,
 }: PropertyPricingStepProps) {
   const primaryImage =
     form.images.find((image) => image.active !== false && image.isPrimary)
@@ -148,11 +150,14 @@ export default function PropertyPricingStep({
             slug={form.slug}
             seoTitle={form.seoTitle}
             seoDescription={form.seoDescription}
+            shortDescription={form.description}
             seoContent={form.seoContent}
             faq={form.faq}
             image={primaryImage}
             translations={form.translations}
             minimumWords={700}
+            hasInternalLinks={hasInternalLinks}
+            internalLinksLabel="Tiene destinos relacionados"
           />
 
           <Input placeholder="Titulo SEO" value={form.seoTitle} onChange={(e) => updateField("seoTitle", e.target.value)} className="h-14 rounded-2xl" />

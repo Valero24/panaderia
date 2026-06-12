@@ -126,6 +126,9 @@ type ReviewRankings = {
   mostReviewedProperties: RankingItem[];
   mostReviewedExperiences: RankingItem[];
   mostReviewedPackages: RankingItem[];
+  schemaEligibleProperties: RankingItem[];
+  schemaEligibleExperiences: RankingItem[];
+  schemaEligiblePackages: RankingItem[];
 };
 
 type RecalculateSummary = {
@@ -173,6 +176,9 @@ const emptyRankings: ReviewRankings = {
   mostReviewedProperties: [],
   mostReviewedExperiences: [],
   mostReviewedPackages: [],
+  schemaEligibleProperties: [],
+  schemaEligibleExperiences: [],
+  schemaEligiblePackages: [],
 };
 
 const initialFilters: Filters = {
@@ -810,6 +816,16 @@ export default function OpinionesPage() {
           />
         </section>
 
+        <RankingsCard
+          title="Productos elegibles para rating SEO"
+          groups={[
+            { label: "Alojamientos", items: rankings.schemaEligibleProperties },
+            { label: "Experiencias", items: rankings.schemaEligibleExperiences },
+            { label: "Paquetes", items: rankings.schemaEligiblePackages },
+          ]}
+          emptyText="Aún no hay productos con 5 o más reseñas aprobadas."
+        />
+
         <Card className="rounded-2xl border border-[#D4AF37]/20 bg-white shadow-sm">
           <CardContent className="space-y-4 p-4 lg:p-5">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-8">
@@ -1038,9 +1054,11 @@ function InfoPill({ label, value }: { label: string; value: number | string }) {
 function RankingsCard({
   title,
   groups,
+  emptyText = "Aún no hay productos con reseñas aprobadas.",
 }: {
   title: string;
   groups: Array<{ label: string; items: RankingItem[] }>;
+  emptyText?: string;
 }) {
   const hasItems = groups.some((group) => group.items.length > 0);
 
@@ -1052,7 +1070,7 @@ function RankingsCard({
         </p>
         {!hasItems && (
           <p className="mt-4 rounded-xl bg-[#F8F6F2] p-4 text-sm text-slate-500">
-            Aún no hay productos con reseñas aprobadas.
+            {emptyText}
           </p>
         )}
         <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
@@ -1071,14 +1089,16 @@ function RankingsCard({
                       <p className="line-clamp-2 text-sm font-semibold text-[#0D2B52]">
                         {item.title}
                       </p>
-                      {item.aggregateRatingReady && (
-                        <Badge
-                          variant="outline"
-                          className="shrink-0 border-emerald-200 bg-emerald-50 text-emerald-700"
-                        >
-                          SEO listo
-                        </Badge>
-                      )}
+                      <Badge
+                        variant="outline"
+                        className={`shrink-0 ${
+                          item.aggregateRatingReady
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-slate-50 text-slate-600"
+                        }`}
+                      >
+                        Elegible SEO: {item.aggregateRatingReady ? "Sí" : "No"}
+                      </Badge>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                       <span>{item.reviewCount} aprobadas</span>

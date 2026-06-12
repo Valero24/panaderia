@@ -7,6 +7,7 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { MailModule } from "../mail/mail.module";
 import { InvoiceService } from "../invoice/invoice.service";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { EmailModule } from "../email/email.module";
 
 // 🔥 IMPORTAR
 import { PreReservationsModule } from "../pre-reservations/pre-reservations.module";
@@ -16,6 +17,7 @@ import { PreReservationsModule } from "../pre-reservations/pre-reservations.modu
     PrismaModule,
     MailModule,
     NotificationsModule,
+    EmailModule,
 
     // 🔥 CLAVE
     PreReservationsModule,

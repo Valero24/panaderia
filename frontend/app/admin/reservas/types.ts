@@ -23,6 +23,22 @@ export type SelectedExtra = {
   totalPrice?: number;
 };
 
+export type EmailLog = {
+  id: number;
+  to: string;
+  cc?: string | null;
+  bcc?: string | null;
+  subject: string;
+  templateKey: string;
+  status: string;
+  provider?: string | null;
+  entityType?: string | null;
+  entityId?: string | null;
+  errorMessage?: string | null;
+  sentAt?: string | null;
+  createdAt: string;
+};
+
 export type PreReservation = {
   id: string;
   customerName: string;
@@ -69,6 +85,7 @@ export type PreReservation = {
   } | null;
   items?: PreReservationItem[];
   payments?: PaymentRecord[];
+  emailLogs?: EmailLog[];
   booking?: {
     id: number;
     preReservationId?: string | null;

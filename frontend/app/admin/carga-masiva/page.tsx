@@ -81,6 +81,8 @@ type BulkImportJobStatus =
   | "FAILED_VALIDATION"
   | "IMPORTING"
   | "COMPLETED"
+  | "PARTIALLY_COMPLETED"
+  | "CANCELLED"
   | "FAILED";
 
 const workflowSteps = [

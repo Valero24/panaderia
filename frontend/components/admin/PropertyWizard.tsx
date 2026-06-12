@@ -753,6 +753,7 @@ export default function PropertyForm({
               <PropertyPricingStep
                 form={form}
                 updateField={updateField}
+                hasInternalLinks={destinationIds.length > 0}
               />
             )}
 

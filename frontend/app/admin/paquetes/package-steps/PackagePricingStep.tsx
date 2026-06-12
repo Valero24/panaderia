@@ -10,12 +10,14 @@ type PackagePricingStepProps = {
   form: PackageForm;
   updateForm: PackageFormUpdate;
   canManage: boolean;
+  hasInternalLinks?: boolean;
 };
 
 export default function PackagePricingStep({
   form,
   updateForm,
   canManage,
+  hasInternalLinks = false,
 }: PackagePricingStepProps) {
   const primaryImage =
     form.mainImage ||
@@ -78,11 +80,14 @@ export default function PackagePricingStep({
           slug={form.slug}
           seoTitle={form.seoTitle}
           seoDescription={form.seoDescription}
+          shortDescription={form.shortDescription}
           seoContent={form.seoContent}
           faq={form.faq}
           image={primaryImage}
           translations={form.translations}
           minimumWords={700}
+          hasInternalLinks={hasInternalLinks}
+          internalLinksLabel="Tiene destinos relacionados"
         />
         <div className="mt-4 space-y-3">
           <Input

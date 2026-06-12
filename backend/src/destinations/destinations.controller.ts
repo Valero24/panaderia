@@ -41,25 +41,25 @@ export class DestinationsController {
       : this.service.findAllPublic();
   }
 
-  @Roles("SUPERADMIN", "ADMIN")
+  @Roles("SUPERADMIN", "ADMIN", "ADVISOR")
   @Get("admin/all")
   findAllAdmin() {
     return this.service.findAllAdmin();
   }
 
-  @Roles("SUPERADMIN", "ADMIN")
+  @Roles("SUPERADMIN", "ADMIN", "ADVISOR")
   @Get("admin/:id")
   findOneAdmin(@Param("id", ParseIntPipe) id: number) {
     return this.service.findOneAdmin(id);
   }
 
-  @Roles("SUPERADMIN", "ADMIN")
+  @Roles("SUPERADMIN", "ADMIN", "ADVISOR")
   @Get(":id/relations")
   findRelations(@Param("id", ParseIntPipe) id: number) {
     return this.service.findRelations(id);
   }
 
-  @Roles("SUPERADMIN", "ADMIN")
+  @Roles("SUPERADMIN", "ADMIN", "ADVISOR")
   @Get("product/:type/:productId")
   findProductDestinations(
     @Param("type") type: string,
@@ -74,13 +74,13 @@ export class DestinationsController {
     return this.service.findOnePublic(slug);
   }
 
-  @Roles("SUPERADMIN")
+  @Roles("SUPERADMIN", "ADMIN")
   @Post()
   create(@Body() body: CreateDestinationDto, @Request() req: any) {
     return this.service.create(body, actorFromRequest(req));
   }
 
-  @Roles("SUPERADMIN")
+  @Roles("SUPERADMIN", "ADMIN")
   @Patch(":id/status")
   updateStatus(
     @Param("id", ParseIntPipe) id: number,
@@ -126,7 +126,7 @@ export class DestinationsController {
     return this.service.update(id, body, actorFromRequest(req));
   }
 
-  @Roles("SUPERADMIN")
+  @Roles("SUPERADMIN", "ADMIN")
   @Delete(":id")
   remove(@Param("id", ParseIntPipe) id: number, @Request() req: any) {
     return this.service.remove(id, actorFromRequest(req));

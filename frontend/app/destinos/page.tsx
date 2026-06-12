@@ -17,7 +17,7 @@ import { localizedRoutePath } from "@/lib/i18n-routes";
 import { buildCollectionPageSchema } from "@/lib/schema";
 import type { Language } from "@/i18n";
 
-export const revalidate = 300;
+export const revalidate = 600;
 
 type Destination = {
   id: number;
@@ -110,6 +110,8 @@ export default async function DestinosPage({
                         fill
                         sizes="(min-width: 1280px) 390px, (min-width: 640px) 50vw, 100vw"
                         quality={68}
+                        loading="lazy"
+                        fetchPriority="low"
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       />
                     ) : (

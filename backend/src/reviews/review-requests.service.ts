@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { BookingStatus, Prisma } from "@prisma/client";
 
 import { AuditService } from "../common/audit.service";
+import { EmailService } from "../email/email.service";
 import { MailService } from "../mail/mail.service";
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -37,6 +38,7 @@ export class ReviewRequestsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
+    private readonly emailService: EmailService,
     private readonly audit: AuditService
   ) {}
 
@@ -211,9 +213,7 @@ export class ReviewRequestsService {
     this.assertBookingReadyForReview(booking, { allowAlreadySent: false });
 
     const locale = this.resolveLocale(booking);
-    const emailTemplate = this.emailTemplate(locale, booking, reviewLink);
     const whatsappMessage = this.whatsappMessage(locale, booking, reviewLink);
-    const emailEnabled = process.env.ENABLE_EMAIL_NOTIFICATIONS === "true";
     const whatsappEnabled = process.env.ENABLE_WHATSAPP_NOTIFICATIONS === "true";
     const result: {
       bookingId: number;
@@ -264,28 +264,15 @@ export class ReviewRequestsService {
             channel: "email",
           },
         });
-      } else if (!emailEnabled) {
-        result.email = "skipped";
-        result.reason = "ENABLE_EMAIL_NOTIFICATIONS no esta activo";
-        await this.recordReviewRequestAudit({
-          actor,
-          action: "REVIEW_REQUEST_SKIPPED",
-          booking,
-          message: "Correo de solicitud de resena omitido por configuracion",
-          metadata: {
-            reason: result.reason,
-            channel: "email",
-          },
-        });
       } else {
-        const mailResult = await this.mailService.sendReviewRequest({
-          to: booking.customerEmail,
-          subject: emailTemplate.subject,
-          html: emailTemplate.html,
-          text: emailTemplate.text,
-        });
+        const mailResult = await this.emailService.sendReviewRequest(
+          booking.id,
+          reviewLink,
+          actor
+        );
 
-        if ((mailResult as any)?.skipped) {
+        const mailStatus = (mailResult as any)?.status;
+        if (mailStatus === "skipped" || mailStatus === "already-sent") {
           result.email = "skipped";
           result.reason = (mailResult as any).reason || "Correo omitido";
           await this.recordReviewRequestAudit({
@@ -293,6 +280,19 @@ export class ReviewRequestsService {
             action: "REVIEW_REQUEST_SKIPPED",
             booking,
             message: "Correo de solicitud de resena omitido",
+            metadata: {
+              reason: result.reason,
+              channel: "email",
+            },
+          });
+        } else if (mailStatus === "failed") {
+          result.email = "failed";
+          result.reason = (mailResult as any).reason || "Email error";
+          await this.recordReviewRequestAudit({
+            actor,
+            action: "REVIEW_REQUEST_EMAIL_FAILED",
+            booking,
+            message: "Fallo el correo de solicitud de resena",
             metadata: {
               reason: result.reason,
               channel: "email",

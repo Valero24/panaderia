@@ -54,6 +54,32 @@ function billingFormFromRequest(request: PreReservation): BillingForm {
   };
 }
 
+const emailTemplateLabels: Record<string, string> = {
+  PRERESERVATION_CREATED_CUSTOMER: "Confirmacion de pre-reserva",
+  PRERESERVATION_CREATED_ADMIN: "Aviso interno de pre-reserva",
+  PRERESERVATION_PAYMENT_LINK: "Link de pago",
+  BOOKING_CONFIRMED_CUSTOMER: "Confirmacion de reserva",
+  BOOKING_CONFIRMED_ADMIN: "Aviso interno de reserva",
+  PRERESERVATION_STATUS_CHANGED: "Cambio de estado",
+  PRERESERVATION_CANCELLED: "Cancelacion",
+  REVIEW_REQUEST_CUSTOMER: "Solicitud de opinion",
+};
+
+const emailStatusLabels: Record<string, string> = {
+  PENDING: "Pendiente",
+  SENT: "Enviado",
+  FAILED: "Fallido",
+  SKIPPED: "Omitido",
+};
+
+function emailTemplateLabel(templateKey: string) {
+  return emailTemplateLabels[templateKey] || templateKey;
+}
+
+function emailStatusLabel(status: string) {
+  return emailStatusLabels[status] || status;
+}
+
 export function RequestDetail({
   request,
   properties,
@@ -66,6 +92,7 @@ export function RequestDetail({
   onGeneratePaymentLink,
   onGenerateManualBooking,
   onSendManualNotification,
+  onResendEmail,
   onSendReviewRequest,
   onSendReviewReminder,
   manualBookingResult,
@@ -87,6 +114,7 @@ export function RequestDetail({
     id: string,
     channel: "email" | "whatsapp"
   ) => void;
+  onResendEmail: (id: string, templateKey: string) => void;
   onSendReviewRequest: (id: string, bookingId: number) => void;
   onSendReviewReminder: (id: string, bookingId: number) => void;
   manualBookingResult: any;
@@ -174,6 +202,7 @@ export function RequestDetail({
     actionLoading === `${request.id}:notify-email`;
   const isWhatsappSending =
     actionLoading === `${request.id}:notify-whatsapp`;
+  const emailLogs = request.emailLogs || [];
   const emailSentAt = confirmedBooking?.confirmationEmailSentAt;
   const whatsappSentAt = confirmedBooking?.confirmationWhatsappSentAt;
   const reviewRequestSentAt = confirmedBooking?.reviewRequestSentAt;
@@ -1069,6 +1098,119 @@ export function RequestDetail({
                 )}
               </section>
             )}
+
+            <section className="rounded-2xl border border-[#D4AF37]/20 p-5">
+              <h3 className="flex items-center gap-2 font-semibold text-[#0D2B52]">
+                <Mail className="h-4 w-4 text-[#B48A5A]" />
+                Correos enviados
+              </h3>
+              <p className="mt-2 text-sm text-slate-500">
+                Registro de correos transaccionales enviados u omitidos para
+                esta solicitud.
+              </p>
+
+              {emailLogs.length === 0 ? (
+                <p className="mt-4 rounded-xl bg-[#F8F6F2] px-3 py-2 text-sm text-slate-500">
+                  Aun no hay correos registrados para esta solicitud.
+                </p>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {emailLogs.slice(0, 8).map((log) => {
+                    const isResending =
+                      actionLoading ===
+                      `${request.id}:email-resend:${log.templateKey}`;
+
+                    return (
+                      <div
+                        key={log.id}
+                        className="rounded-xl border border-[#D4AF37]/15 bg-[#F8F6F2] p-3 text-sm"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <Badge variant="outline" className="rounded-md bg-white">
+                            {emailStatusLabel(log.status)}
+                          </Badge>
+                          <span className="text-xs text-slate-500">
+                            {date(log.sentAt || log.createdAt)}
+                          </span>
+                        </div>
+                        <p className="mt-2 font-semibold text-[#0D2B52]">
+                          {emailTemplateLabel(log.templateKey)}
+                        </p>
+                        <p className="mt-1 break-all text-xs text-slate-500">
+                          {log.to}
+                        </p>
+                        {log.errorMessage && (
+                          <p className="mt-2 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">
+                            {log.errorMessage}
+                          </p>
+                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={isResending}
+                          onClick={() => onResendEmail(request.id, log.templateKey)}
+                          className="mt-3 rounded-lg"
+                        >
+                          <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                          {isResending ? "Reenviando..." : "Reenviar"}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="mt-4 grid gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    actionLoading ===
+                    `${request.id}:email-resend:PRERESERVATION_CREATED_CUSTOMER`
+                  }
+                  onClick={() =>
+                    onResendEmail(request.id, "PRERESERVATION_CREATED_CUSTOMER")
+                  }
+                  className="justify-start rounded-xl"
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Reenviar confirmacion de pre-reserva
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    !latestWompiPayment?.paymentLinkUrl ||
+                    actionLoading ===
+                      `${request.id}:email-resend:PRERESERVATION_PAYMENT_LINK`
+                  }
+                  onClick={() =>
+                    onResendEmail(request.id, "PRERESERVATION_PAYMENT_LINK")
+                  }
+                  className="justify-start rounded-xl"
+                >
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Reenviar link de pago
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    !confirmedBooking?.id ||
+                    actionLoading ===
+                      `${request.id}:email-resend:BOOKING_CONFIRMED_CUSTOMER`
+                  }
+                  onClick={() =>
+                    onResendEmail(request.id, "BOOKING_CONFIRMED_CUSTOMER")
+                  }
+                  className="justify-start rounded-xl"
+                >
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Reenviar confirmacion de reserva
+                </Button>
+              </div>
+            </section>
 
             <section className="rounded-2xl border border-[#D4AF37]/20 p-5">
               <h3 className="font-semibold text-[#0D2B52]">

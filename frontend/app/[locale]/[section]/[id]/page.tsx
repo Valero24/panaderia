@@ -6,8 +6,12 @@ import PropertyDetailPage from "@/app/alojamientos/[id]/page";
 import DestinationDetailPage from "@/app/destinos/[slug]/page";
 import ExperienceDetailPage from "@/app/experiencias/[id]/page";
 import PackageDetailPage from "@/app/paquetes/[id]/page";
+import type { Language } from "@/i18n";
 import { apiUrl } from "@/lib/api";
-import type { TranslatableEntity } from "@/lib/dynamic-translations";
+import {
+  getLocalizedSlug,
+  type TranslatableEntity,
+} from "@/lib/dynamic-translations";
 import { localizedEntityMetadata } from "@/lib/i18n-seo";
 import {
   isPublicLocale,
@@ -82,19 +86,76 @@ const detailFallbacks: Record<
   },
 };
 
-async function fetchDetail(kind: DetailKind, id: string) {
+type DetailEntity = TranslatableEntity & {
+  id?: string | number | null;
+  slug?: string | null;
+  title?: string | null;
+  name?: string | null;
+};
+
+function asDetailList(data: unknown): DetailEntity[] {
+  if (Array.isArray(data)) return data as DetailEntity[];
+
+  if (data && typeof data === "object") {
+    const record = data as Record<string, unknown>;
+    const candidates = [record.data, record.items, record.results];
+    const list = candidates.find(Array.isArray);
+    if (Array.isArray(list)) return list as DetailEntity[];
+  }
+
+  return [];
+}
+
+function identifierMatches(
+  entity: DetailEntity,
+  id: string,
+  locale: Language
+) {
+  const cleanId = id.trim();
+  const localizedSlug = getLocalizedSlug(entity, locale, entity.slug);
+  const candidates = [entity.slug, localizedSlug, entity.id]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+
+  return candidates.some((candidate) => candidate === cleanId);
+}
+
+async function fetchDetailCollection(kind: DetailKind) {
+  try {
+    const response = await fetch(apiUrl(`/${detailEndpoint[kind]}`), {
+      next: { revalidate },
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!response.ok) return [];
+
+    return asDetailList(await response.json());
+  } catch {
+    return [];
+  }
+}
+
+async function fetchDetail(kind: DetailKind, id: string, locale: Language) {
   try {
     const response = await fetch(apiUrl(`/${detailEndpoint[kind]}/${id}`), {
       next: { revalidate },
       signal: AbortSignal.timeout(8000),
     });
 
-    if (!response.ok) return null;
-
-    return response.json();
+    if (response.ok) {
+      return (await response.json()) as DetailEntity;
+    }
   } catch {
-    return null;
+    // Fallback below keeps translated slugs resolvable without backend
+    // language-specific routes.
   }
+
+  const collection = await fetchDetailCollection(kind);
+  return collection.find((entity) => identifierMatches(entity, id, locale)) || null;
+}
+
+function baseIdentifier(entity: DetailEntity | null, fallback: string) {
+  return String(entity?.slug || fallback).trim() || fallback;
 }
 
 export async function generateMetadata({
@@ -107,14 +168,7 @@ export async function generateMetadata({
   }
 
   const { locale, kind, id } = resolved;
-  const entity = (await fetchDetail(kind, id)) as
-    | (TranslatableEntity & {
-        id?: string | number | null;
-        slug?: string | null;
-        title?: string | null;
-        name?: string | null;
-      })
-    | null;
+  const entity = await fetchDetail(kind, id, locale);
 
   if (!entity) {
     return {
@@ -140,13 +194,19 @@ export default async function LocalizedDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { kind, id } = resolved;
+  const { locale, kind, id } = resolved;
+  const entity = await fetchDetail(kind, id, locale);
+  const resolvedId = baseIdentifier(entity, id);
+
+  if (!entity) {
+    notFound();
+  }
 
   if (kind === "property") {
     return (
       <PropertyDetailPage
-        params={Promise.resolve({ id })}
-        locale={resolved.locale}
+        params={Promise.resolve({ id: resolvedId })}
+        locale={locale}
       />
     );
   }
@@ -154,8 +214,8 @@ export default async function LocalizedDetailPage({ params }: PageProps) {
   if (kind === "experience") {
     return (
       <ExperienceDetailPage
-        params={Promise.resolve({ id })}
-        locale={resolved.locale}
+        params={Promise.resolve({ id: resolvedId })}
+        locale={locale}
       />
     );
   }
@@ -163,8 +223,8 @@ export default async function LocalizedDetailPage({ params }: PageProps) {
   if (kind === "package") {
     return (
       <PackageDetailPage
-        params={Promise.resolve({ id })}
-        locale={resolved.locale}
+        params={Promise.resolve({ id: resolvedId })}
+        locale={locale}
       />
     );
   }
@@ -172,16 +232,16 @@ export default async function LocalizedDetailPage({ params }: PageProps) {
   if (kind === "blog") {
     return (
       <BlogPostPage
-        params={Promise.resolve({ slug: id })}
-        locale={resolved.locale}
+        params={Promise.resolve({ slug: resolvedId })}
+        locale={locale}
       />
     );
   }
 
   return (
     <DestinationDetailPage
-      params={Promise.resolve({ slug: id })}
-      locale={resolved.locale}
+      params={Promise.resolve({ slug: resolvedId })}
+      locale={locale}
     />
   );
 }

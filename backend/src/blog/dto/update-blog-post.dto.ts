@@ -49,6 +49,22 @@ export class UpdateBlogPostDto {
   authorName?: string;
 
   @IsOptional()
+  @IsString()
+  publishedAt?: string;
+
+  @IsOptional()
+  relatedDestinationSlugs?: unknown;
+
+  @IsOptional()
+  relatedPropertySlugs?: unknown;
+
+  @IsOptional()
+  relatedExperienceSlugs?: unknown;
+
+  @IsOptional()
+  relatedPackageSlugs?: unknown;
+
+  @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
 

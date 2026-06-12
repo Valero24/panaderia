@@ -8,29 +8,31 @@ export class MailService {
 
   constructor() {
     const mailPass =
+      process.env.SMTP_PASSWORD ||
       process.env.MAIL_PASS ||
       process.env.MAIL_PASSWORD;
+    const mailUser = process.env.SMTP_USER || process.env.MAIL_USER;
 
     this.configured = Boolean(
-      process.env.MAIL_USER &&
+      mailUser &&
         mailPass
     );
 
     this.transporter = nodemailer.createTransport(
-      process.env.MAIL_HOST
+      (process.env.SMTP_HOST || process.env.MAIL_HOST)
         ? {
-            host: process.env.MAIL_HOST,
-            port: Number(process.env.MAIL_PORT || 587),
+            host: process.env.SMTP_HOST || process.env.MAIL_HOST,
+            port: Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587),
             secure: process.env.MAIL_SECURE === "true",
             auth: {
-              user: process.env.MAIL_USER,
+              user: mailUser,
               pass: mailPass,
             },
           }
         : {
             service: "gmail",
             auth: {
-              user: process.env.MAIL_USER,
+              user: mailUser,
               pass: mailPass,
             },
           }
@@ -38,10 +40,13 @@ export class MailService {
   }
 
   private async sendMail(options: any) {
-    if (process.env.ENABLE_EMAIL_NOTIFICATIONS === "false") {
+    if (
+      process.env.SEND_EMAILS_ENABLED === "false" ||
+      process.env.ENABLE_EMAIL_NOTIFICATIONS === "false"
+    ) {
       return {
         skipped: true,
-        reason: "ENABLE_EMAIL_NOTIFICATIONS=false",
+        reason: "SEND_EMAILS_ENABLED=false",
       };
     }
 
@@ -57,10 +62,14 @@ export class MailService {
 
   private fromAddress() {
     const fromName =
-      process.env.MAIL_FROM_NAME || "Cartagena Tailored Travel";
+      process.env.SMTP_FROM_NAME ||
+      process.env.MAIL_FROM_NAME ||
+      "Cartagena Tailored Travel";
     const fromEmail =
+      process.env.SMTP_FROM ||
       process.env.MAIL_FROM_EMAIL ||
       process.env.MAIL_FROM ||
+      process.env.SMTP_USER ||
       process.env.MAIL_USER ||
       "reservations@cartagenatailoredtravel.com";
 
@@ -69,6 +78,13 @@ export class MailService {
     }
 
     return `"${fromName}" <${fromEmail}>`;
+  }
+
+  async sendRaw(options: any) {
+    return this.sendMail({
+      from: this.fromAddress(),
+      ...options,
+    });
   }
 
   async sendBookingConfirmation(

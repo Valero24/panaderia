@@ -37,6 +37,7 @@ function localizedRouteForHomeSection(
 }
 
 export const revalidate = 300;
+const HOME_CAROUSEL_LIMIT = 8;
 
 const homeTitle = "Cartagena Tailored Travel | Luxury Travel in Cartagena";
 const homeDescription =
@@ -44,7 +45,7 @@ const homeDescription =
 export const metadata: Metadata = buildMetadata({
   title: homeTitle,
   description: homeDescription,
-  path: "/",
+  url: "/es",
   languages: localizedAlternates("home").languages,
 });
 
@@ -164,9 +165,9 @@ export default async function HomePage({
     fetchList<PackageItem>("/packages"),
   ]);
 
-  const featuredProperties = properties;
-  const featuredExperiences = experiences;
-  const featuredPackages = packages;
+  const featuredProperties = properties.slice(0, HOME_CAROUSEL_LIMIT);
+  const featuredExperiences = experiences.slice(0, HOME_CAROUSEL_LIMIT);
+  const featuredPackages = packages.slice(0, HOME_CAROUSEL_LIMIT);
   const trustItems = [
     {
       icon: Headphones,
@@ -343,7 +344,7 @@ export default async function HomePage({
         ))}
       </ProductSection>
 
-      <section id="home-respaldo" data-scroll-section className="premium-scroll-reveal border-y border-[#D4AF37]/15 bg-white">
+      <section id="home-respaldo" data-scroll-section className="performance-deferred-section premium-scroll-reveal border-y border-[#D4AF37]/15 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-16">
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.4fr] lg:items-start">
             <div>
@@ -384,7 +385,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section id="home-cta" data-scroll-section className="premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
+      <section id="home-cta" data-scroll-section className="performance-deferred-section premium-scroll-reveal bg-[#F8F6F1] px-6 py-14 lg:px-8 lg:py-16">
         <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-[#0D2B52] px-6 py-12 text-white shadow-sm md:px-10 lg:px-14">
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
@@ -443,7 +444,7 @@ function ProductSection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} data-scroll-section className="premium-scroll-reveal bg-[#F8F6F1] px-5 py-12 sm:px-6 lg:px-8 lg:py-12 xl:py-14">
+    <section id={id} data-scroll-section className="performance-deferred-section premium-scroll-reveal bg-[#F8F6F1] px-5 py-12 sm:px-6 lg:px-8 lg:py-12 xl:py-14">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">

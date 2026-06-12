@@ -8,6 +8,7 @@ import { InvoiceService } from "../invoice/invoice.service";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { CurrencyModule } from "../currency/currency.module";
 import { MailModule } from "../mail/mail.module";
+import { EmailModule } from "../email/email.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MailModule } from "../mail/mail.module";
     NotificationsModule,
     CurrencyModule,
     MailModule,
+    EmailModule,
   ],
   controllers: [PreReservationsController],
   providers: [PreReservationsService, InvoiceService],

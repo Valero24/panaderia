@@ -3,7 +3,8 @@ export type SeoPageType =
   | "properties"
   | "experiences"
   | "packages"
-  | "destinations";
+  | "destinations"
+  | "blog";
 
 export type SeoKeywordGroup = {
   primary: string[];
@@ -18,7 +19,7 @@ export const seoKeywordMap: Record<SeoPageType, SeoKeywordGroup> = {
       "luxury travel Cartagena",
       "turismo de lujo Cartagena",
       "private tours Cartagena",
-      "alojamientos premium Cartagena",
+      "luxury accommodations Cartagena",
     ],
     secondary: [
       "Cartagena Tailored Travel",
@@ -45,6 +46,8 @@ export const seoKeywordMap: Record<SeoPageType, SeoKeywordGroup> = {
       "alojamiento en Cartagena",
       "luxury villas Cartagena",
       "luxury accommodations Cartagena",
+      "luxury stays Cartagena",
+      "alojamiento centro historico Cartagena",
     ],
     secondary: [
       "alojamientos Centro Historico Cartagena",
@@ -68,9 +71,10 @@ export const seoKeywordMap: Record<SeoPageType, SeoKeywordGroup> = {
   experiences: {
     primary: [
       "private tours Cartagena",
-      "yacht rental Cartagena",
       "luxury experiences Cartagena",
-      "Islas del Rosario private tour",
+      "yacht rental Cartagena",
+      "Rosario Islands private tour",
+      "gastronomy tour Cartagena",
     ],
     secondary: [
       "Cartagena private experiences",
@@ -96,7 +100,8 @@ export const seoKeywordMap: Record<SeoPageType, SeoKeywordGroup> = {
       "Cartagena travel packages",
       "luxury Cartagena itinerary",
       "Cartagena premium package",
-      "paquetes turisticos Cartagena",
+      "honeymoon package Cartagena",
+      "Cartagena VIP package",
     ],
     secondary: [
       "Cartagena 3 day itinerary",
@@ -119,12 +124,11 @@ export const seoKeywordMap: Record<SeoPageType, SeoKeywordGroup> = {
   },
   destinations: {
     primary: [
-      "que hacer en Cartagena",
       "Centro Historico Cartagena",
       "Bocagrande Cartagena",
-      "Islas del Rosario Cartagena",
       "Getsemani Cartagena",
-      "Iglesias de Cartagena",
+      "Islas del Rosario Cartagena",
+      "Baru Cartagena",
     ],
     secondary: [
       "lugares turisticos Cartagena",
@@ -146,6 +150,36 @@ export const seoKeywordMap: Record<SeoPageType, SeoKeywordGroup> = {
       "Bocagrande Cartagena",
       "Rosario Islands Cartagena",
       "Getsemani Cartagena",
+    ],
+  },
+  blog: {
+    primary: [
+      "que hacer en Cartagena",
+      "mejores playas Cartagena",
+      "guia Cartagena",
+      "Cartagena en 3 dias",
+      "why visit Cartagena",
+    ],
+    secondary: [
+      "Cartagena travel guide",
+      "Cartagena luxury travel blog",
+      "Cartagena itinerary",
+      "Cartagena beaches guide",
+      "Cartagena recommendations",
+    ],
+    spanish: [
+      "que hacer en Cartagena",
+      "mejores playas Cartagena",
+      "guia Cartagena",
+      "Cartagena en 3 dias",
+      "recomendaciones Cartagena",
+    ],
+    english: [
+      "why visit Cartagena",
+      "Cartagena travel guide",
+      "best beaches Cartagena",
+      "Cartagena in 3 days",
+      "Cartagena itinerary",
     ],
   },
 };
@@ -194,4 +228,14 @@ export const destinationSeoEditorialTemplate = [
   "Experiencias recomendadas",
   "Consejos para visitantes",
   "Preguntas frecuentes",
+];
+
+export const blogSeoEditorialTemplate = [
+  "Titulo principal",
+  "Introduccion util",
+  "Secciones con H2 y H3",
+  "Listas practicas",
+  "Enlaces internos a destinos y productos",
+  "Recomendaciones accionables",
+  "CTA final",
 ];

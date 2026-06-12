@@ -26,6 +26,7 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
   const [paused, setPaused] = useState(false);
   const [inView, setInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [canAutoplay, setCanAutoplay] = useState(false);
 
   const clearResumeTimer = useCallback(() => {
     if (resumeTimerRef.current) {
@@ -73,16 +74,26 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
 
     setReducedMotion(mediaQuery.matches);
+    setCanAutoplay(desktopQuery.matches);
 
     function handleChange(event: MediaQueryListEvent) {
       setReducedMotion(event.matches);
     }
 
-    mediaQuery.addEventListener("change", handleChange);
+    function handleDesktopChange(event: MediaQueryListEvent) {
+      setCanAutoplay(event.matches);
+    }
 
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    mediaQuery.addEventListener("change", handleChange);
+    desktopQuery.addEventListener("change", handleDesktopChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+      desktopQuery.removeEventListener("change", handleDesktopChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -107,14 +118,22 @@ export default function ProductCarousel({ children }: ProductCarouselProps) {
   }, []);
 
   useEffect(() => {
-    if (items.length <= 1 || paused || !inView || reducedMotion) return;
+    if (
+      items.length <= 1 ||
+      paused ||
+      !inView ||
+      reducedMotion ||
+      !canAutoplay
+    ) {
+      return;
+    }
 
     const interval = setInterval(() => {
       scroll("right");
-    }, 3000);
+    }, 5200);
 
     return () => clearInterval(interval);
-  }, [inView, items.length, paused, reducedMotion, scroll]);
+  }, [canAutoplay, inView, items.length, paused, reducedMotion, scroll]);
 
   useEffect(() => {
     return () => clearResumeTimer();

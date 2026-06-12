@@ -10,11 +10,13 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Image as ImageIcon,
   MapPinned,
   Plus,
   Save,
   Star,
   Trash2,
+  Video,
 } from "lucide-react";
 
 import SeoChecklist from "@/components/admin/SeoChecklist";
@@ -62,7 +64,7 @@ type DestinationForm = {
   seoContent: string;
   faqItems: FaqFormItem[];
   heroImage: string;
-  gallery: string;
+  gallery: DestinationMediaItem[];
   location: string;
   isActive: boolean;
   isFeatured: boolean;
@@ -75,6 +77,14 @@ type DestinationForm = {
 type FaqFormItem = {
   question: string;
   answer: string;
+};
+
+type DestinationMediaItem = {
+  type: "IMAGE" | "VIDEO";
+  url: string;
+  title: string;
+  description: string;
+  isPrimary: boolean;
 };
 
 type ProductOption = {
@@ -114,7 +124,7 @@ const emptyForm: DestinationForm = {
   seoContent: "",
   faqItems: [],
   heroImage: "",
-  gallery: "",
+  gallery: [],
   location: "",
   isActive: true,
   isFeatured: false,
@@ -176,6 +186,72 @@ function stringifyFaqItems(items: FaqFormItem[]) {
   return items.length ? JSON.stringify(items, null, 2) : "";
 }
 
+function normalizeGalleryItems(value: unknown): DestinationMediaItem[] {
+  if (typeof value === "string") {
+    try {
+      return normalizeGalleryItems(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item, index) => {
+      if (typeof item === "string") {
+        return {
+          type: "IMAGE" as const,
+          url: item.trim(),
+          title: "",
+          description: "",
+          isPrimary: index === 0,
+        };
+      }
+
+      if (!item || typeof item !== "object") return null;
+
+      const source = item as {
+        type?: unknown;
+        url?: unknown;
+        title?: unknown;
+        description?: unknown;
+        isPrimary?: unknown;
+      };
+      const type = String(source.type || "IMAGE").toUpperCase() === "VIDEO"
+        ? "VIDEO"
+        : "IMAGE";
+
+      return {
+        type,
+        url: String(source.url || "").trim(),
+        title: String(source.title || "").trim(),
+        description: String(source.description || "").trim(),
+        isPrimary: Boolean(source.isPrimary),
+      };
+    })
+    .filter((item): item is DestinationMediaItem => Boolean(item?.url));
+}
+
+function galleryItemsToPayload(items: DestinationMediaItem[]) {
+  const cleanItems = items
+    .map((item, index) => ({
+      type: item.type,
+      url: item.url.trim(),
+      title: item.title.trim() || undefined,
+      description: item.description.trim() || undefined,
+      isPrimary: item.isPrimary,
+      sortOrder: index + 1,
+    }))
+    .filter((item) => item.url);
+
+  if (cleanItems.length && !cleanItems.some((item) => item.isPrimary)) {
+    cleanItems[0].isPrimary = true;
+  }
+
+  return cleanItems.length ? cleanItems : undefined;
+}
+
 function toForm(item: Destination): DestinationForm {
   return {
     id: item.id,
@@ -188,7 +264,7 @@ function toForm(item: Destination): DestinationForm {
     seoContent: item.seoContent || "",
     faqItems: normalizeFaqItems(item.faq),
     heroImage: item.heroImage || "",
-    gallery: item.gallery ? JSON.stringify(item.gallery, null, 2) : "",
+    gallery: normalizeGalleryItems(item.gallery),
     location: item.location || "",
     isActive: item.isActive !== false,
     isFeatured: Boolean(item.isFeatured),
@@ -197,17 +273,6 @@ function toForm(item: Destination): DestinationForm {
     translationStatus: item.translationStatus || "NOT_REQUESTED",
     translationError: item.translationError || null,
   };
-}
-
-function parseOptionalJson(value: string, label: string) {
-  const cleanValue = value.trim();
-  if (!cleanValue) return undefined;
-
-  try {
-    return JSON.parse(cleanValue);
-  } catch {
-    throw new Error(`${label} debe tener formato JSON valido.`);
-  }
 }
 
 function friendlyError(error: any, fallback: string) {
@@ -520,9 +585,9 @@ export default function DestinationsAdmin() {
   const [relationsLoading, setRelationsLoading] = useState(false);
   const [relationsSaving, setRelationsSaving] = useState(false);
 
-  const canCreate = useMemo(() => role === "SUPERADMIN", [role]);
+  const canCreate = useMemo(() => ["SUPERADMIN", "ADMIN"].includes(role), [role]);
   const canEdit = useMemo(() => ["SUPERADMIN", "ADMIN"].includes(role), [role]);
-  const canModerate = useMemo(() => role === "SUPERADMIN", [role]);
+  const canModerate = useMemo(() => ["SUPERADMIN", "ADMIN"].includes(role), [role]);
   const formCanManage = isNewRoute ? canCreate : canEdit;
   const filteredItems = useMemo(() => {
     const cleanSearch = search.trim().toLowerCase();
@@ -564,6 +629,53 @@ export default function DestinationsAdmin() {
       }
 
       return { ...current, [key]: value };
+    });
+  }
+
+  function addGalleryItem(type: "IMAGE" | "VIDEO" = "IMAGE") {
+    setForm((current) => ({
+      ...current,
+      gallery: [
+        ...current.gallery,
+        {
+          type,
+          url: "",
+          title: "",
+          description: "",
+          isPrimary: current.gallery.length === 0,
+        },
+      ],
+    }));
+  }
+
+  function updateGalleryItem(
+    index: number,
+    patch: Partial<DestinationMediaItem>
+  ) {
+    setForm((current) => ({
+      ...current,
+      gallery: current.gallery.map((item, itemIndex) => {
+        if (itemIndex !== index) return item;
+
+        const nextItem = { ...item, ...patch };
+        if (!patch.isPrimary) return nextItem;
+
+        return { ...nextItem, isPrimary: true };
+      }).map((item, itemIndex) =>
+        patch.isPrimary && itemIndex !== index ? { ...item, isPrimary: false } : item
+      ),
+    }));
+  }
+
+  function removeGalleryItem(index: number) {
+    setForm((current) => {
+      const gallery = current.gallery.filter((_, itemIndex) => itemIndex !== index);
+
+      if (gallery.length && !gallery.some((item) => item.isPrimary)) {
+        gallery[0] = { ...gallery[0], isPrimary: true };
+      }
+
+      return { ...current, gallery };
     });
   }
 
@@ -748,7 +860,7 @@ export default function DestinationsAdmin() {
         seoContent: form.seoContent || undefined,
         faq: faqItemsToPayload(form.faqItems),
         heroImage: form.heroImage || undefined,
-        gallery: parseOptionalJson(form.gallery, "Galeria"),
+        gallery: galleryItemsToPayload(form.gallery),
         location: form.location || undefined,
         isActive: form.isActive,
         isFeatured: form.isFeatured,
@@ -969,11 +1081,18 @@ export default function DestinationsAdmin() {
                     slug={form.slug}
                     seoTitle={form.seoTitle}
                     seoDescription={form.seoDescription}
+                    shortDescription={form.shortDescription}
                     seoContent={form.seoContent}
                     faq={form.faqItems}
                     image={form.heroImage}
                     translations={form.translations}
                     minimumWords={700}
+                    hasInternalLinks={
+                      relations.properties.length > 0 ||
+                      relations.experiences.length > 0 ||
+                      relations.packages.length > 0
+                    }
+                    internalLinksLabel="Tiene productos relacionados"
                   />
                 </div>
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -1020,6 +1139,10 @@ export default function DestinationsAdmin() {
 
               <section className="rounded-3xl border border-[#D4AF37]/20 bg-white p-5 shadow-sm">
                 <h2 className="text-xl font-bold">Multimedia</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Usa URLs publicas. Puedes agregar imagenes o videos de YouTube/Vimeo
+                  sin subir archivos al servidor.
+                </p>
                 <div className="mt-4 grid gap-4">
                   <label className="space-y-2">
                     <span className="text-sm font-semibold">Imagen principal</span>
@@ -1027,18 +1150,144 @@ export default function DestinationsAdmin() {
                       value={form.heroImage}
                       onChange={(event) => updateForm("heroImage", event.target.value)}
                       disabled={!formCanManage}
+                      placeholder="https://..."
                     />
+                    <span className="block text-xs text-slate-500">
+                      Si queda vacia, se usara la primera imagen principal de la galeria.
+                    </span>
                   </label>
-                  <label className="space-y-2">
-                    <span className="text-sm font-semibold">Galeria JSON</span>
-                    <Textarea
-                      value={form.gallery}
-                      rows={4}
-                      placeholder='["https://.../imagen-1.jpg","https://.../imagen-2.jpg"]'
-                      onChange={(event) => updateForm("gallery", event.target.value)}
-                      disabled={!formCanManage}
-                    />
-                  </label>
+                  <div className="rounded-2xl border border-[#D4AF37]/15 bg-[#F8F6F2] p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold">Galeria multimedia</h3>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Cada elemento debe tener tipo y URL. Solo se guarda la URL.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="rounded-xl"
+                          onClick={() => addGalleryItem("IMAGE")}
+                          disabled={!formCanManage}
+                        >
+                          <ImageIcon className="mr-2 h-4 w-4" />
+                          Agregar imagen
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="rounded-xl"
+                          onClick={() => addGalleryItem("VIDEO")}
+                          disabled={!formCanManage}
+                        >
+                          <Video className="mr-2 h-4 w-4" />
+                          Agregar video
+                        </Button>
+                      </div>
+                    </div>
+
+                    {form.gallery.length === 0 ? (
+                      <p className="mt-4 rounded-xl bg-white p-4 text-sm text-slate-500">
+                        No hay multimedia adicional.
+                      </p>
+                    ) : (
+                      <div className="mt-4 space-y-3">
+                        {form.gallery.map((item, index) => (
+                          <div
+                            key={`${item.type}-${index}`}
+                            className="rounded-2xl border border-[#D4AF37]/15 bg-white p-4"
+                          >
+                            <div className="grid gap-3 md:grid-cols-[140px_1fr]">
+                              <label className="space-y-2">
+                                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                  Tipo
+                                </span>
+                                <select
+                                  value={item.type}
+                                  onChange={(event) =>
+                                    updateGalleryItem(index, {
+                                      type: event.target.value === "VIDEO" ? "VIDEO" : "IMAGE",
+                                    })
+                                  }
+                                  disabled={!formCanManage}
+                                  className="h-10 w-full rounded-xl border border-[#D4AF37]/20 bg-white px-3 text-sm font-semibold outline-none focus:border-[#B68D40]"
+                                >
+                                  <option value="IMAGE">Imagen</option>
+                                  <option value="VIDEO">Video</option>
+                                </select>
+                              </label>
+                              <label className="space-y-2">
+                                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                  URL
+                                </span>
+                                <Input
+                                  value={item.url}
+                                  onChange={(event) =>
+                                    updateGalleryItem(index, { url: event.target.value })
+                                  }
+                                  disabled={!formCanManage}
+                                  placeholder="https://..."
+                                />
+                              </label>
+                              <label className="space-y-2">
+                                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                  Titulo
+                                </span>
+                                <Input
+                                  value={item.title}
+                                  onChange={(event) =>
+                                    updateGalleryItem(index, { title: event.target.value })
+                                  }
+                                  disabled={!formCanManage}
+                                />
+                              </label>
+                              <label className="space-y-2">
+                                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                  Descripcion
+                                </span>
+                                <Input
+                                  value={item.description}
+                                  onChange={(event) =>
+                                    updateGalleryItem(index, {
+                                      description: event.target.value,
+                                    })
+                                  }
+                                  disabled={!formCanManage}
+                                />
+                              </label>
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                              <label className="inline-flex items-center gap-2 text-sm font-semibold">
+                                <input
+                                  type="checkbox"
+                                  checked={item.isPrimary}
+                                  onChange={(event) =>
+                                    updateGalleryItem(index, {
+                                      isPrimary: event.target.checked,
+                                    })
+                                  }
+                                  disabled={!formCanManage}
+                                />
+                                Principal en galeria
+                              </label>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="rounded-xl text-red-700"
+                                onClick={() => removeGalleryItem(index)}
+                                disabled={!formCanManage}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </section>
 
@@ -1135,7 +1384,7 @@ export default function DestinationsAdmin() {
               Crea y optimiza zonas, barrios y lugares de interes de Cartagena.
             </p>
           </div>
-          {canCreate && (
+          {canEdit && (
             <Button asChild className="rounded-xl bg-[#0D2B52] text-white hover:bg-[#12396d]">
               <Link href="/admin/destinos/nuevo">
                 <Plus className="mr-2 h-4 w-4" />
@@ -1239,7 +1488,8 @@ export default function DestinationsAdmin() {
                     </Button>
                     <Button asChild variant="outline" size="sm" className="rounded-xl">
                       <Link href={`/admin/destinos/${item.id}/editar`}>
-                        <Edit className="mr-1 h-4 w-4" /> Editar
+                        <Edit className="mr-1 h-4 w-4" />
+                        {canEdit ? "Editar" : "Ver detalle"}
                       </Link>
                     </Button>
                     <Button

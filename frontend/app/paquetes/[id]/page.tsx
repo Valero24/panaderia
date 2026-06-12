@@ -113,12 +113,14 @@ type PackageItem = {
 };
 
 type PublicReviewSeo = {
+  status?: "APPROVED";
   customerName?: string | null;
   publicName?: string | null;
   customerCountry?: string | null;
   rating?: number | string | null;
   title?: string | null;
   comment?: string | null;
+  isFeatured?: boolean | null;
   submittedAt?: string | null;
   createdAt?: string | null;
 };
@@ -197,7 +199,9 @@ async function getApprovedReviews(item: PackageItem): Promise<PublicReviewSeo[]>
     if (!res.ok) return [];
 
     const reviews = await res.json();
-    return Array.isArray(reviews) ? reviews : [];
+    return Array.isArray(reviews)
+      ? reviews.map((review) => ({ ...review, status: "APPROVED" as const }))
+      : [];
   } catch {
     return [];
   }

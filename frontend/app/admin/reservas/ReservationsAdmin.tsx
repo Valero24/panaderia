@@ -625,6 +625,55 @@ export default function ReservasPage() {
     }
   }
 
+  async function resendEmail(requestId: string, templateKey: string) {
+    try {
+      setActionLoading(`${requestId}:email-resend:${templateKey}`);
+      setMessage("");
+
+      const token = localStorage.getItem("token");
+      const res = await fetch(apiUrl(`/email/pre-reservations/${requestId}/resend`), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ templateKey }),
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setMessage(getApiMessage(data, "No se pudo reenviar el correo."));
+        return;
+      }
+
+      const fresh = await fetchRequestById(requestId);
+
+      if (fresh) {
+        replaceRequest(fresh);
+        setSelected(fresh);
+        void fetchRequestLogs(fresh.id);
+      }
+
+      const results = Array.isArray(data) ? data : [data];
+      const sent = results.some((item) => item?.status === "sent");
+      const skipped = results.find((item) => item?.status === "skipped");
+      const failed = results.find((item) => item?.status === "failed");
+
+      if (sent) {
+        setMessage("Correo reenviado correctamente.");
+      } else if (failed) {
+        setMessage(failed.reason || "El reenvio del correo fallo.");
+      } else {
+        setMessage(skipped?.reason || "Correo procesado sin envio real.");
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage("Error de conexión reenviando correo.");
+    } finally {
+      setActionLoading("");
+    }
+  }
+
   async function sendReviewRequest(requestId: string, bookingId: number) {
     try {
       setActionLoading(`${requestId}:review-request`);
@@ -901,6 +950,7 @@ export default function ReservasPage() {
       generatePaymentLink={generatePaymentLink}
       generateManualBooking={generateManualBooking}
       sendManualNotification={sendManualNotification}
+      resendEmail={resendEmail}
       sendReviewRequest={sendReviewRequest}
       sendReviewReminder={sendReviewReminder}
       reassignRequest={reassignRequest}

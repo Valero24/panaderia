@@ -84,6 +84,7 @@ export class ReviewsService {
 
       return {
         token: booking.reviewToken,
+        reviewLink: this.buildReviewUrl(booking.reviewToken),
         reviewUrl: this.buildReviewUrl(booking.reviewToken),
         expiresAt: booking.reviewTokenExpiresAt,
         booking: this.toPublicSummary(booking),
@@ -117,6 +118,7 @@ export class ReviewsService {
 
     return {
       token,
+      reviewLink: this.buildReviewUrl(token),
       reviewUrl: this.buildReviewUrl(token),
       expiresAt,
       booking: this.toPublicSummary(updated),
@@ -254,17 +256,6 @@ export class ReviewsService {
       averageRating: averageApprovedRating,
     });
 
-    if (aggregateRatingReadiness.eligible) {
-      await this.audit.record({
-        actor,
-        action: "REVIEW_SCHEMA_READY",
-        entityType: "Review",
-        entityId: "aggregate-rating",
-        message: "Resenas aprobadas suficientes para preparar AggregateRating",
-        metadata: aggregateRatingReadiness,
-      });
-    }
-
     return {
       total,
       pending,
@@ -283,6 +274,7 @@ export class ReviewsService {
 
   async getAdminRankings(actor?: ReviewActor) {
     const take = 5;
+    const minimumApprovedReviews = this.minimumApprovedReviewsForSchema();
     const select = {
       id: true,
       title: true,
@@ -296,7 +288,25 @@ export class ReviewsService {
         gt: 0,
       },
     };
-    const [topRatedProperties, topRatedExperiences, topRatedPackages, mostReviewedProperties, mostReviewedExperiences, mostReviewedPackages] =
+    const schemaEligibleWhere = {
+      reviewCount: {
+        gte: minimumApprovedReviews,
+      },
+      averageRating: {
+        gt: 0,
+      },
+    };
+    const [
+      topRatedProperties,
+      topRatedExperiences,
+      topRatedPackages,
+      mostReviewedProperties,
+      mostReviewedExperiences,
+      mostReviewedPackages,
+      schemaEligibleProperties,
+      schemaEligibleExperiences,
+      schemaEligiblePackages,
+    ] =
       await this.prisma.$transaction([
         this.prisma.property.findMany({
           where: reviewedWhere,
@@ -334,6 +344,24 @@ export class ReviewsService {
           orderBy: [{ reviewCount: "desc" }, { averageRating: "desc" }, { id: "asc" }],
           take,
         }),
+        this.prisma.property.findMany({
+          where: schemaEligibleWhere,
+          select,
+          orderBy: [{ reviewCount: "desc" }, { averageRating: "desc" }, { id: "asc" }],
+          take,
+        }),
+        this.prisma.experience.findMany({
+          where: schemaEligibleWhere,
+          select,
+          orderBy: [{ reviewCount: "desc" }, { averageRating: "desc" }, { id: "asc" }],
+          take,
+        }),
+        this.prisma.package.findMany({
+          where: schemaEligibleWhere,
+          select,
+          orderBy: [{ reviewCount: "desc" }, { averageRating: "desc" }, { id: "asc" }],
+          take,
+        }),
       ]);
 
     await this.audit.record({
@@ -364,6 +392,15 @@ export class ReviewsService {
         this.toRankingItem(BookingType.EXPERIENCE, item)
       ),
       mostReviewedPackages: mostReviewedPackages.map((item) =>
+        this.toRankingItem(BookingType.PACKAGE, item)
+      ),
+      schemaEligibleProperties: schemaEligibleProperties.map((item) =>
+        this.toRankingItem(BookingType.PROPERTY, item)
+      ),
+      schemaEligibleExperiences: schemaEligibleExperiences.map((item) =>
+        this.toRankingItem(BookingType.EXPERIENCE, item)
+      ),
+      schemaEligiblePackages: schemaEligiblePackages.map((item) =>
         this.toRankingItem(BookingType.PACKAGE, item)
       ),
     };
@@ -514,6 +551,7 @@ export class ReviewsService {
             ? actor?.name || actor?.email || actor?.role || null
             : null,
         rejectedAt: dto.status === ReviewStatus.REJECTED ? now : null,
+        rejectionReason: dto.status === ReviewStatus.REJECTED ? dto.reason || null : null,
         featured: dto.status === ReviewStatus.APPROVED ? current.featured : false,
         moderatedAt: now,
         moderatedById: actor?.userId ?? null,
@@ -783,6 +821,11 @@ export class ReviewsService {
     }
 
     if (updatedRows > 0) {
+      const schemaReadiness = this.buildAggregateRatingReadiness({
+        reviewCount: data.reviewCount,
+        averageRating: Number(data.averageRating),
+      });
+
       await this.audit.record({
         actor,
         action: "REVIEW_RATING_CACHE_UPDATED",
@@ -797,6 +840,23 @@ export class ReviewsService {
         metadata: {
           targetType: type,
           targetId,
+        },
+      });
+
+      await this.audit.record({
+        actor,
+        action: schemaReadiness.eligible
+          ? "REVIEW_SCHEMA_ELIGIBLE"
+          : "REVIEW_SCHEMA_NOT_ELIGIBLE",
+        entityType: String(type),
+        entityId: targetId,
+        message: schemaReadiness.eligible
+          ? "Producto elegible para AggregateRating con resenas aprobadas reales"
+          : "Producto no elegible para AggregateRating",
+        metadata: {
+          targetType: type,
+          targetId,
+          ...schemaReadiness,
         },
       });
     }
@@ -1026,10 +1086,11 @@ export class ReviewsService {
     reviewTokenExpiresAt?: Date | null;
     reviews?: { id: number }[];
   }):
-    | { canReview: true; reason: null }
+    | { canReview: true; reason: "CAN_REVIEW" }
     | {
         canReview: false;
         reason:
+          | "TOKEN_NOT_FOUND"
           | "TOKEN_EXPIRED"
           | "BOOKING_NOT_CONFIRMED"
           | "BOOKING_NOT_FINISHED"
@@ -1065,7 +1126,7 @@ export class ReviewsService {
 
     return {
       canReview: true,
-      reason: null,
+      reason: "CAN_REVIEW",
     };
   }
 
@@ -1197,14 +1258,14 @@ export class ReviewsService {
     const eligible = this.canUseAggregateRating(target);
 
     return {
-      enabled: false,
+      enabled: eligible,
       minimumApprovedReviews,
       approvedReviews: reviewCount,
       averageRating: this.roundRating(averageRating),
       eligible,
       reason: eligible
-        ? "Listo para activar AggregateRating cuando el negocio lo apruebe."
-        : `Requiere al menos ${minimumApprovedReviews} resenas aprobadas reales y promedio mayor o igual a 1.`,
+        ? "Elegible para rating SEO: cuenta con reseñas aprobadas suficientes y promedio visible."
+        : `Requiere al menos ${minimumApprovedReviews} resenas aprobadas reales y promedio mayor que 0.`,
     };
   }
 
@@ -1218,7 +1279,7 @@ export class ReviewsService {
     return (
       reviewCount >= this.minimumApprovedReviewsForSchema() &&
       Number.isFinite(averageRating) &&
-      averageRating >= 1
+      averageRating > 0
     );
   }
 

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 
+import { CrmService } from "../crm/crm.service";
 import { MailService } from "../mail/mail.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateContactRequestDto } from "./dto/create-contact-request.dto";
@@ -10,7 +11,8 @@ export class ContactService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly crmService: CrmService
   ) {}
 
   async create(data: CreateContactRequestDto) {
@@ -23,6 +25,18 @@ export class ContactService {
         message: data.message.trim(),
         interestType: data.interestType,
       },
+    });
+
+    void this.crmService.createOrUpdateFromPublicContact({
+      fullName: contact.name,
+      email: contact.email,
+      phone: contact.whatsapp,
+      source: "WEBSITE",
+      message: `${contact.subject}\n\n${contact.message}`,
+    }).catch((error) => {
+      const message =
+        error instanceof Error ? error.message : "Error creando lead desde contacto";
+      this.logger.warn(`No se pudo crear lead desde contacto ${contact.id}: ${message}`);
     });
 
     try {

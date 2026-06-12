@@ -1,9 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { MailService } from "../mail/mail.service";
 import { WhatsappService } from "./whatsapp.service";
 import { OperationalNotificationStatus } from "@prisma/client";
 import { AuditService } from "../common/audit.service";
+import { EmailService } from "../email/email.service";
 
 @Injectable()
 export class NotificationsService {
@@ -11,7 +11,7 @@ export class NotificationsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService,
+    private readonly emailService: EmailService,
     private readonly whatsappService: WhatsappService,
     private readonly audit: AuditService
   ) {}
@@ -24,6 +24,14 @@ export class NotificationsService {
     payments?: { currency?: string | null }[];
   }) {
     return booking.payments?.[0]?.currency || "COP";
+  }
+
+  private summarizeEmailResult(result: any) {
+    const items = Array.isArray(result) ? result : [result];
+    if (items.some((item) => item?.status === "sent")) return "sent";
+    if (items.some((item) => item?.status === "failed")) return "failed";
+    const first = items.find(Boolean);
+    return first?.reason || first?.status || "skipped";
   }
 
   private operationalRecipients() {
@@ -247,14 +255,6 @@ export class NotificationsService {
       };
     }
 
-    if (!booking.invoicePath) {
-      return {
-        status: "missing-invoice",
-        sent: false,
-        reason: "La reserva no tiene comprobante PDF",
-      };
-    }
-
     if (booking.confirmationEmailSentAt) {
       return {
         status: "already-sent",
@@ -264,44 +264,30 @@ export class NotificationsService {
     }
 
     try {
-      const emailResult =
-        await this.mailService.sendManualReservationComprobante({
-          to: booking.customerEmail,
-          guestName: booking.customerName || "Cliente",
-          reservationCode: booking.reservationCode,
-          bookingId: booking.id,
-          productName:
-            booking.productName || `Producto #${booking.referenceId}`,
-          checkIn: booking.checkIn,
-          checkOut: booking.checkOut,
-          guests: booking.guests,
-          extras: this.extras(booking.selectedExtras),
-          total: booking.totalPrice,
-          currency: this.currencyFor(booking),
-          advisorName: booking.advisorName,
-          pdfPath: booking.invoicePath,
-        });
+      const emailResult = await this.emailService.sendBookingConfirmed(
+        booking.id,
+        undefined,
+        true
+      );
+      const status = this.summarizeEmailResult(emailResult);
 
-      if ((emailResult as any)?.skipped) {
+      if (status !== "sent") {
         return {
-          status: "skipped",
+          status,
           sent: false,
-          reason: (emailResult as any).reason || "Correo no configurado",
+          reason: status,
         };
       }
 
-      const updated = await this.prisma.booking.update({
+      const updated = await this.prisma.booking.findUnique({
         where: { id: booking.id },
-        data: {
-          confirmationEmailSentAt: new Date(),
-          notificationLastError: null,
-        },
+        select: { confirmationEmailSentAt: true },
       });
 
       return {
         status: "sent",
         sent: true,
-        sentAt: updated.confirmationEmailSentAt,
+        sentAt: updated?.confirmationEmailSentAt || new Date(),
       };
     } catch (error) {
       this.logger.warn("No se pudo enviar comprobante manual por correo");
@@ -433,41 +419,11 @@ export class NotificationsService {
 
     if (
       booking.customerEmail &&
-      booking.invoicePath &&
       !booking.confirmationEmailSentAt
     ) {
       try {
-        const emailResult =
-          await this.mailService.sendPaidReservationSummary({
-          to: booking.customerEmail,
-          guestName: booking.customerName || "Cliente",
-          bookingId: booking.id,
-          productName:
-            booking.productName || `Producto #${booking.referenceId}`,
-          checkIn: booking.checkIn,
-          checkOut: booking.checkOut,
-          guests: booking.guests,
-          extras: this.extras(booking.selectedExtras),
-          total: booking.totalPrice,
-          currency,
-          paymentMethod: booking.paymentMethod || "Wompi",
-          advisorName: booking.advisorName,
-          pdfPath: booking.invoicePath,
-        });
-
-        if ((emailResult as any)?.skipped) {
-          result.email = (emailResult as any).reason || "skipped";
-        } else {
-          await this.prisma.booking.update({
-            where: { id: booking.id },
-            data: {
-              confirmationEmailSentAt: new Date(),
-              notificationLastError: null,
-            },
-          });
-
-          result.email = "sent";
-        }
+        const emailResult = await this.emailService.sendBookingConfirmed(booking.id);
+        result.email = this.summarizeEmailResult(emailResult);
       } catch (error) {
         this.logger.warn("No se pudo enviar correo premium");
         await this.prisma.booking.update({

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { localizedAlternates } from "@/lib/i18n-seo";
+import { localizedRoutePath } from "@/lib/i18n-routes";
 import { buildMetadata } from "@/lib/seo";
 
 const title = "Destinations in Cartagena | Cartagena Tailored Travel";
@@ -12,7 +13,7 @@ const image =
 export const metadata: Metadata = buildMetadata({
   title,
   description,
-  path: "/destinos",
+  url: localizedRoutePath("destination", "es"),
   image: {
     url: image,
     width: 1200,

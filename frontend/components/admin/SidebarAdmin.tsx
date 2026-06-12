@@ -24,6 +24,7 @@ import {
   MapPinned,
   Newspaper,
   UploadCloud,
+  UsersRound,
 } from "lucide-react";
 
 const menuItems = [
@@ -43,6 +44,12 @@ const menuItems = [
     title: "Reservas",
     href: "/admin/reservas",
     icon: Calendar,
+    roles: ["SUPERADMIN", "ADMIN", "ADVISOR"],
+  },
+  {
+    title: "CRM",
+    href: "/admin/crm",
+    icon: UsersRound,
     roles: ["SUPERADMIN", "ADMIN", "ADVISOR"],
   },
   {

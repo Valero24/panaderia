@@ -63,6 +63,7 @@ type ReservationsWorkspaceProps = {
   generatePaymentLink: (id: string) => void;
   generateManualBooking: (id: string) => void;
   sendManualNotification: (id: string, channel: "email" | "whatsapp") => void;
+  resendEmail: (id: string, templateKey: string) => void;
   sendReviewRequest: (requestId: string, bookingId: number) => void;
   sendReviewReminder: (requestId: string, bookingId: number) => void;
   reassignRequest: (id: string, advisorId: number) => void;
@@ -96,6 +97,7 @@ export default function ReservationsWorkspace({
   generatePaymentLink,
   generateManualBooking,
   sendManualNotification,
+  resendEmail,
   sendReviewRequest,
   sendReviewReminder,
   reassignRequest,
@@ -291,6 +293,7 @@ export default function ReservationsWorkspace({
             onGeneratePaymentLink={generatePaymentLink}
             onGenerateManualBooking={generateManualBooking}
             onSendManualNotification={sendManualNotification}
+            onResendEmail={resendEmail}
             onSendReviewRequest={sendReviewRequest}
             onSendReviewReminder={sendReviewReminder}
             manualBookingResult={manualBookingResult}

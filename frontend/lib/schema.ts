@@ -38,6 +38,8 @@ type PublicReviewSchemaInput = {
   rating?: number | string | null;
   title?: string | null;
   comment?: string | null;
+  featured?: boolean | null;
+  isFeatured?: boolean | null;
   submittedAt?: string | Date | null;
   createdAt?: string | Date | null;
   translations?: DynamicTranslations | null;
@@ -306,12 +308,23 @@ export function buildReviewSchema(
       const rating = Number(review.rating || 0);
       const status = sanitizeSeoText(review.status || "");
       return (
-        (!status || status === "APPROVED") &&
+        status === "APPROVED" &&
         Number.isFinite(rating) &&
         rating >= 1 &&
         rating <= 5 &&
         Boolean(sanitizeSeoText(review.comment))
       );
+    })
+    .sort((first, second) => {
+      const firstFeatured = Boolean(first.isFeatured ?? first.featured);
+      const secondFeatured = Boolean(second.isFeatured ?? second.featured);
+
+      if (firstFeatured !== secondFeatured) return firstFeatured ? -1 : 1;
+
+      const firstDate = new Date(first.submittedAt || first.createdAt || 0).getTime();
+      const secondDate = new Date(second.submittedAt || second.createdAt || 0).getTime();
+
+      return secondDate - firstDate;
     })
     .slice(0, 3)
     .map((review) => {
@@ -706,7 +719,8 @@ function destinationImages(item?: PublicDestinationSchemaInput | null) {
         .map((image) => {
           if (typeof image === "string") return image;
           if (image && typeof image === "object") {
-            return (image as { url?: string | null }).url;
+            const media = image as { type?: string | null; url?: string | null };
+            return media.type === "VIDEO" ? null : media.url;
           }
           return null;
         })
@@ -876,12 +890,10 @@ export function buildBlogSchema({
         image: post.coverImage ? absoluteUrl(post.coverImage) : undefined,
         datePublished: schemaDate(post.publishedAt),
         dateModified: schemaDate(post.updatedAt || post.publishedAt),
-        author: post.authorName
-          ? {
-              "@type": "Person",
-              name: post.authorName,
-            }
-          : undefined,
+        author: {
+          "@type": post.authorName ? "Person" : "Organization",
+          name: post.authorName || brandName,
+        },
       })
     );
 
@@ -918,12 +930,10 @@ export function buildBlogPostingSchema(post: BlogPostSchemaInput) {
     image: absoluteUrl(post.coverImage || defaultOgImage.url),
     datePublished: schemaDate(post.publishedAt),
     dateModified: schemaDate(post.updatedAt || post.publishedAt),
-    author: post.authorName
-      ? {
-          "@type": "Person",
-          name: post.authorName,
-        }
-      : undefined,
+    author: {
+      "@type": post.authorName ? "Person" : "Organization",
+      name: post.authorName || brandName,
+    },
     publisher: {
       "@type": "TravelAgency",
       name: brandName,

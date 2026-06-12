@@ -153,7 +153,7 @@ export default function PackageWizard({
             />
           </div>
         )}
-        {activeStep === "pricing" && <PackagePricingStep form={form} updateForm={updateForm} canManage={canManage} />}
+        {activeStep === "pricing" && <PackagePricingStep form={form} updateForm={updateForm} canManage={canManage} hasInternalLinks={destinationIds.length > 0} />}
         {activeStep === "components" && (
           <PackageComponentsStep
             form={form}

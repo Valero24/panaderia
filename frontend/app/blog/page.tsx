@@ -20,7 +20,7 @@ import { absoluteImageUrl, buildMetadata } from "@/lib/seo";
 import { buildBlogSchema, buildCollectionPageSchema } from "@/lib/schema";
 import type { Language } from "@/i18n";
 
-export const revalidate = 300;
+export const revalidate = 900;
 
 type BlogPost = {
   id: number;
@@ -72,7 +72,7 @@ const image =
 export const metadata: Metadata = buildMetadata({
   title,
   description,
-  path: "/blog",
+  url: localizedRoutePath("blog", "es"),
   image,
   languages: localizedAlternates("blog").languages,
 });
@@ -196,6 +196,8 @@ export default async function BlogPage({
                       fill
                       sizes="(min-width: 1280px) 390px, (min-width: 768px) 50vw, 100vw"
                       quality={68}
+                      loading="lazy"
+                      fetchPriority="low"
                       className="object-cover transition duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#071E3A]/60 to-transparent" />

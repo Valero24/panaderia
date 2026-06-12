@@ -87,16 +87,17 @@ function ThumbnailPreview({
   title: string;
 }) {
   const video = isVideo(item);
+  const previewUrl = video && item.thumbnailUrl ? item.thumbnailUrl : item.url;
 
   return (
     <div className="relative h-full w-full bg-black">
-      {video ? (
+      {video && !item.thumbnailUrl ? (
         <div className="flex h-full w-full items-center justify-center bg-[#0D2B52]">
           <Play className="h-5 w-5 fill-current text-white" />
         </div>
       ) : (
         <PublicImage
-          src={item.url}
+          src={previewUrl}
           alt={item.title || title}
           fill
           sizes="120px"

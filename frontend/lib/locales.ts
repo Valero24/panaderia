@@ -103,6 +103,30 @@ export function getDefaultLocale() {
   return defaultLocale;
 }
 
+export function getLocaleOrDefault(locale?: string | null): Language {
+  return isValidLocale(locale) ? locale : defaultLocale;
+}
+
 export function localeRouteMap(locale: Language = defaultLocale) {
   return localizedSegments[locale];
+}
+
+export function getLocalizedRoute(
+  locale: Language,
+  routeKey: Exclude<PublicRouteKind, "home">
+) {
+  return localeRouteMap(getLocaleOrDefault(locale))[routeKey];
+}
+
+export function getRouteKeyFromSlug(
+  locale: Language,
+  slug?: string | null
+) {
+  if (!slug) return null;
+
+  const cleanSlug = slug.trim();
+  const routeMap = localeRouteMap(getLocaleOrDefault(locale));
+  const match = Object.entries(routeMap).find(([, value]) => value === cleanSlug);
+
+  return (match?.[0] as Exclude<PublicRouteKind, "home"> | undefined) || null;
 }

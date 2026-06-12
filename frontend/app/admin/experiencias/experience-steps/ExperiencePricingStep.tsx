@@ -14,6 +14,7 @@ type ExperiencePricingStepProps = {
   form: ExperienceForm;
   updateForm: ExperienceFormUpdate;
   canManage: boolean;
+  hasInternalLinks?: boolean;
 };
 
 const seoCategorySuggestions = [
@@ -31,6 +32,7 @@ export default function ExperiencePricingStep({
   form,
   updateForm,
   canManage,
+  hasInternalLinks = false,
 }: ExperiencePricingStepProps) {
   const primaryImage =
     form.mainImage ||
@@ -77,11 +79,14 @@ export default function ExperiencePricingStep({
             slug={form.slug}
             seoTitle={form.seoTitle}
             seoDescription={form.seoDescription}
+            shortDescription={form.shortDescription}
             seoContent={form.seoContent}
             faq={form.faq}
             image={primaryImage}
             translations={form.translations}
             minimumWords={500}
+            hasInternalLinks={hasInternalLinks}
+            internalLinksLabel="Tiene destinos relacionados"
           />
 
           <div className="grid gap-5 md:grid-cols-2">

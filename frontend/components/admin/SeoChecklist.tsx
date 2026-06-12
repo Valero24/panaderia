@@ -1,17 +1,22 @@
 "use client";
 
-import { CheckCircle2, Circle, Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Circle, Sparkles } from "lucide-react";
+
 import type { TranslationMap } from "@/components/admin/translations-model";
+import { faqQualityStatus, faqWarnings, normalizeFaq } from "@/lib/faq";
 
 type SeoChecklistProps = {
   slug?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  shortDescription?: string | null;
   seoContent?: string | null;
   faq?: unknown;
   image?: string | null;
   translations?: TranslationMap | null;
   minimumWords?: number;
+  hasInternalLinks?: boolean;
+  internalLinksLabel?: string;
 };
 
 function hasText(value: unknown) {
@@ -23,62 +28,82 @@ function wordCount(value: unknown) {
   return String(value).trim().split(/\s+/).filter(Boolean).length;
 }
 
-function hasFaq(value: unknown): boolean {
-  if (Array.isArray(value)) {
-    return value.some((item) => {
-      if (!item || typeof item !== "object") return false;
-      const source = item as { question?: unknown; answer?: unknown };
-      return hasText(source.question) && hasText(source.answer);
-    });
-  }
-
-  if (!hasText(value)) return false;
-
-  try {
-    const parsed = JSON.parse(String(value));
-    return hasFaq(parsed);
-  } catch {
-    return String(value).trim().length > 20;
-  }
-}
-
 function hasEnglishTranslation(translations?: TranslationMap | null) {
   const english = translations?.en;
   if (!english) return false;
   return Object.values(english).some((value) => hasText(value));
 }
 
+function hasAnyTranslation(translations?: TranslationMap | null) {
+  if (!translations) return false;
+  return Object.values(translations).some((fields) =>
+    Object.values(fields || {}).some((value) => hasText(value))
+  );
+}
+
 function seoStatus(completed: number, total: number) {
   if (completed >= total) return "Excelente";
   if (completed >= Math.ceil(total * 0.75)) return "Bueno";
-  return "Básico";
+  return "Basico";
 }
 
 export default function SeoChecklist({
   slug,
   seoTitle,
   seoDescription,
+  shortDescription,
   seoContent,
   faq,
   image,
   translations,
   minimumWords = 700,
+  hasInternalLinks = false,
+  internalLinksLabel = "Tiene relaciones internas",
 }: SeoChecklistProps) {
   const words = wordCount(seoContent);
+  const titleLength = String(seoTitle || "").trim().length;
+  const descriptionLength = String(seoDescription || "").trim().length;
+  const faqItems = normalizeFaq(faq);
+  const faqStatus = faqQualityStatus(faq);
   const checks = [
     { label: "Tiene slug", done: hasText(slug) },
-    { label: "Tiene título SEO", done: hasText(seoTitle) },
-    { label: "Tiene meta descripción", done: hasText(seoDescription) },
+    { label: "Tiene titulo SEO", done: hasText(seoTitle) },
+    { label: "Tiene meta descripcion", done: hasText(seoDescription) },
+    { label: "Tiene descripcion corta", done: hasText(shortDescription) },
     { label: "Tiene contenido SEO", done: hasText(seoContent) },
-    { label: "Tiene FAQ", done: hasFaq(faq) },
-    { label: "Tiene imagen principal", done: hasText(image) },
-    { label: "Tiene traducción EN", done: hasEnglishTranslation(translations) },
     {
-      label: `Tiene contenido mínimo recomendado (${minimumWords}+ palabras)`,
+      label: `FAQ configurada (${faqItems.length} preguntas)`,
+      done: faqItems.length > 0,
+      hint: faqStatus,
+    },
+    { label: "Tiene imagen principal", done: hasText(image) },
+    { label: internalLinksLabel, done: hasInternalLinks },
+    { label: "Tiene traduccion EN", done: hasEnglishTranslation(translations) },
+    { label: "Tiene traducciones", done: hasAnyTranslation(translations) },
+    {
+      label: `Tiene contenido minimo recomendado (${minimumWords}+ palabras)`,
       done: words >= minimumWords,
       hint: `${words} palabras`,
     },
   ];
+  const warnings = [
+    titleLength > 70
+      ? `Titulo SEO supera 70 caracteres (${titleLength}).`
+      : null,
+    descriptionLength > 160
+      ? `Meta descripcion supera 160 caracteres (${descriptionLength}).`
+      : null,
+    hasText(seoContent) && words < minimumWords
+      ? `Contenido SEO corto: ${words}/${minimumWords} palabras recomendadas.`
+      : null,
+    faqItems.length === 0 ? "Falta FAQ visible." : null,
+    faqItems.length > 0 && faqItems.length < 3
+      ? `FAQ basica: ${faqItems.length}/3 preguntas recomendadas como minimo.`
+      : null,
+    ...faqWarnings(faq),
+    !hasText(image) ? "Falta imagen principal." : null,
+    !hasInternalLinks ? "Falta relacion interna con destinos o productos." : null,
+  ].filter((item): item is string => Boolean(item));
   const completed = checks.filter((item) => item.done).length;
   const status = seoStatus(completed, checks.length);
   const statusClass =
@@ -129,6 +154,23 @@ export default function SeoChecklist({
           </div>
         ))}
       </div>
+
+      {warnings.length > 0 && (
+        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-center gap-2 text-sm font-bold text-amber-800">
+            <AlertTriangle className="h-4 w-4" />
+            Advertencias de calidad
+          </div>
+          <ul className="mt-3 space-y-2 text-sm text-amber-800">
+            {warnings.map((warning) => (
+              <li key={warning} className="flex gap-2">
+                <span aria-hidden="true">-</span>
+                <span>{warning}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

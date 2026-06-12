@@ -28,8 +28,11 @@ export type ProductMediaItem = {
   title?: string | null;
   description?: string | null;
   isPrimary?: boolean | null;
+  isMain?: boolean | null;
   active?: boolean | null;
+  isActive?: boolean | null;
   sortOrder?: number | null;
+  thumbnailUrl?: string | null;
 };
 
 type ProductMediaGalleryProps = {
@@ -63,25 +66,31 @@ function MediaPreview({
   priority?: boolean;
 }) {
   const video = isVideo(item);
+  const previewUrl = video && item.thumbnailUrl ? item.thumbnailUrl : item.url;
 
   return (
     <div className={`relative h-full w-full overflow-hidden bg-slate-200 ${className || ""}`}>
-      {video ? (
-        <div className="flex h-full w-full items-center justify-center bg-[#0D2B52]">
-          <Play className="h-8 w-8 fill-current text-white" />
-        </div>
-      ) : (
+      {previewUrl && (!video || item.thumbnailUrl) ? (
         <PublicImage
-          src={item.url}
+          src={previewUrl}
           alt={item.title || title}
           fill
           sizes="(min-width: 1280px) 580px, (min-width: 1024px) 50vw, 100vw"
           quality={74}
           optimizeWidth={1100}
           priority={priority}
-          fetchPriority={priority ? "high" : undefined}
+          loading={priority ? undefined : "lazy"}
+          fetchPriority={priority ? "high" : "low"}
           className="premium-media object-cover transition duration-500 group-hover:scale-[1.03]"
         />
+      ) : video ? (
+        <div className="flex h-full w-full items-center justify-center bg-[#0D2B52]">
+          <Play className="h-8 w-8 fill-current text-white" />
+        </div>
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-slate-100 text-slate-400">
+          <ImageIcon className="h-8 w-8" />
+        </div>
       )}
 
       {video && (
@@ -109,6 +118,12 @@ export default function ProductMediaGallery({
 
   const items = useMemo(() => {
     const active = (media || [])
+      .map((item) => ({
+        ...item,
+        mediaType: item.mediaType || ((item as any).type as string) || "IMAGE",
+        isPrimary: item.isPrimary ?? item.isMain,
+        active: item.active ?? item.isActive ?? true,
+      }))
       .filter((item) => item?.url && item.active !== false)
       .sort((a, b) => {
         if (a.isPrimary) return -1;

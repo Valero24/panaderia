@@ -55,6 +55,7 @@ type ReviewDetail = {
   approvedById?: number | null;
   approvedByName?: string | null;
   rejectedAt?: string | null;
+  rejectionReason?: string | null;
   moderatedAt?: string | null;
   booking?: {
     id: number;
@@ -466,6 +467,7 @@ export default function OpinionDetailPage() {
                       ["Aprobada", formatDate(review.approvedAt)],
                       ["Aprobada por", review.approvedByName || "Sin aprobador"],
                       ["Rechazada", formatDate(review.rejectedAt)],
+                      ["Razón de rechazo", review.rejectionReason || "Sin razón registrada"],
                       ["Última moderación", formatDate(review.moderatedAt)],
                       ["Destacada", review.featured ? "Sí" : "No"],
                     ]}

@@ -35,6 +35,9 @@ import { DestinationsModule } from "./destinations/destinations.module";
 import { BlogModule } from "./blog/blog.module";
 import { TranslationsModule } from "./translations/translations.module";
 import { BulkImportModule } from "./bulk-import/bulk-import.module";
+import { MediaModule } from "./media/media.module";
+import { CrmModule } from "./crm/crm.module";
+import { EmailModule } from "./email/email.module";
 
 @Module({
   imports: [
@@ -80,6 +83,9 @@ import { BulkImportModule } from "./bulk-import/bulk-import.module";
     BlogModule,
     TranslationsModule,
     BulkImportModule,
+    MediaModule,
+    CrmModule,
+    EmailModule,
   ],
 
   controllers: [AppController],

@@ -140,7 +140,7 @@ export default function ExperienceWizard({
             />
           </div>
         )}
-        {activeStep === "pricing" && <ExperiencePricingStep form={form} updateForm={updateForm} canManage={canManage} />}
+        {activeStep === "pricing" && <ExperiencePricingStep form={form} updateForm={updateForm} canManage={canManage} hasInternalLinks={destinationIds.length > 0} />}
         {activeStep === "premium" && (
           <ExperiencePremiumServicesStep
             editingId={editingId}

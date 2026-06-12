@@ -99,6 +99,7 @@ export default function AppChrome({
   const enableGuidedScroll = Boolean(guidedRouteKey);
   const [isDesktopGuidedScroll, setIsDesktopGuidedScroll] = useState(false);
   const [showDeferredPublicWidgets, setShowDeferredPublicWidgets] = useState(false);
+  const [guidedScrollReady, setGuidedScrollReady] = useState(false);
 
   useEffect(() => {
     if (!showPublicChrome) {
@@ -110,16 +111,37 @@ export default function AppChrome({
 
     if (typeof window.requestIdleCallback === "function") {
       const idleCallback = window.requestIdleCallback(schedule, {
-        timeout: 1800,
+        timeout: 2600,
       });
 
       return () => window.cancelIdleCallback(idleCallback);
     }
 
-    const timeout = globalThis.setTimeout(schedule, 1200);
+    const timeout = globalThis.setTimeout(schedule, 1800);
 
     return () => globalThis.clearTimeout(timeout);
   }, [showPublicChrome]);
+
+  useEffect(() => {
+    if (!enableGuidedScroll || !showPublicChrome) {
+      setGuidedScrollReady(false);
+      return;
+    }
+
+    const schedule = () => setGuidedScrollReady(true);
+
+    if (typeof window.requestIdleCallback === "function") {
+      const idleCallback = window.requestIdleCallback(schedule, {
+        timeout: 1200,
+      });
+
+      return () => window.cancelIdleCallback(idleCallback);
+    }
+
+    const timeout = globalThis.setTimeout(schedule, 600);
+
+    return () => globalThis.clearTimeout(timeout);
+  }, [enableGuidedScroll, showPublicChrome]);
 
   useEffect(() => {
     if (!enableGuidedScroll) {
@@ -163,7 +185,7 @@ export default function AppChrome({
           isDesktopGuidedScroll ? "public-guided-scroll-main" : ""
         }`}
       >
-        {isDesktopGuidedScroll && guidedRouteKey && (
+        {guidedScrollReady && isDesktopGuidedScroll && guidedRouteKey && (
           <SectionScrollNavigator
             sections={guidedScrollSections[guidedRouteKey] || []}
             sectionOffsets={guidedScrollOffsets[guidedRouteKey]}
